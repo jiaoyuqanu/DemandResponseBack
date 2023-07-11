@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.ConsSubsidyPayMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyPay">
+        <id column="pay_id" property="payId" />
+        <result column="CONS_ID" property="consId" />
+        <result column="pay_no" property="payNo" />
+        <result column="begin_date" property="beginDate" />
+        <result column="end_date" property="endDate" />
+        <result column="subsidy_amount" property="subsidyAmount" />
+        <result column="partic_num" property="particNum" />
+        <result column="pay_status" property="payStatus" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+
+        <association property="cons" javaType="com.xqxy.sys.modular.cust.entity.Cons">
+            <result column="cons_name" property="consName"/>
+            <result column="id" property="id"/>
+            <result column="org_no" property="orgNo"/>
+            <result column="org_name" property="orgName"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        pay_id, CONS_ID, pay_no, begin_date, end_date, subsidy_amount, partic_num, pay_status, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="consSubsidyPayPage" resultMap="BaseResultMap">
+        select
+            s.*, c.id, c.cons_name, c.org_no, c.org_name
+        from
+            dr_cons_subsidy_pay s, dr_cons c
+        <where>
+            s.cons_id = c.id
+            <if test="map.payNo != null and map.payNo != ''">
+                and s.pay_no = #{map.payNo}
+            </if>
+
+            <if test="map.consId != null and map.consId != ''">
+                and s.cons_id like concat('%', #{map.consId}, '%')
+            </if>
+
+            <if test="map.consName != null and map.consName != ''">
+                and c.cons_name like concat('%', #{map.consName}, '%')
+            </if>
+
+            <if test="map.orgNo != null and map.orgNo != ''">
+                and c.org_no = #{map.orgNo}
+            </if>
+        </where>
+    </select>
+
+</mapper>

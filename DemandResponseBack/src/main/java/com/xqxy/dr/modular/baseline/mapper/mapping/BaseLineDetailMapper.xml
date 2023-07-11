@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.baseline.mapper.BaseLineDetailMapper">
+    <select id="getBaseLineDetailPage"  resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetail">
+              SELECT
+        ( @i := @i + 1 ) AS sort,
+        a.*
+    FROM
+        (
+        SELECT
+            dcb.baseline_id as baselineId,
+            dcb.baseline_lib_id as baselineLibId,
+            dcb.cons_id as consNo,
+            dcb.cons_name as consName,
+            dcb.max_load_baseline as maxLoadBaseline,
+            dcb.min_load_baseline as minLoadBaseline,
+            dcb.avg_load_baseline as avgLoadBaseline,
+            dcb.exception_remark as exceptionRemark,
+            dcb.normal as normal,
+            dcb.cal_rule as calRule
+        FROM
+            dr_cons_baseline dcb
+            left join dr_cons con on con.id = dcb.cons_id
+        <where>
+			1=1
+            <if test="param.baselinId != null ">
+                and dcb.baseline_lib_id =#{param.baselinId}
+            </if>
+			<if test="param.consId != null and param.consId !=''">
+				and dcb.cons_id like concat('%', #{param.consId}, '%')
+			</if>
+			<if test="param.name != null and param.name !=''">
+				and dcb.cons_name like concat('%', #{param.name}, '%')
+			</if>
+			<if test="param.normal != null and param.normal !=''">
+				and dcb.normal like concat('%', #{param.normal}, '%')
+			</if>
+			<if test="param.orgs != null and param.orgs.size > 0">
+				AND con.ORG_NO in
+				<foreach collection='param.orgs' item='item' open='(' separator=',' close=')'>
+					#{item}
+				</foreach>
+			</if>
+        </where>
+        ORDER BY
+		dcb.baseline_id desc
+            ) a,(
+        SELECT
+        @i := 0
+        ) AS i
+    </select>
+
+	<select id="getBaseLineDetailCustPage"  resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetail">
+		SELECT
+		( @i := @i + 1 ) AS sort,
+		a.*
+		FROM
+		(
+		SELECT
+		dcb.baseline_id as baselineId,
+		dcb.cust_id as custId,
+		dcb.cust_name as custName,
+		dc.CREDIT_CODE as creditCode,
+		dcb.max_load_baseline as maxLoadBaseline,
+		dcb.min_load_baseline as minLoadBaseline,
+		dcb.avg_load_baseline as avgLoadBaseline,
+		dcb.exception_remark as exceptionRemark,
+		dcb.normal as normal,
+		dcb.cal_rule as calRule
+		FROM
+		dr_cust_baseline dcb
+		LEFT JOIN dr_cust dc on dc.id = dcb.cust_id
+		<where>
+		dc.integrator = 1
+			<if test="param.baselinId != null ">
+				and dcb.baseline_lib_id =#{param.baselinId}
+			</if>
+			<if test="param.creditCode != null and param.creditCode !=''">
+				and dc.CREDIT_CODE like concat('%', #{param.creditCode}, '%')
+			</if>
+			<if test="param.name != null and param.name !=''">
+				and dcb.cust_name like concat('%', #{param.name}, '%')
+			</if>
+			<if test="param.normal != null and param.normal !=''">
+				and dcb.normal like concat('%', #{param.normal}, '%')
+			</if>
+		</where>
+		ORDER BY
+		dcb.baseline_id desc
+		) a,(
+		SELECT
+		@i := 0
+		) AS i
+	</select>
+
+    <select id="getCount" parameterType="com.xqxy.dr.modular.baseline.param.BaseLineDetailParam" resultType="INTEGER">
+        select count(*) from
+        dr_cons_baseline dcb
+        LEFT JOIN dr_cons dc on dc.id = dcb.CONS_ID
+        <where>
+            <if test="baselinId != null ">
+                dcb.baseline_lib_id =#{baselinId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getDetailData" parameterType="LONG" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetailData">
+        SELECT
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20,
+	p21,
+	p22,
+	p23,
+	p24,
+	p25,
+	p26,
+	p27,
+	p28,
+	p29,
+	p30,
+	p31,
+	p32,
+	p33,
+	p34,
+	p35,
+	p36,
+	p37,
+	p38,
+	p39,
+	p40,
+	p41,
+	p42,
+	p43,
+	p44,
+	p45,
+	p46,
+	p47,
+	p48,
+	p49,
+	p50,
+	p51,
+	p52,
+	p53,
+	p54,
+	p55,
+	p56,
+	p57,
+	p58,
+	p59,
+	p60,
+	p61,
+	p62,
+	p63,
+	p64,
+	p65,
+	p66,
+	p67,
+	p68,
+	p69,
+	p70,
+	p71,
+	p72,
+	p73,
+	p74,
+	p75,
+	p76,
+	p77,
+	p78,
+	p79,
+	p80,
+	p81,
+	p82,
+	p83,
+	p84,
+	p85,
+	p86,
+	p87,
+	p88,
+	p89,
+	p90,
+	p91,
+	p92,
+	p93,
+	p94,
+	p95,
+	p96
+FROM
+	dr_cons_baseline
+	where baseline_id=#{baselineId}
+    </select>
+
+	<select id="getConsIdAndBaselineLibId" parameterType="LONG" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetail">
+	SELECT cons_id as consId,baseline_lib_id as baselineLibId
+	FROM
+	dr_cons_baseline
+	where baseline_id=#{baselineId}
+	</select>
+
+	<select id="getDetailData2" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetailData">
+        SELECT
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20,
+	p21,
+	p22,
+	p23,
+	p24,
+	p25,
+	p26,
+	p27,
+	p28,
+	p29,
+	p30,
+	p31,
+	p32,
+	p33,
+	p34,
+	p35,
+	p36,
+	p37,
+	p38,
+	p39,
+	p40,
+	p41,
+	p42,
+	p43,
+	p44,
+	p45,
+	p46,
+	p47,
+	p48,
+	p49,
+	p50,
+	p51,
+	p52,
+	p53,
+	p54,
+	p55,
+	p56,
+	p57,
+	p58,
+	p59,
+	p60,
+	p61,
+	p62,
+	p63,
+	p64,
+	p65,
+	p66,
+	p67,
+	p68,
+	p69,
+	p70,
+	p71,
+	p72,
+	p73,
+	p74,
+	p75,
+	p76,
+	p77,
+	p78,
+	p79,
+	p80,
+	p81,
+	p82,
+	p83,
+	p84,
+	p85,
+	p86,
+	p87,
+	p88,
+	p89,
+	p90,
+	p91,
+	p92,
+	p93,
+	p94,
+	p95,
+	p96
+FROM
+	dr_cons_baseline_all
+	where baseline_lib_id = #{baselineLibId} and cons_id = #{consId}
+    </select>
+
+	<select id="getDetailDataCust" parameterType="LONG" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetailData">
+        SELECT
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20,
+	p21,
+	p22,
+	p23,
+	p24,
+	p25,
+	p26,
+	p27,
+	p28,
+	p29,
+	p30,
+	p31,
+	p32,
+	p33,
+	p34,
+	p35,
+	p36,
+	p37,
+	p38,
+	p39,
+	p40,
+	p41,
+	p42,
+	p43,
+	p44,
+	p45,
+	p46,
+	p47,
+	p48,
+	p49,
+	p50,
+	p51,
+	p52,
+	p53,
+	p54,
+	p55,
+	p56,
+	p57,
+	p58,
+	p59,
+	p60,
+	p61,
+	p62,
+	p63,
+	p64,
+	p65,
+	p66,
+	p67,
+	p68,
+	p69,
+	p70,
+	p71,
+	p72,
+	p73,
+	p74,
+	p75,
+	p76,
+	p77,
+	p78,
+	p79,
+	p80,
+	p81,
+	p82,
+	p83,
+	p84,
+	p85,
+	p86,
+	p87,
+	p88,
+	p89,
+	p90,
+	p91,
+	p92,
+	p93,
+	p94,
+	p95,
+	p96
+FROM
+	dr_cust_baseline
+	where baseline_id=#{baselineId}
+    </select>
+
+	<select id="baselineSendList" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineSend">
+		select * from dr_cons_baseline_all
+		where
+		baseline_lib_id = #{baselineLibId}
+		<if test="consIds!= null and consIds.size()>0 ">
+			AND cons_id IN
+			<foreach collection='consIds' item='item' index='index'  open='(' separator=',' close=')'>
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getDrConsBaselineOne"  parameterType="java.lang.String"
+			resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetail">
+	SELECT
+	t4.max_load_baseline,
+	t4.min_load_baseline,
+	t4.avg_load_baseline,
+	t4.cons_id,
+	t4.cons_name,
+	t4.simples_date,
+	t5.CONTRACT_CAP,
+	t4.p1,
+	t4.p2,
+	t4.p3,
+	t4.p4,
+	t4.p5,
+	t4.p6,
+	t4.p7,
+	t4.p8,
+	t4.p9,
+	t4.p10,
+	t4.p11,
+	t4.p12,
+	t4.p13,
+	t4.p14,
+	t4.p15,
+	t4.p16,
+	t4.p17,
+	t4.p18,
+	t4.p19,
+	t4.p20,
+	t4.p21,
+	t4.p22,
+	t4.p23,
+	t4.p24,
+	t4.p25,
+	t4.p26,
+	t4.p27,
+	t4.p28,
+	t4.p29,
+	t4.p30,
+	t4.p31,
+	t4.p32,
+	t4.p33,
+	t4.p34,
+	t4.p35,
+	t4.p36,
+	t4.p37,
+	t4.p38,
+	t4.p39,
+	t4.p40,
+	t4.p41,
+	t4.p42,
+	t4.p43,
+	t4.p44,
+	t4.p45,
+	t4.p46,
+	t4.p47,
+	t4.p48,
+	t4.p49,
+	t4.p50,
+	t4.p51,
+	t4.p52,
+	t4.p53,
+	t4.p54,
+	t4.p55,
+	t4.p56,
+	t4.p57,
+	t4.p58,
+	t4.p59,
+	t4.p60,
+	t4.p61,
+	t4.p62,
+	t4.p63,
+	t4.p64,
+	t4.p65,
+	t4.p66,
+	t4.p67,
+	t4.p68,
+	t4.p69,
+	t4.p70,
+	t4.p71,
+	t4.p72,
+	t4.p73,
+	t4.p74,
+	t4.p75,
+	t4.p76,
+	t4.p77,
+	t4.p78,
+	t4.p79,
+	t4.p80,
+	t4.p81,
+	t4.p82,
+	t4.p83,
+	t4.p84,
+	t4.p85,
+	t4.p86,
+	t4.p87,
+	t4.p88,
+	t4.p89,
+	t4.p90,
+	t4.p91,
+	t4.p92,
+	t4.p93,
+	t4.p94,
+	t4.p95,
+	t4.p96
+	from
+	dr_cons_baseline t4
+	left join dr_cons t5 on t4.cons_id=t5.ID
+	WHERE
+	t4.baseline_lib_id=#{baselinId}
+	and t4.cons_id=#{consId}
+	</select>
+</mapper>

@@ -1,0 +1,250 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.enums.YesOrNotEnum;
+import com.xqxy.dr.modular.event.entity.ConsInvitation;
+import com.xqxy.dr.modular.event.entity.CustInvitation;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.enums.ParticipateTypeEnum;
+import com.xqxy.dr.modular.event.mapper.CustInvitationMapper;
+import com.xqxy.dr.modular.event.param.ConsInvitationParam;
+import com.xqxy.dr.modular.event.param.CustInvitationParam;
+import com.xqxy.dr.modular.event.service.ConsInvitationService;
+import com.xqxy.dr.modular.event.service.CustInvitationService;
+import com.xqxy.dr.modular.project.entity.ConsContractInfo;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * <p>
+ * 客户邀约 服务实现类
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+@Service
+public class CustInvitationServiceImpl extends ServiceImpl<CustInvitationMapper, CustInvitation> implements CustInvitationService {
+
+    @Resource
+    ConsService consService;
+
+    @Resource
+    ConsInvitationService consInvitationService;
+    @Override
+    public void delete(CustInvitationParam custInvitationParam) {
+        LambdaQueryWrapper<CustInvitation> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(custInvitationParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getEventId())) {
+                queryWrapper.eq(CustInvitation::getEventId, custInvitationParam.getEventId());
+            }
+
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getCustId())) {
+                queryWrapper.eq(CustInvitation::getCustId, custInvitationParam.getCustId());
+            }
+
+            // 根据邀约轮次查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getInvitationRound())) {
+                queryWrapper.eq(CustInvitation::getInvitationRound, custInvitationParam.getInvitationRound());
+            }
+        }
+        this.remove(queryWrapper);
+
+    }
+
+    @Override
+    public Object list(CustInvitationParam custInvitationParam) {
+
+        LambdaQueryWrapper<CustInvitation> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(custInvitationParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getEventId())) {
+                queryWrapper.eq(CustInvitation::getEventId, custInvitationParam.getEventId());
+            }
+
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getCustId())) {
+                queryWrapper.eq(CustInvitation::getCustId, custInvitationParam.getCustId());
+            }
+
+            // 是否参与
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getIsParticipate())) {
+                queryWrapper.eq(CustInvitation::getIsParticipate, custInvitationParam.getIsParticipate());
+            }
+        }
+
+        //根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc(CustInvitation::getCreateTime);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public Page<CustInvitation> page(CustInvitationParam custInvitationParam) {
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(custInvitationParam)) {
+            // 根据事件ID模糊查询
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getEventId())) {
+                queryWrapper.eq("inv.event_id", custInvitationParam.getEventId());
+            }
+            if (ObjectUtil.isNotEmpty(custInvitationParam.getIsReply())) {
+                queryWrapper.eq("inv.is_reply", custInvitationParam.getIsReply());
+            }
+            // 用户名
+            if (ObjectUtil.isNotNull(custInvitationParam.getCustName()) && !"".equals(custInvitationParam.getCustName())) {
+                queryWrapper.like("c.legal_name", custInvitationParam.getCustName());
+            }
+            // 营销户号(需求响应2.0中，consId就是营销户号)
+            if (ObjectUtil.isNotNull(custInvitationParam.getIsParticipate()) && !"".equals(custInvitationParam.getIsParticipate())) {
+                queryWrapper.eq("inv.is_participate", custInvitationParam.getIsParticipate());
+            }
+            if (ObjectUtil.isNotNull(custInvitationParam.getIntegrator()) && !"".equals(custInvitationParam.getIntegrator())) {
+                queryWrapper.eq("c.integrator", custInvitationParam.getIntegrator());
+            }
+            if (ObjectUtil.isNotNull(custInvitationParam.getCreditCode()) && !"".equals(custInvitationParam.getCreditCode())) {
+                queryWrapper.like("c.credit_code", custInvitationParam.getCreditCode());
+            }
+            //事件发布以后才可看反馈数据
+            List<String> status = new ArrayList<>();
+            status.add("06");
+            status.add("03");
+            status.add("04");
+            queryWrapper.in("e.event_status",status);
+
+
+            if (ObjectUtil.isNotNull(custInvitationParam.getSortColumn())) {
+                if (custInvitationParam.getOrder().equals("asc")) {
+                    queryWrapper.orderByAsc("reply_cap");
+                } else {
+                    queryWrapper.orderByDesc("reply_cap");
+                }
+            }
+
+
+         /*   // 省码
+            if (ObjectUtil.isNotNull(eventInvitationParam.getProvinceCode()) && !"".equals(eventInvitationParam.getProvinceCode())) {
+                queryWrapper.eq("dcd.province_code", eventInvitationParam.getProvinceCode());
+            }
+            // 市码
+            if (ObjectUtil.isNotNull(eventInvitationParam.getCityCode()) && !"".equals(eventInvitationParam.getCityCode())) {
+                queryWrapper.eq("dcd.city_code", eventInvitationParam.getCityCode());
+            }
+            // 区码
+            if (ObjectUtil.isNotNull(eventInvitationParam.getCountyCode()) && !"".equals(eventInvitationParam.getCountyCode())) {
+                queryWrapper.eq("dcd.county_code", eventInvitationParam.getCountyCode());
+            }*/
+
+        }
+        Page<CustInvitation> custInvitationPage = getBaseMapper().getReplyPageCust(custInvitationParam.getPage(), queryWrapper);
+        return custInvitationPage;
+    }
+
+    @Override
+    public LocalDateTime getMaxDeadlineTimeByEventId(Long eventId) {
+        return getBaseMapper().getMaxDeadlineTimeByEventId(eventId);
+    }
+
+    @Override
+    public LocalDateTime getMaxDeadlineTimeByEventIdAndState(Long eventId,String synchToPlan) {
+        return getBaseMapper().getMaxDeadlineTimeByEventIdAndState(eventId,synchToPlan);
+    }
+
+    @Override
+    public List<CustInvitation> listOrder(Long eventId) {
+        LambdaQueryWrapper<CustInvitation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CustInvitation::getEventId,eventId);
+        queryWrapper.eq(CustInvitation::getIsParticipate, YesOrNotEnum.Y.getCode());
+        queryWrapper.orderByAsc(CustInvitation::getReplyPrice);
+        queryWrapper.orderByDesc(CustInvitation::getReplyCap);
+        return this.list(queryWrapper);
+    }
+    @Override
+    public void submitFeedback (ConsInvitationParam consInvitationParam, Event event, ConsContractInfo consContractInfo)
+    {
+        Long custId=null;
+        if(null!=consContractInfo) {
+            custId = consContractInfo.getCustId();
+        }
+        if(null==custId) {
+            return;
+        }
+        //从 关联表 查询该custId 代理的所有户号
+        List<String> consIdList=consService.getConsIdListByCust(custId);
+
+        // 根据户号 返回 所有consId的 已反馈 记录 返回list
+        consInvitationParam.setConsIdList(consIdList);
+        consInvitationParam.setIsParticipate("Y");
+        consInvitationParam.setConsId(null);
+        //是否参与 固定传Y consid置空
+        List<ConsInvitation> consInvitationList = consInvitationService.list(consInvitationParam);
+
+        CustInvitationParam custInvitationParam=new CustInvitationParam();
+        custInvitationParam.setCustId(custId);
+        custInvitationParam.setEventId(consInvitationParam.getEventId());
+        List<CustInvitation> custInvitations= (List<CustInvitation>)(this.list(custInvitationParam));
+
+        if(CollectionUtil.isNotEmpty(custInvitations)&&custInvitations.size()>0) {
+            BigDecimal replyCap=new BigDecimal(0);
+            CustInvitation custInvitation=custInvitations.get(0);
+            custInvitation.setReplyTime(LocalDateTime.now());
+            custInvitation.setReplySource(ParticipateTypeEnum.XQXY_WEB.getCode());
+
+            // list不为空  存在 并累加修改，
+            if(!CollectionUtils.isEmpty(consInvitationList)){
+                for(ConsInvitation consInvitation:consInvitationList) {
+
+                    if(consInvitation.getIsParticipate().equals("Y")) {
+                        custInvitation.setIsParticipate("Y");
+                    }
+                    custInvitation.setIsReply("1");
+                    if(ObjectUtil.isNotEmpty(consInvitation.getReplyCap())) {
+                        replyCap = replyCap.add(consInvitation.getReplyCap());
+                    }
+                }
+                custInvitation.setReplyCap(replyCap);
+            }else {
+                //为空，则响应负荷改为0， 客户邀约改为不参与
+                custInvitation.setIsParticipate("N");
+                custInvitation.setIsReply("1");
+                custInvitation.setReplyCap(replyCap);
+            }
+            custInvitation.setSynchToPlan(YesOrNotEnum.N.getCode());
+            this.updateById(custInvitation);
+        }
+    }
+
+    @Override
+    public List<Event> getMaxDeadlineTimeByCon(List<Event> eventList) {
+        return baseMapper.getMaxDeadlineTimeByCon(eventList);
+    }
+
+    @Override
+    public List<CustInvitation> getConsInfoByEvent(long eventId) {
+        return baseMapper.getConsInfoByEvent(eventId);
+    }
+
+    @Override
+    public List<CustInvitation> getConsInfoByEvent(long eventId, Long custId) {
+        return baseMapper.getConsInfoByEventAndConsId(eventId, custId);
+    }
+
+    @Override
+    public List<CustInvitation> getConsInfoByEvents(List<Event> eventIds) {
+        return baseMapper.getConsInfoByEvents(eventIds);
+    }
+
+
+}

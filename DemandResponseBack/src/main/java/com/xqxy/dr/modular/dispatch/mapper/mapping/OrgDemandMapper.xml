@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.dispatch.mapper.OrgDemandMapper">
+
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.dispatch.entity.OrgDemand">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="regulateId" column="REGULATE_ID" jdbcType="BIGINT"/>
+            <result property="orgId" column="org_id" jdbcType="VARCHAR"/>
+            <result property="orgName" column="org_name" jdbcType="VARCHAR"/>
+            <result property="goal" column="goal" jdbcType="DECIMAL"/>
+            <result property="year" column="year" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,REGULATE_ID,org_id,
+        org_name,goal,year
+    </sql>
+
+    <select id="queryOrgDemandByEventAndProject" resultType="com.xqxy.dr.modular.dispatch.entity.OrgDemand">
+        SELECT
+            eve.EVENT_ID eventId,
+            eve.START_TIME startTime,
+            eve.END_TIME endTime,
+            demand.*
+        FROM
+            dr_event eve,
+            dr_org_demand demand
+        WHERE
+            eve.REGULATE_ID = demand.REGULATE_ID
+    </select>
+</mapper>

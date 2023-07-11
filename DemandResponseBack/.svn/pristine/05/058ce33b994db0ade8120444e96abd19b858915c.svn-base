@@ -1,0 +1,60 @@
+package com.xqxy.dr.modular.event.utils;
+
+import com.alibaba.fastjson.JSONArray;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class OrgUtils {
+
+    private String codeCity;
+
+
+    public List<String> getData(JSONArray jsonArray, String code, List<String> listPart) {
+        //获取最后一级编码的子集
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("parentId").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            for(int i=0;i<child.size();i++) {
+                Map<String,Object> jsonObject = (Map<String,Object>) child.get(i);
+                listPart.add((String) jsonObject.get("id"));
+                //递归获取下一级子集
+                getData(jsonArray,(String) jsonObject.get("id"),listPart);
+            }
+        }
+        listPart.add(code);
+        return listPart;
+    }
+
+    public List<String> getData2(JSONArray jsonArray, String code, List<String> listPart) {
+        //获根据子集获取父级编码
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            Map<String,Object> jsonObject = (Map<String,Object>) child.get(0);
+            String parentId = (String) jsonObject.get("parentId");
+            String orgTitle = (String) jsonObject.get("orgTitle");
+            if(!"1".equals(orgTitle) && !"2".equals(orgTitle)) {
+                listPart.add(parentId);
+                getData2(jsonArray, parentId, listPart);
+            }
+        }
+        return listPart;
+    }
+
+    public String getData3(JSONArray jsonArray, String code, String listPart) {
+        //获根据子集获取父级市编码
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            Map<String,Object> jsonObject = (Map<String,Object>) child.get(0);
+            String parentId = (String) jsonObject.get("parentId");
+            String orgTitle = (String) jsonObject.get("orgTitle");
+            if(!"1".equals(orgTitle) && !"2".equals(orgTitle)) {
+                getData3(jsonArray, parentId, listPart);
+            } else if("2".equals(orgTitle)){
+                codeCity = (String) jsonObject.get("id");
+            }
+        }
+        return codeCity;
+    }
+}

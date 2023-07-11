@@ -1,0 +1,124 @@
+package com.xqxy.sys.modular.sms.param;
+
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@ApiModel(description = "短信发送参数")
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SmsSendParam extends BaseParam {
+
+
+    private static final long serialVersionUID = -608890149490228061L;
+    /**
+     * 主键
+     */
+    private Long id;
+
+    /**
+     * 手机号
+     */
+    private String phoneNumbers;
+
+    /**
+     * 短信验证码
+     */
+    private String validateCode;
+
+    /**
+     * 短信模板ID
+     */
+    private String templateCode;
+
+    /**
+     * 短信内容
+     */
+    private String content;
+
+    /**
+     * 回执id，可根据该id查询具体的发送状态
+     */
+    private String bizId;
+
+    /**
+     * 发送状态（字典 0 未发送，1 待发送，2 已发送，3 发送成功，4 发送失败，5 失效）
+     */
+    private Integer status;
+
+    /**
+     * 来源（字典 1 app， 2 pc， 3 其他）
+     */
+    private Integer source;
+
+    /**
+     * 失效时间
+     */
+    private LocalDateTime invalidTime;
+
+    /**
+     * 审核结果
+     */
+    private String checkStatus;
+
+    /**
+     * 业务编码
+     */
+    private String businessCode;
+
+    /**
+     * 短信关联业务id
+     */
+    @NotNull(message = "businessRela不能为空，请检查businessRela参数",groups = {generate.class,qeuryById.class})
+    private String businessRela;
+
+    /**
+     * 短信模板类型
+     */
+    @NotNull(message = "templateType不能为空，请检查tempalteType参数",groups = {generate.class})
+    private String templateType;
+
+    /**
+     * 参数校验分组：终止
+     */
+    public @interface generate {
+    }
+    /**
+     * 参数校验分组：终止
+     */
+    public @interface qeuryById {
+    }
+
+    /**
+     *  户号/社会信用代码
+     */
+    private String userNo;
+
+    /**
+     *  客户名称
+     */
+    private String userName;
+
+    /**
+     *  参与方式
+     */
+    private String joinUserType;
+
+    /**
+     *  参与方式集合
+     */
+    private List<String> joinUserTypes;
+
+    /**
+     * 用户id集合
+     */
+    private List<String> consIds;
+
+    private Integer userType;
+
+}

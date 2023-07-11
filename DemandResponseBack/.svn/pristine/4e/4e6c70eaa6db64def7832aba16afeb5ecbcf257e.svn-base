@@ -1,0 +1,154 @@
+package com.xqxy.dr.modular.evaluation.service.impl;
+
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.evaluation.entity.CustEvaluationImmediate;
+import com.xqxy.dr.modular.evaluation.mapper.CustEvaluationImmediateMapper;
+import com.xqxy.dr.modular.evaluation.param.CustEvaluationImmediateParam;
+import com.xqxy.dr.modular.evaluation.param.EvaluationImmediateParam;
+import com.xqxy.dr.modular.evaluation.service.ConsEvaluationImmediateService;
+import com.xqxy.dr.modular.evaluation.service.CustEvaluationImmediateService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ * 客户当日执行效果评估 服务实现类
+ * </p>
+ *
+ * @author Peng
+ * @since 2021-10-29
+ */
+@Service
+public class CustEvaluationImmediateServiceImpl extends ServiceImpl<CustEvaluationImmediateMapper, CustEvaluationImmediate> implements CustEvaluationImmediateService {
+
+    @Resource
+    private ConsEvaluationImmediateService consEvaluationImmediateService;
+
+    @Override
+    public Page<CustEvaluationImmediate> page(CustEvaluationImmediateParam custEvaluationImmediateParam) {
+        //数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new Page<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        //机构子集
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                //聚合商如果不是省级，直接返回空数据
+                return new Page<>();
+            }
+        } else {
+            return new Page<>();
+        }
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(custEvaluationImmediateParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", custEvaluationImmediateParam.getEventId());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getCustId())) {
+                queryWrapper.eq("eva.cust_id", custEvaluationImmediateParam.getCustId());
+            }
+            // 根据是否有效查询
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getIsEffective())) {
+                queryWrapper.eq("eva.is_effective", custEvaluationImmediateParam.getIsEffective());
+            }
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getLegalName())) {
+                queryWrapper.like("c.legal_name", custEvaluationImmediateParam.getLegalName());
+            }
+
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getCreditCode())) {
+                queryWrapper.like("c.credit_code", custEvaluationImmediateParam.getCreditCode());
+            }
+
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getIntegrator())) {
+                queryWrapper.eq("c.integrator", custEvaluationImmediateParam.getIntegrator());
+            }
+        }
+
+        //根据排序升序排列，序号越小越在前
+        Map<String, String> sortKeyMap = new HashMap<>();
+        sortKeyMap.put("actualCap", "eva.actual_cap");
+        sortKeyMap.put("confirmCap", "eva.confirm_cap");
+        sortKeyMap.put("maxLoadActual", "eva.max_load_actual");
+        sortKeyMap.put("minLoadActual", "eva.min_load_actual");
+        sortKeyMap.put("avgLoadActual", "eva.avg_load_actual");
+        sortKeyMap.put("electricityBaseline", "eva.electricity_baseline");
+        sortKeyMap.put("electricityActual", "eva.electricity_actual");
+        String sortColumn = sortKeyMap.getOrDefault(custEvaluationImmediateParam.getSortColumn(), "eva.create_time");
+        if ("asc".equals(custEvaluationImmediateParam.getOrder())) {
+            queryWrapper.orderByAsc(sortColumn);
+        } else {
+            queryWrapper.orderByDesc(sortColumn);
+        }
+        Page<CustEvaluationImmediate> evaluationPage = getBaseMapper().selectPageVo(custEvaluationImmediateParam.getPage(), queryWrapper);
+        return evaluationPage;
+    }
+
+    @Override
+    public Page<CustEvaluationImmediate> pageProxy(CustEvaluationImmediateParam custEvaluationImmediateParam) {
+        if(ObjectUtil.isNull(custEvaluationImmediateParam)) return  null;
+        return consEvaluationImmediateService.pageProxy(custEvaluationImmediateParam);
+    }
+
+    @Override
+    public List<CustEvaluationImmediate> list(EvaluationImmediateParam evaluationImmediateParam) {
+        //数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new ArrayList<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        //机构子集
+        List<String> list = new ArrayList<>();
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                //聚合商如果不是省级，直接返回空数据
+                return new ArrayList<>();
+            }
+        } else {
+            return new ArrayList<>();
+        }
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(evaluationImmediateParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", evaluationImmediateParam.getEventId());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getConsId())) {
+                queryWrapper.eq("eva.cons_id", evaluationImmediateParam.getConsId());
+            }
+
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getLegalName())) {
+                queryWrapper.like("c.legal_name", evaluationImmediateParam.getLegalName());
+            }
+
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getCreditCode())) {
+                queryWrapper.like("c.credit_code", evaluationImmediateParam.getCreditCode());
+            }
+            queryWrapper.eq("c.integrator", "1");
+        }
+
+
+
+        //根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc("eva.create_time");
+        List<CustEvaluationImmediate> emmediatesCustList = getBaseMapper().immediateCustList(queryWrapper);
+        return emmediatesCustList;
+    }
+}

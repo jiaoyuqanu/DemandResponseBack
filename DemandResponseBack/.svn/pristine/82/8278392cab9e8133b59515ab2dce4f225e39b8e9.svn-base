@@ -1,0 +1,220 @@
+package com.xqxy.dr.modular.event.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.evaluation.entity.ConsEvaluationAppeal;
+import com.xqxy.dr.modular.event.entity.ConsInvitation;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.param.ConsInvitationParam;
+import com.xqxy.dr.modular.event.param.CustInvitationParam;
+import com.xqxy.dr.modular.event.param.EventParam;
+import com.xqxy.dr.modular.event.param.MyRepresentation;
+import com.xqxy.dr.modular.event.result.EventInvitationResult;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ * 用户邀约 服务类
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+public interface ConsInvitationService extends IService<ConsInvitation> {
+
+    /**
+     * @description: 删除用户邀约信息
+     * @param: consInvitationParam 删除参数
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/9 14:23
+     */
+    void delete(ConsInvitationParam consInvitationParam);
+
+    /**
+     * 用户邀约信息列表
+     *
+     * @param consInvitationParam 查询参数
+     * @return 用户邀约信息列表
+     * @author hu xingxing
+     * @date 2021/10/19 14:20
+     */
+    List<ConsInvitation> list(ConsInvitationParam consInvitationParam);
+
+    /**
+     * 用户邀约信息列表
+     *
+     * @param consInvitationParam 查询参数
+     * @return 用户邀约信息列表
+     * @author shi
+     * @date 2021/10/19 14:20
+     */
+    Page<Event> invitationPage(ConsInvitationParam consInvitationParam);
+
+
+    /**
+     * 我的申述分页查询
+     *
+     * @param consInvitationParam
+     * @return
+     */
+    Page<Event> myRepresentationPage(ConsInvitationParam consInvitationParam);
+
+
+    /**
+     * 根据ID查询我的申述分
+     *
+     * @param consInvitationParam
+     * @return
+     */
+    ConsEvaluationAppeal getMyRepresentationById(MyRepresentation consInvitationParam);
+
+    /**
+     * 根据ID修改我的申述
+     *
+     * @param myRepresentation
+     */
+    void updateMyRepresentationById(MyRepresentation myRepresentation);
+
+
+    /**
+     * 用户邀约清单
+     *
+     * @param eventId 查询参数
+     * @return 用户邀约清单
+     * @author shi
+     * @date 2021/10/26 14:20
+     */
+    List<ConsInvitation> invitationList(Long eventId);
+
+    /**
+     * @description: 用户邀约信息分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/21 20:04
+     */
+    Page<ConsInvitation> page(ConsInvitationParam consInvitationParam);
+
+
+    /**
+     * @description: 代理用户分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/21 20:04
+     */
+    Page<ConsInvitation> replyPageProxy(ConsInvitationParam consInvitationParam);
+
+
+    /**
+     * @description: 集成商代理用户
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/22 16:26
+     */
+    Page<ConsInvitation> proxyPage(CustInvitationParam custInvitationParam);
+
+    /**
+     * 根据eventId和consId查询用户邀约信息列表
+     *
+     * @param eventId,consId 查询参数
+     * @return 用户邀约信息列表
+     * @author hu xingxing
+     * @date 2021/10/21 10:20
+     */
+    ConsInvitation queryConsInvitationByEventIdAndConsId(long eventId, String consId);
+
+
+    List<ConsCurve> trackInvitationReply(ConsInvitationParam consInvitationParam);
+
+    /**
+     * 查询参与某次事件的用户
+     *
+     * @param eventId
+     * @param isParticipate
+     * @return
+     */
+    List<ConsInvitation> getReplyInvitation(Long eventId, String isParticipate);
+
+    /**
+     * 根据eventId和consId查询用户邀约信息列表
+     *
+     * @param consInvitationParam 查询参数
+     * @return 用户邀约信息列表
+     * @author shi
+     * @date 2021/10/26 19:20
+     */
+    ResponseData submitFeedback(ConsInvitationParam consInvitationParam);
+
+    /**
+     * @description: 获取邀约用户的最大反馈截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 14:58
+     */
+    LocalDateTime getMaxDeadlineTimeByEventId(Long eventId);
+
+    /**
+     * @description: 获取邀约用户的最大反馈截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 14:58
+     */
+    LocalDateTime getMaxDeadlineTimeByEventIdAndState(Long eventId, String synchToPlan);
+
+    List<Event> getMaxDeadlineTimeByCon(List<Event> eventList);
+
+    /**
+     * @description: 查询当前事件排序好的反馈用户列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 16:15
+     */
+    List<ConsInvitation> listOrder(Long eventId);
+
+    /**
+     * @description: 二次邀约，修改未反馈用户的邀约截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/11/3 10:33
+     */
+    void secondInvitaiton(Long eventId, LocalDateTime secondRoundDeadlineTime);
+
+    /**
+     * @description: 查询当前事件的第一条邀约信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/5/14 8:56
+     */
+    ConsInvitation firstInvitationByEventId(Long eventId);
+
+    EventInvitationResult result(Long eventId);
+
+    Map<String, Object> invitationParticipateCount(Long eventId);
+
+    ConsInvitation detail(EventParam eventParam);
+
+    ConsInvitation detailById(Long invitationId);
+
+    List<ConsInvitation> getConsInfoByEvents(List<Event> eventIds);
+
+    List<ConsInvitation> getConsInfoByEvents2(List<Event> eventIds);
+
+    List<ConsInvitation> getConsInfoByEvent(long eventId);
+
+    BigDecimal getReplyCapTotalByEvent(ConsInvitationParam consInvitationParam);
+}

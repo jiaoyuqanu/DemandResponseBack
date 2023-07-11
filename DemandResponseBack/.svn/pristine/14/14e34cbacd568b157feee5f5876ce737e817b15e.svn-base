@@ -1,0 +1,273 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.util.LocalDateTimeUtil;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.baseline.entity.CustBaseLineDetail;
+import com.xqxy.dr.modular.baseline.service.CustBaseLineDetailService;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.data.mapper.ConsCurveMapper;
+import com.xqxy.dr.modular.data.param.ConsCurveParam;
+import com.xqxy.dr.modular.data.param.CustCurveParam;
+import com.xqxy.dr.modular.data.service.ConsCurveService;
+import com.xqxy.dr.modular.event.VO.PlanConsVO;
+import com.xqxy.dr.modular.event.entity.*;
+import com.xqxy.dr.modular.event.entity.CustExecute;
+import com.xqxy.dr.modular.event.enums.EventResponseTypeEnum;
+import com.xqxy.dr.modular.event.mapper.CustExecuteMapper;
+import com.xqxy.dr.modular.event.mapper.PlanConsMapper;
+import com.xqxy.dr.modular.event.param.CustExecuteParam;
+import com.xqxy.dr.modular.event.result.ConsMonitorCurve;
+import com.xqxy.dr.modular.event.result.CustMonitorCurve;
+import com.xqxy.dr.modular.event.service.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * <p>
+ * 电力用户执行信息 服务实现类
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-27
+ */
+@Service
+public class CustExecuteServiceImpl extends ServiceImpl<CustExecuteMapper, CustExecute> implements CustExecuteService {
+    @Resource
+    private PlanService planService;
+
+    @Resource
+    private ConsBaselineService consBaselineService;
+
+    @Resource
+    private ConsCurveService consCurveService;
+
+    @Resource
+    private CustBaseLineDetailService custBaseLineDetailService;
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private PlanCustService planCustService;
+
+    @Resource
+    private PlanConsMapper planConsMapper;
+
+    @Resource
+    private CustBaselineAllService custBaselineAllService;
+
+    @Override
+    public Page<CustExecute> eventMonitoring( CustExecuteParam CustExecuteParam) {
+        QueryWrapper<CustExecute> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("event_id", CustExecuteParam.getEventId());
+        queryWrapper.groupBy("execute_time");
+        queryWrapper.orderByDesc("execute_time");
+        return getBaseMapper().selectPageVo(CustExecuteParam.getPage(), queryWrapper);
+    }
+
+    @Override
+    public List<CustExecute> list(CustExecuteParam CustExecuteParam) {
+        LambdaQueryWrapper<CustExecute> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(CustExecuteParam)) {
+            // 根据事件Id编号查询
+            if (ObjectUtil.isNotEmpty(CustExecuteParam.getEventId())) {
+                queryWrapper.eq(CustExecute::getEventId, CustExecuteParam.getEventId());
+            }
+            if (ObjectUtil.isNotEmpty(CustExecuteParam.getCustId())) {
+                queryWrapper.eq(CustExecute::getCustId, CustExecuteParam.getCustId());
+            }
+            if (ObjectUtil.isNotEmpty(CustExecuteParam.getIsOut())) {
+                queryWrapper.eq(CustExecute::getIsOut, CustExecuteParam.getIsOut());
+            }
+        }
+        //根据监测时间倒序排列
+        queryWrapper.orderByDesc(CustExecute::getExecuteTime);
+        List<CustExecute> list = this.list(queryWrapper);
+        if(!CollectionUtils.isEmpty(list)){
+            for (CustExecute custExecute : list) {
+                if (custExecute.getExecuteRate() != null) {
+                    custExecute.setExecuteRate(custExecute.getExecuteRate().multiply(new BigDecimal(100)));
+                }
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public CustBaselineAll getCustBaseByEventId(CustExecuteParam CustExecuteParam) {
+        // 查询事件关联的方案信息，获去事件的基线库
+        Plan plan = planService.getByEventId(CustExecuteParam.getEventId());
+        if (ObjectUtil.isNull(plan) || ObjectUtil.isNull(plan.getBaselinId())) {
+            return null;
+        }
+        LambdaQueryWrapper<CustBaselineAll> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CustBaselineAll::getCustId, CustExecuteParam.getCustId());
+        queryWrapper.eq(CustBaselineAll::getBaselineLibId, plan.getBaselinId());
+        List<CustBaselineAll> list = custBaselineAllService.list(queryWrapper);
+
+        if (!CollectionUtils.isEmpty(list)) {
+            return list.get(0);
+        }
+        return new CustBaselineAll();
+    }
+
+    @Override
+    public CustMonitorCurve curveOfBaseAndTarget(CustExecuteParam CustExecuteParam) {
+        /*if (ObjectUtil.isNull(CustExecuteParam.getCustId())) {
+            String consId = SecurityUtils.getCurrentUserInfo().getId();
+            planConsParam.setConsId(consId);
+        }*/
+        CustMonitorCurve custMonitorCurve = new CustMonitorCurve();
+        // 查询负荷基线
+        Plan plan = planService.getByEventId(CustExecuteParam.getEventId());
+        if(null==plan) {
+            return new CustMonitorCurve();
+        }
+        // 查询实际负荷
+        CustCurveParam custCurveParam = new CustCurveParam();
+        custCurveParam.setCustId(CustExecuteParam.getCustId());
+        custCurveParam.setDataDate(plan.getRegulateDate());
+        custCurveParam.setPlanId(plan.getPlanId());
+        ConsCurve curveByConsIdAndDate = null;
+        if(LocalDate.now().isEqual(custCurveParam.getDataDate())) {
+             curveByConsIdAndDate = planCustService.getCustCurveToday(custCurveParam);
+        } else {
+            curveByConsIdAndDate = planCustService.getCustCurveHistory(custCurveParam);
+        }
+        custMonitorCurve.setConsCurve(curveByConsIdAndDate);
+        // 查询目标曲线
+        Event event = eventService.getById(CustExecuteParam.getEventId());
+        ConsCurve tempCurve = new ConsCurve();
+        int startP = CurveUtil.covDateTimeToPoint(event.getStartTime());
+        int endP = CurveUtil.covDateTimeToPoint(event.getEndTime());
+
+        //查询客户全量基线
+        LambdaQueryWrapper<CustBaselineAll> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CustBaselineAll::getCustId,CustExecuteParam.getCustId());
+        queryWrapper.eq(CustBaselineAll::getBaselineLibId,plan.getBaselinId());
+        List<CustBaselineAll> custBaselineAllList = custBaselineAllService.list(queryWrapper);
+
+        CustBaselineAll custBaselineAll = null;
+        if(null!=custBaselineAllList && custBaselineAllList.size()>0) {
+            custBaselineAll = custBaselineAllList.get(0);
+            if(custBaselineAll != null){
+                for (int i = 1; i <= 96; i++) {
+                    if (i < startP || i > endP){
+                        ReflectUtil.setFieldValue(custBaselineAll, "p" + i, null);
+                    }
+                }
+            }
+        } else {
+            custBaselineAll = new CustBaselineAll();
+        }
+        custMonitorCurve.setCustBaselineAll(custBaselineAll);
+
+        CustBaseLineDetail targetCurve = new CustBaseLineDetail();
+        LambdaQueryWrapper<PlanCust> queryWrapper2 = new LambdaQueryWrapper<>();
+        queryWrapper2.eq(PlanCust::getPlanId,plan.getPlanId());
+        queryWrapper2.eq(PlanCust::getCustId,CustExecuteParam.getCustId());
+        PlanCust planCust = planCustService.getOne(queryWrapper2);
+
+        if(ObjectUtil.isNotNull(custBaselineAll)) {
+            if (event.getResponseType().equals(EventResponseTypeEnum.PEAK_OF_INVITATION.getCode()) || event.getResponseType().equals(EventResponseTypeEnum.PEAK_OF_REALTIME.getCode())) {
+                //邀约削峰或者实时削峰
+                for (int i = startP + 1; i <= endP; i++) {
+                    BigDecimal fieldValue = (BigDecimal) ReflectUtil.getFieldValue(custBaselineAll, "p" + i);
+                    ReflectUtil.setFieldValue(targetCurve, "p" + i, NumberUtil.add(fieldValue, planCust.getDemandCap()));
+                }
+            } else {
+                for (int i = startP + 1; i <= endP; i++) {
+                    BigDecimal fieldValue = (BigDecimal) ReflectUtil.getFieldValue(custBaselineAll, "p" + i);
+                    ReflectUtil.setFieldValue(targetCurve, "p" + i, NumberUtil.sub(fieldValue, planCust.getDemandCap()));
+                }
+            }
+            custMonitorCurve.setTargetCurve(targetCurve);
+            // 响应负荷下限
+            for (int i = startP; i <= endP; i++) {
+                // BigDecimal fieldValue = (BigDecimal) ReflectUtil.getFieldValue(baseCurve, "p" + i);
+                ReflectUtil.setFieldValue(tempCurve, "p" + i, NumberUtil.sub(Optional.ofNullable(custBaselineAll.getMaxLoadBaseline()).orElse(BigDecimal.ZERO), Optional.ofNullable(planCust.getDemandCap()).orElse(BigDecimal.ZERO)));
+            }
+        }
+        custMonitorCurve.setTempCurve(tempCurve);
+
+        // 当前时间
+        Calendar calendar = Calendar.getInstance();
+        Date currentTime = calendar.getTime();
+
+        // 查询 的方案时间
+        LocalDate localDate = plan.getRegulateDate();
+        Date planTime = LocalDateTimeUtil.localDateToDate(localDate);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String currentDate = sdf.format(currentTime);
+        String planDate = sdf.format(planTime);
+        // 判断 查询的事件曲线是 过去的还是现在的
+        Boolean flag = false;
+        if(currentDate.equals(planDate)){
+            flag = true;
+        }
+
+        // 查询实际曲线 关联条件 客户id 事件id
+        List<PlanConsVO> planConsVOS = planConsMapper.queryConsByEventIdAndCustId(CustExecuteParam);
+        if(!CollectionUtils.isEmpty(planConsVOS)){
+            ConsCurve consCurve = new ConsCurve();
+            for (int i = 0; i < planConsVOS.size(); i++) {
+                PlanConsVO planConsVO = planConsVOS.get(i);
+                ConsCurveParam consCurveParam = new ConsCurveParam();
+
+                consCurveParam.setConsId(planConsVO.getConsId());
+                consCurveParam.setDataDate(planConsVO.getDate());
+                ConsCurve curve = consCurveService.getCurveByConsIdAndDate(consCurveParam);
+
+                for (int pn = 1; pn <= 96; pn++) {
+                    String name = "p" + pn;
+
+                    //库里查询的实时负荷
+                    BigDecimal curveValue;
+                    Object curveObject = ReflectUtil.getFieldValue(curve, name);
+                    if (curveObject != null) {
+                        curveValue = new BigDecimal(curveObject.toString());
+                        //累计 客户实时负荷
+                        Object consCurveObject = ReflectUtil.getFieldValue(consCurve, name);
+                        if (consCurveObject != null) {
+                            ReflectUtil.setFieldValue(consCurve, name, new BigDecimal(consCurveObject.toString()).add(curveValue));
+                        } else {
+                            ReflectUtil.setFieldValue(consCurve, name, curveValue);
+                        }
+                    }
+                }
+            }
+            consCurve.setDataDate(planConsVOS.get(0).getDate());
+            // 截取 今天事件 的 当前时间之后的点
+            if (consCurve != null && consCurve.getDataDate().compareTo(LocalDate.now()) == 0) {
+                int pn = CurveUtil.covDateTimeToPoint(new Date());
+                for (int i = 1; i <= 96; i++) {
+                    if (pn < i) {
+                        ReflectUtil.setFieldValue(consCurve, "p" + i, null);
+                    }
+                }
+            }
+            custMonitorCurve.setConsCurve(consCurve);
+        }
+        return custMonitorCurve;
+    }
+}

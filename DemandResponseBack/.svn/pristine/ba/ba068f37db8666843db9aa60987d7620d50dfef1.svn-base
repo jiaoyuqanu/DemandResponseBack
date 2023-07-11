@@ -1,0 +1,114 @@
+package com.xqxy.dr.modular.event.VO;
+
+import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.xqxy.sys.modular.cust.result.ConsResult;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Map;
+
+@Data
+public class PlanConsMonitorExportVO implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
+
+    /**
+     * 用户标识
+     */
+    private String consId;
+
+
+    /**
+     * 用户名称
+     */
+    private String consName;
+
+
+    /**
+     * 供电单位名称
+     */
+    private String orgName;
+
+    /**
+     * 供电单位编码
+     */
+    private String orgNo;
+
+    /**
+     * 市码
+     */
+    private String cityOrg;
+
+    /**
+     * 区县码
+     */
+    private String countyOrg;
+
+    /**
+     * 第一联系人姓名
+     */
+    private String firstContactName;
+
+    /**
+     * 第一联系人联系方式
+     */
+    private String firstContactInfo;
+
+    /**
+     * 认约负荷
+     */
+    private BigDecimal demandCap;
+
+    /**
+     * 基线平均负荷
+     */
+    private BigDecimal avgBaseline;
+
+    /**
+     * 基线最大负荷
+     */
+    private BigDecimal maxBaseline;
+
+    /**
+     * 基线最小负荷
+     */
+    private BigDecimal minBaseline;
+
+    /**
+     * 全天基线
+     */
+    Map<String,Object> baseLineAllMap;
+
+    /**
+     * 时间段基线
+     */
+    Map<String,Object> baseLineMap;
+
+    /**
+     * 实时负荷
+     */
+    Map<String,Object> realTimeCapMap;
+
+    /**
+     * 压降负荷
+     */
+    Map<String,Object> responseCapMap;
+
+    /**
+     * 执行率
+     */
+    Map<String,Object> executeRateMap;
+
+    private String baseLineAllName = "全天基线负荷(kw)";
+
+    private String baseLineName = "时间段基线负荷(kw)";
+
+    private String realTimeCapName = "执行负荷(kw)";
+
+    private String responseCapName = "压降负荷(kw)";
+
+    private String executeRateName = "执行率(100%)";
+
+}

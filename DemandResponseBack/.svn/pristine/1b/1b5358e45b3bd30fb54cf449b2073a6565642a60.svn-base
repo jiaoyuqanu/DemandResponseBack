@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.cust.mapper.UserConsRelaMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.sys.modular.cust.entity.UserConsRela">
+        <result column="id" property="id" />
+        <result column="cust_id" property="custId" />
+        <result column="cons_no" property="consNo" />
+        <result column="rela_type" property="relaType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, cust_id, cons_no, rela_type
+    </sql>
+
+    <select id="getUserConsByCustId" parameterType="Long" resultType="com.xqxy.sys.modular.cust.entity.UserConsRela">
+        SELECT a.cons_no   AS consNo,
+               b.cons_name AS consName
+        FROM dr_user_cons_rela a
+                 LEFT JOIN dr_cons b ON a.cons_no = b.id
+        WHERE a.cust_id = #{custId}
+    </select>
+    <!--    负荷聚合商聚合客户数（户）-->
+    <select id="userConsRelaCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM dr_user_cons_rela
+        WHERE cust_id IN (SELECT id
+                          FROM dr_cust
+                          WHERE integrator = '1'
+                            AND state = '2')
+    </select>
+
+</mapper>

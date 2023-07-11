@@ -1,0 +1,369 @@
+package com.xqxy.dr.modular.evaluation.service.impl;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.client.SystemClient;
+import com.xqxy.core.enums.YesOrNotEnum;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.poi.POIExcelUtil;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.HttpServletUtil;
+import com.xqxy.core.util.OrganizationUtil;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.evaluation.entity.ConsEvaluationImmediate;
+import com.xqxy.dr.modular.evaluation.entity.CustEvaluationImmediate;
+import com.xqxy.dr.modular.evaluation.entity.EventPowerExecuteImmediate;
+import com.xqxy.dr.modular.evaluation.mapper.ConsEvaluationImmediateMapper;
+import com.xqxy.dr.modular.evaluation.param.ConsEvaluationImmediateParam;
+import com.xqxy.dr.modular.evaluation.param.CustEvaluationImmediateParam;
+import com.xqxy.dr.modular.evaluation.param.EvaluationImmediateParam;
+import com.xqxy.dr.modular.evaluation.param.EventPowerExecuteImmediateParam;
+import com.xqxy.dr.modular.evaluation.service.ConsEvaluationImmediateService;
+import com.xqxy.dr.modular.evaluation.service.CustEvaluationImmediateService;
+import com.xqxy.dr.modular.evaluation.service.EventPowerExecuteImmediateService;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.enums.EventExceptionEnum;
+import com.xqxy.dr.modular.event.service.EventService;
+import com.xqxy.sys.modular.utils.CityAndCountyUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 今日响应效果评估 服务实现类
+ * </p>
+ *
+ * @author Peng
+ * @since 2021-10-29
+ */
+@Service
+public class ConsEvaluationImmediateServiceImpl extends ServiceImpl<ConsEvaluationImmediateMapper, ConsEvaluationImmediate> implements ConsEvaluationImmediateService {
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private CustEvaluationImmediateService custEvaluationImmediateService;
+
+    @Resource
+    private EventPowerExecuteImmediateService eventPowerExecuteImmediateService;
+    @Resource
+    private SystemClient systemClient;
+
+    @Resource
+    private CityAndCountyUtils cityAndCountyUtils;
+
+    @Override
+    public Page<ConsEvaluationImmediate> page(ConsEvaluationImmediateParam consEvaluationImmediateParam) {
+        // 数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new Page<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        // 机构子集
+        List<String> list = new ArrayList<>();
+        List<String> list1 = null;
+        List<String> list2 = null;
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                // 获取用户权限内所有组织机构集合
+                list1 = OrganizationUtil.getAllOrgByOrgNo();
+                if (null == list1 || list1.size() == 0) {
+                    return new Page<>();
+                }
+                // 根据参数查询其所有子集
+                if (null != consEvaluationImmediateParam.getOrgNo()) {
+                    list2 = OrganizationUtil.getAllOrgByOrgNoPamarm(consEvaluationImmediateParam.getOrgNo());
+                    // 筛选用户机构集合中包含参数的机构
+                    if (null != list1 && null != list2) {
+                        for (String s : list2) {
+                            if (list1.contains(s)) {
+                                list.add(s);
+                            }
+                        }
+                    }
+                    if (CollectionUtil.isEmpty(list)) {
+                        return new Page<>();
+                    }
+                } else {
+                    list = list1;
+                }
+            } else {
+                if (null != consEvaluationImmediateParam.getOrgNo()) {
+                    list = OrganizationUtil.getAllOrgByOrgNoPamarm(consEvaluationImmediateParam.getOrgNo());
+                }
+            }
+        } else {
+            return new Page<>();
+        }
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(consEvaluationImmediateParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", consEvaluationImmediateParam.getEventId());
+            }
+            // 根据用户名称查询
+            if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getConsName())) {
+                queryWrapper.like("c.cons_name", consEvaluationImmediateParam.getConsName());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getConsId())) {
+                queryWrapper.like("eva.cons_id", consEvaluationImmediateParam.getConsId());
+            }
+            // 根据是否有效查询
+            if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getIsEffective())) {
+                queryWrapper.like("eva.is_effective", consEvaluationImmediateParam.getIsEffective());
+            }
+
+           /* if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getOrgNo())) {
+                queryWrapper.like("c.ORG_NO", consEvaluationImmediateParam.getOrgNo());
+            }*/
+            // 市级查询所有用户，省级查询直接用户
+            if (ObjectUtil.isNotNull(orgTitle) && "1".equals(orgTitle)) {
+                queryWrapper.eq("eva.join_user_type", "1");
+            }
+
+            if (ObjectUtil.isNotEmpty(list)) {
+                queryWrapper.in("c.ORG_NO", list);
+            }
+
+            if (ObjectUtil.isNotEmpty(consEvaluationImmediateParam.getConsName())) {
+                queryWrapper.like("c.cons_name", consEvaluationImmediateParam.getConsName());
+            }
+        }
+
+        // 根据排序升序排列，序号越小越在前
+        Map<String, String> sortKeyMap = new HashMap<>();
+        sortKeyMap.put("actualCap", "eva.actual_cap");
+        sortKeyMap.put("confirmCap", "eva.confirm_cap");
+        sortKeyMap.put("maxLoadActual", "eva.max_load_actual");
+        sortKeyMap.put("minLoadActual", "eva.min_load_actual");
+        sortKeyMap.put("avgLoadActual", "eva.avg_load_actual");
+        sortKeyMap.put("electricityBaseline", "eva.electricity_baseline");
+        sortKeyMap.put("electricityActual", "eva.electricity_actual");
+        String sortColumn = sortKeyMap.getOrDefault(consEvaluationImmediateParam.getSortColumn(), "eva.create_time");
+        if ("asc".equals(consEvaluationImmediateParam.getOrder())) {
+            queryWrapper.orderByAsc(sortColumn);
+        } else {
+            queryWrapper.orderByDesc(sortColumn);
+        }
+        Page<ConsEvaluationImmediate> evaluationPage = getBaseMapper().selectPageVo(consEvaluationImmediateParam.getPage(), queryWrapper);
+        return evaluationPage;
+    }
+
+    @Override
+    public Page<CustEvaluationImmediate> pageProxy(CustEvaluationImmediateParam custEvaluationImmediateParam) {
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(custEvaluationImmediateParam)) {
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getCustId())) {
+                queryWrapper.eq("cu.id", custEvaluationImmediateParam.getCustId());
+            }
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationImmediateParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", custEvaluationImmediateParam.getEventId());
+            }
+
+        }
+        // 根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc("eva.create_time");
+        Page<CustEvaluationImmediate> evaluationPage = getBaseMapper().pageProxy(custEvaluationImmediateParam.getPage(), queryWrapper);
+        return evaluationPage;
+    }
+
+    @Override
+    public void exportEvaluationImmediate(EvaluationImmediateParam evaluationImmediateParam) {
+        Event event = eventService.getById(evaluationImmediateParam.getEventId());
+        if (ObjectUtil.isNull(event)) {
+            throw new ServiceException(EventExceptionEnum.EVENT_NOT_EXIST);
+        }
+        List<ConsEvaluationImmediate> evaluationCons = this.list(evaluationImmediateParam);
+        List<CustEvaluationImmediate> evaluationAggregate = custEvaluationImmediateService.list(evaluationImmediateParam);
+
+
+        // 当日效果评估的负荷曲线
+        EventPowerExecuteImmediateParam executeImmediateParam = new EventPowerExecuteImmediateParam();
+        executeImmediateParam.setEventId(evaluationImmediateParam.getEventId());
+        List<EventPowerExecuteImmediate> curveList = eventPowerExecuteImmediateService.list(executeImmediateParam);
+        List<Map<String, Object>> sheetList = new ArrayList<>();
+        String sheetNameCons = "电力用户当日效果评估";
+        String sheetNameAggregate = "负荷集成商当日效果评估";
+        String excelName = event.getEventName() + "当日效果评估统计";
+        String titleNameCons = event.getEventName() + "电力用户当日效果评估统计";
+        String titleNameAggregate = event.getEventName() + "负荷集成商当日效果评估统计";
+        String[] titleRowCons = {"电力营销户号", "用户名称", "供电单位", "市供电单位", "县供电单位", "认约负荷(kW)", "是否有效响应", "实际响应负荷(kW)", "核定响应负荷(kW)", "实际最大负荷(kW)", "实际平均负荷(kW)", "最大基线负荷(kW)", "平均基线负荷(kW)"};
+        String[] titleRowAggregate = {"统一社会信用代码", "客户名称", "认约负荷(kW)", "是否有效响应", "实际响应负荷(kW)", "核定响应负荷(kW)", "实际最大负荷(kW)", "实际平均负荷(kW)", "最大基线负荷(kW)", "平均基线负荷(kW)"};
+
+        List<String> titleLists = new ArrayList<>();
+        titleLists.add("数据日期");
+        for (int i = 1; i <= 96; i++) {
+            titleLists.add(CurveUtil.covPointToDateTime(i));
+        }
+        String[] titleRowsPoint = titleLists.toArray(new String[]{});
+        titleRowCons = ArrayUtil.addAll(titleRowCons, titleRowsPoint);
+        // titleRowAggregate = ArrayUtil.addAll(titleRowAggregate, titleRowsPoint);
+        String[][] dataRowsCons = new String[evaluationCons.size()][titleRowCons.length + 97];
+        String[][] dataRowsAggregate = new String[evaluationAggregate.size()][titleRowAggregate.length];
+        JSONObject jsonObject = systemClient.queryAllOrg();
+        JSONArray data = jsonObject.getJSONArray("data");
+        Map<String, Object> consMap = new HashMap<>();
+        for (int i = 0; i < evaluationCons.size(); i++) {
+            ConsEvaluationImmediate evaluationImmediate = evaluationCons.get(i);
+            String effectiveName = "";
+            if (ObjectUtil.isNotNull(evaluationImmediate.getIsEffective())) {
+                effectiveName = evaluationImmediate.getIsEffective().equals(YesOrNotEnum.Y.getCode()) ? YesOrNotEnum.Y.getMessage() : YesOrNotEnum.N.getMessage();
+            }
+            String province = "";
+            String city = "";
+            String county = "";
+            String place = "";
+            try {
+                if (ObjectUtil.isNotEmpty(evaluationImmediate.getOrgNo())) {
+                    Map<String, Object> cityAndCountyMap = cityAndCountyUtils.cityAndCounty(evaluationImmediate.getOrgNo(), jsonObject);
+                    province = (String) cityAndCountyMap.get("province");
+                    city = (String) cityAndCountyMap.get("city");
+                    county = (String) cityAndCountyMap.get("county");
+                    place = (String) cityAndCountyMap.get("place");
+                }
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            dataRowsCons[i][0] = evaluationImmediate.getConsId();
+            dataRowsCons[i][1] = evaluationImmediate.getConsName();
+           /* dataRowsCons[i][3] = evaluationImmediate.getCityName();
+            dataRowsCons[i][4] = evaluationImmediate.getCountyName();*/
+            JSONArray jsonArray = data.stream().filter(item -> ((Map<String, Object>) item).get("id").equals(evaluationImmediate.getOrgNo())).collect(Collectors.toCollection(JSONArray::new));
+            if (ObjectUtil.isNotEmpty(jsonArray) && jsonArray.size() > 0) {
+                Map<String, Object> o = (Map<String, Object>) jsonArray.get(0);
+                dataRowsCons[i][2] = (String) o.get("name");
+            }
+            dataRowsCons[i][3] = city;
+            dataRowsCons[i][4] = county;
+            dataRowsCons[i][5] = String.valueOf(Optional.ofNullable(evaluationImmediate.getReplyCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][6] = effectiveName;
+            dataRowsCons[i][7] = String.valueOf(Optional.ofNullable(evaluationImmediate.getActualCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][8] = String.valueOf(Optional.ofNullable(evaluationImmediate.getConfirmCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][9] = String.valueOf(Optional.ofNullable(evaluationImmediate.getMaxLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][10] = String.valueOf(Optional.ofNullable(evaluationImmediate.getAvgLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][11] = String.valueOf(Optional.ofNullable(evaluationImmediate.getMaxLoadBaseline()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][12] = String.valueOf(Optional.ofNullable(evaluationImmediate.getAvgLoadBaseline()).orElse(BigDecimal.ZERO));
+            if (CollectionUtil.isNotEmpty(curveList)) {
+                EventPowerExecuteImmediate powerExecuteImmediate = curveList.stream().filter(curve -> evaluationImmediate.getConsId().equals(curve.getConsId())).findFirst().orElse(new EventPowerExecuteImmediate());
+                for (int j = 13; j <= 106; j++) {
+                    if (j == 13) {
+                        dataRowsCons[i][j] = event.getRegulateDate().toString();
+                        continue;
+                    }
+                    int point = j - 13;
+                    BigDecimal fieldValue = (BigDecimal) ReflectUtil.getFieldValue(powerExecuteImmediate, "p" + point);
+                    if (ObjectUtil.isNull(fieldValue)) {
+                        dataRowsCons[i][j] = "";
+                    } else {
+                        dataRowsCons[i][j] = fieldValue.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
+                    }
+                }
+            }
+        }
+        consMap.put("titleName", titleNameCons);
+        consMap.put("sheetName", sheetNameCons);
+        consMap.put("titleRow", titleRowCons);
+        consMap.put("dataRows", dataRowsCons);
+        sheetList.add(consMap);
+
+        Map<String, Object> aggregateMap = new HashMap<>();
+        for (int i = 0; i < evaluationAggregate.size(); i++) {
+            CustEvaluationImmediate custEvaluationImmediate = evaluationAggregate.get(i);
+            String effectiveName = "";
+            if (ObjectUtil.isNotNull(custEvaluationImmediate.getIsEffective())) {
+                effectiveName = custEvaluationImmediate.getIsEffective().equals(YesOrNotEnum.Y.getCode()) ? YesOrNotEnum.Y.getMessage() : YesOrNotEnum.N.getMessage();
+            }
+            dataRowsAggregate[i][0] = custEvaluationImmediate.getCreditCode();
+            dataRowsAggregate[i][1] = custEvaluationImmediate.getLegalName();
+            /*dataRowsAggregate[i][3] = evaluationImmediate.getCityName();
+            dataRowsAggregate[i][4] = evaluationImmediate.getCountyName();*/
+            dataRowsAggregate[i][2] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getReplyCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][3] = effectiveName;
+            dataRowsAggregate[i][4] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getActualCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][5] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getConfirmCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][6] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getMaxLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][7] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getAvgLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][8] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getMaxLoadBaseline()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][9] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getAvgLoadBaseline()).orElse(BigDecimal.ZERO));
+        }
+        aggregateMap.put("titleName", titleNameAggregate);
+        aggregateMap.put("sheetName", sheetNameAggregate);
+        aggregateMap.put("titleRow", titleRowAggregate);
+        aggregateMap.put("dataRows", dataRowsAggregate);
+        sheetList.add(aggregateMap);
+
+        POIExcelUtil.generatorExcel(excelName, sheetList, HttpServletUtil.getResponse());
+    }
+
+    @Override
+    public List<ConsEvaluationImmediate> list(EvaluationImmediateParam evaluationImmediateParam) {
+        // 数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new ArrayList<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        // 机构子集
+        List<String> list = new ArrayList<>();
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                // 获取所有组织机构集合
+                list = OrganizationUtil.getAllOrgByOrgNo();
+                if (CollectionUtil.isEmpty(list)) {
+                    return new ArrayList<>();
+                }
+            }
+        } else {
+            return new ArrayList<>();
+        }
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(evaluationImmediateParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", evaluationImmediateParam.getEventId());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getConsId())) {
+                queryWrapper.eq("eva.cons_id", evaluationImmediateParam.getConsId());
+            }
+
+            // 机构等级
+            if (ObjectUtil.isNotEmpty(list)) {
+                queryWrapper.in("c.ORG_NO", list);
+            }
+
+            if (ObjectUtil.isNotEmpty(evaluationImmediateParam.getConsName())) {
+                queryWrapper.like("c.cons_name", evaluationImmediateParam.getConsName());
+            }
+            // 查询聚合商用户下的所有代理用户
+            /*if(ObjectUtil.isNotEmpty(evaluationImmediateParam.getAggregateConsId())) {
+                queryWrapper.eq("dcd.aggregate_cons_id",evaluationImmediateParam.getAggregateConsId());
+            }*/
+        }
+        // 根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc("eva.create_time");
+        List<ConsEvaluationImmediate> emmediatesList = getBaseMapper().immediateList(queryWrapper);
+        return emmediatesList;
+    }
+
+}

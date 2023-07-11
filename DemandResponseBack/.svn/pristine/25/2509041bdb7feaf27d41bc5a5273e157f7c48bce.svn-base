@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.CustInvitationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.CustInvitation">
+        <id column="invitation_id" property="invitationId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="CUST_ID" property="custId" />
+        <result column="integrator" property="integrator" />
+        <result column="invitation_time" property="invitationTime" />
+        <result column="invitation_cap" property="invitationCap" />
+        <result column="invitation_round" property="invitationRound" />
+        <result column="invitation_no" property="invitationNo" />
+        <result column="deadline_time" property="deadlineTime" />
+        <result column="is_participate" property="isParticipate" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="reply_time" property="replyTime" />
+        <result column="reply_source" property="replySource" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+<!--        <association property="custInfo" javaType="com.xqxy.sys.modular.cust.entity.Cust">-->
+            <result column="cust_name" property="custName"/>
+        <result column="credit_code" property="creditCode"/>
+        <result column="legal_name" property="legalName"/>
+        <result column="CUST_ADDR" property="custAddr"/>
+        <result column="tel" property="tel"/>
+<!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        invitation_id, EVENT_ID, CUST_ID, integrator, invitation_time, invitation_cap, invitation_round, invitation_no, deadline_time, is_participate, reply_cap, reply_time, reply_source, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="selectPageVo" resultMap="BaseResultMap">
+        	SELECT
+                inv.*,
+                c.cust_name,
+                c.credit_code,
+                c.legal_name,
+                c.cust_addr,
+                c.tel
+            FROM
+                dr_cust_invitation inv
+                LEFT JOIN dr_cust c ON inv.cust_id = c.id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="getReplyPageCust" resultMap="BaseResultMap">
+        	SELECT
+                inv.*,
+                c.cust_name,
+                c.credit_code,
+                c.legal_name,
+                c.cust_addr,
+                c.tel
+            FROM
+                dr_cust_invitation inv
+                LEFT JOIN dr_cust c ON inv.cust_id = c.id
+                left join dr_event e on inv.event_id = e.event_id
+            ${ew.customSqlSegment}
+    </select>
+    
+    <select id="listInvitationCustomer" resultType="com.xqxy.sys.modular.cust.entity.Cust">
+        SELECT
+            de.START_TIME,
+            de.END_TIME,
+            dci.deadline_time,
+            dci.invitation_id,
+            dci.is_participate,
+            dc.*
+        FROM
+            dr_cust_invitation dci
+            LEFT JOIN dr_cust dc ON dci.CUST_ID = dc.ID
+            RIGHT JOIN dr_event de ON de.EVENT_ID = dci.EVENT_ID
+        WHERE
+            dci.EVENT_ID = #{eventId}
+        GROUP BY
+            dc.tel
+    </select>
+
+    <select id="getMaxDeadlineTimeByEventIdAndState" resultType="java.time.LocalDateTime">
+            select max(deadline_time) from dr_cust_invitation where event_id = #{eventId} and SYNCH_TO_PLAN = #{synchToPlan}
+    </select>
+
+    <select id="getMaxDeadlineTimeByCon" resultType="com.xqxy.dr.modular.event.entity.Event" parameterType="com.xqxy.dr.modular.event.entity.Event">
+        select deadline_time as deadlineTime,event_id as eventId from dr_cust_invitation where 1=1
+        <if test="eventList != null and eventList.size > 0">
+            AND event_id in
+            <foreach collection="eventList" index="index" item="event" open="(" separator="," close=")">
+                #{event.eventId}
+            </foreach>
+        </if>
+        and (SYNCH_TO_PLAN = 'N' or SYNCH_TO_PLAN is null)
+    </select>
+
+    <select id="getConsInfoByEvent" resultType="com.xqxy.dr.modular.event.entity.CustInvitation">
+        SELECT
+        invitation_id AS invitationId,
+        CUST_ID AS custId,
+        event_id AS eventId,
+        reply_price AS replyPrice,
+        reply_cap AS replyCap,
+        integrator AS integrator
+        FROM
+        dr_cust_invitation
+        WHERE
+        is_participate = 'Y'
+        and event_id = #{eventId}
+    </select>
+
+    <select id="getConsInfoByEvents" resultType="com.xqxy.dr.modular.event.entity.CustInvitation">
+        SELECT
+        invitation_id AS invitationId,
+        CUST_ID AS custId,
+        event_id AS eventId,
+        reply_price AS replyPrice,
+        reply_cap AS replyCap,
+        is_participate as isParticipate,
+        integrator AS integrator
+        FROM
+        dr_cust_invitation
+        WHERE
+        is_participate = 'Y'
+        and (SYNCH_TO_PLAN ='N' or SYNCH_TO_PLAN is null)
+        <if test="eventIds != null and eventIds.size > 0">
+            and event_id in
+            <foreach collection="eventIds" index="index" item="event" open="(" separator="," close=")">
+                #{event.eventId}
+            </foreach>
+        </if>
+
+    </select>
+
+</mapper>

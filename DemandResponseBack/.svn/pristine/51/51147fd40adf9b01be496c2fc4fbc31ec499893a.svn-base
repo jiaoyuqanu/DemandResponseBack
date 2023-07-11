@@ -1,0 +1,59 @@
+package com.xqxy.dr.modular.subsidy.param;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@ApiModel(description = "用户补贴申诉 参数")
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SubsidyAppealParam extends BaseParam {
+
+    private static final long serialVersionUID=1L;
+
+    @ApiModelProperty(value = "主键")
+    private Long id;
+
+    @ApiModelProperty(value = "关联评估ID")
+    private Long evaluationId;
+
+    @ApiModelProperty(value = "申诉原因（字典1基线最大负荷异议 2基线平均负荷异议 3响应效果认定异议）")
+    private String appealReason;
+
+    @ApiModelProperty(value = "原因说明")
+    private String remark;
+
+    @ApiModelProperty(value = "状态(01 保存 02 审核中 03 审核通过 04 审核不通过)")
+    private String status;
+
+    @ApiModelProperty(value = "关联文件ID")
+    private String fileIds;
+
+    @ApiModelProperty(value = "创建时间")
+    private LocalDateTime createTime;
+
+    @ApiModelProperty(value = "创建人")
+    private Long createUser;
+
+    @ApiModelProperty(value = "更新时间")
+    private LocalDateTime updateTime;
+
+    @ApiModelProperty(value = "更新人")
+    private Long updateUser;
+
+    // 用户标识
+    private String consId;
+
+    // 客户标识
+    private Long custId;
+
+    // 用户标识集合
+    private List<Long> consIdList;
+}

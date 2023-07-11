@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.data.mapper.ConsEnergyCurveMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.data.entity.ConsEnergyCurve">
+        <id column="data_id" property="dataId" />
+        <result column="cons_id" property="consId" />
+        <result column="data_date" property="dataDate" />
+        <result column="data_point_flag" property="dataPointFlag" />
+        <result column="e1" property="e1" />
+        <result column="e2" property="e2" />
+        <result column="e3" property="e3" />
+        <result column="e4" property="e4" />
+        <result column="e5" property="e5" />
+        <result column="e6" property="e6" />
+        <result column="e7" property="e7" />
+        <result column="e8" property="e8" />
+        <result column="e9" property="e9" />
+        <result column="e10" property="e10" />
+        <result column="e11" property="e11" />
+        <result column="e12" property="e12" />
+        <result column="e13" property="e13" />
+        <result column="e14" property="e14" />
+        <result column="e15" property="e15" />
+        <result column="e16" property="e16" />
+        <result column="e17" property="e17" />
+        <result column="e18" property="e18" />
+        <result column="e19" property="e19" />
+        <result column="e20" property="e20" />
+        <result column="e21" property="e21" />
+        <result column="e22" property="e22" />
+        <result column="e23" property="e23" />
+        <result column="e24" property="e24" />
+        <result column="e25" property="e25" />
+        <result column="e26" property="e26" />
+        <result column="e27" property="e27" />
+        <result column="e28" property="e28" />
+        <result column="e29" property="e29" />
+        <result column="e30" property="e30" />
+        <result column="e31" property="e31" />
+        <result column="e32" property="e32" />
+        <result column="e33" property="e33" />
+        <result column="e34" property="e34" />
+        <result column="e35" property="e35" />
+        <result column="e36" property="e36" />
+        <result column="e37" property="e37" />
+        <result column="e38" property="e38" />
+        <result column="e39" property="e39" />
+        <result column="e40" property="e40" />
+        <result column="e41" property="e41" />
+        <result column="e42" property="e42" />
+        <result column="e43" property="e43" />
+        <result column="e44" property="e44" />
+        <result column="e45" property="e45" />
+        <result column="e46" property="e46" />
+        <result column="e47" property="e47" />
+        <result column="e48" property="e48" />
+        <result column="e49" property="e49" />
+        <result column="e50" property="e50" />
+        <result column="e51" property="e51" />
+        <result column="e52" property="e52" />
+        <result column="e53" property="e53" />
+        <result column="e54" property="e54" />
+        <result column="e55" property="e55" />
+        <result column="e56" property="e56" />
+        <result column="e57" property="e57" />
+        <result column="e58" property="e58" />
+        <result column="e59" property="e59" />
+        <result column="e60" property="e60" />
+        <result column="e61" property="e61" />
+        <result column="e62" property="e62" />
+        <result column="e63" property="e63" />
+        <result column="e64" property="e64" />
+        <result column="e65" property="e65" />
+        <result column="e66" property="e66" />
+        <result column="e67" property="e67" />
+        <result column="e68" property="e68" />
+        <result column="e69" property="e69" />
+        <result column="e70" property="e70" />
+        <result column="e71" property="e71" />
+        <result column="e72" property="e72" />
+        <result column="e73" property="e73" />
+        <result column="e74" property="e74" />
+        <result column="e75" property="e75" />
+        <result column="e76" property="e76" />
+        <result column="e77" property="e77" />
+        <result column="e78" property="e78" />
+        <result column="e79" property="e79" />
+        <result column="e80" property="e80" />
+        <result column="e81" property="e81" />
+        <result column="e82" property="e82" />
+        <result column="e83" property="e83" />
+        <result column="e84" property="e84" />
+        <result column="e85" property="e85" />
+        <result column="e86" property="e86" />
+        <result column="e87" property="e87" />
+        <result column="e88" property="e88" />
+        <result column="e89" property="e89" />
+        <result column="e90" property="e90" />
+        <result column="e91" property="e91" />
+        <result column="e92" property="e92" />
+        <result column="e93" property="e93" />
+        <result column="e94" property="e94" />
+        <result column="e95" property="e95" />
+        <result column="e96" property="e96" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        data_id, cons_id, data_date, data_point_flag, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, e26, e27, e28, e29, e30, e31, e32, e33, e34, e35, e36, e37, e38, e39, e40, e41, e42, e43, e44, e45, e46, e47, e48, e49, e50, e51, e52, e53, e54, e55, e56, e57, e58, e59, e60, e61, e62, e63, e64, e65, e66, e67, e68, e69, e70, e71, e72, e73, e74, e75, e76, e77, e78, e79, e80, e81, e82, e83, e84, e85, e86, e87, e88, e89, e90, e91, e92, e93, e94, e95, e96
+    </sql>
+
+</mapper>

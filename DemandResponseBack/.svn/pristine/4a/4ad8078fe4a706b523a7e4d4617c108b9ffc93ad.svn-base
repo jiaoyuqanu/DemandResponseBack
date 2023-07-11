@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.evaluation.mapper.CustEvaluationAppealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.evaluation.entity.CustEvaluationAppeal">
+        <id column="evaluation_id" property="evaluationId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="CUST_ID" property="custId" />
+        <result column="invitation_cap" property="invitationCap" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="min_load_baseline" property="minLoadBaseline" />
+        <result column="avg_load_baseline" property="avgLoadBaseline" />
+        <result column="max_load_actual" property="maxLoadActual" />
+        <result column="min_load_actual" property="minLoadActual" />
+        <result column="avg_load_actual" property="avgLoadActual" />
+        <result column="actual_cap" property="actualCap" />
+        <result column="actual_energy" property="actualEnergy" />
+        <result column="confirm_cap" property="confirmCap" />
+        <result column="is_effective" property="isEffective" />
+        <result column="effective_time" property="effectiveTime" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="is_out" property="isOut" />
+        <result column="remark" property="remark" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+<!--        <association property="custInfo" javaType="com.xqxy.sys.modular.cust.entity.Cust">-->
+            <result column="credit_code" property="creditCode"/>
+            <result column="legal_name" property="legalName"/>
+            <result column="legal_no" property="legalNo"/>
+            <result column="legal_card_type" property="legalCardType"/>
+            <result column="apply_no" property="applyNo"/>
+            <result column="apply_card_type" property="applyCardType"/>
+            <result column="apply_name" property="applyName"/>
+            <result column="cust_name" property="custName"/>
+            <result column="cust_no" property="custNo"/>
+            <result column="province_code" property="provinceCode"/>
+            <result column="city_code" property="cityCode"/>
+            <result column="county_code" property="countyCode"/>
+            <result column="street_code" property="streetCode"/>
+            <result column="cust_addr" property="custAddr"/>
+<!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        evaluation_id, EVENT_ID, CUST_ID, invitation_cap, reply_cap, max_load_baseline, min_load_baseline, avg_load_baseline, max_load_actual, min_load_actual, avg_load_actual, actual_cap, actual_energy, confirm_cap, is_effective, effective_time, is_qualified, is_out, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+</mapper>

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.evaluation.mapper.CustEvaluationImmediateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.evaluation.entity.CustEvaluationImmediate">
+        <id column="evaluation_id" property="evaluationId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="CUST_ID" property="custId" />
+        <result column="invitation_cap" property="invitationCap" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="min_load_baseline" property="minLoadBaseline" />
+        <result column="avg_load_baseline" property="avgLoadBaseline" />
+        <result column="max_load_actual" property="maxLoadActual" />
+        <result column="min_load_actual" property="minLoadActual" />
+        <result column="avg_load_actual" property="avgLoadActual" />
+        <result column="actual_cap" property="actualCap" />
+        <result column="actual_energy" property="actualEnergy" />
+        <result column="confirm_cap" property="confirmCap" />
+        <result column="is_effective" property="isEffective" />
+        <result column="effective_time" property="effectiveTime" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="is_out" property="isOut" />
+		<result column="remark" property="remark" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+<!--        <association property="custInfo" javaType="com.xqxy.sys.modular.cust.entity.Cust">-->
+            <result column="credit_code" property="creditCode"/>
+            <result column="legal_name" property="legalName"/>
+            <result column="legal_no" property="legalNo"/>
+            <result column="legal_card_type" property="legalCardType"/>
+            <result column="apply_no" property="applyNo"/>
+            <result column="apply_card_type" property="applyCardType"/>
+            <result column="apply_name" property="applyName"/>
+            <result column="cust_name" property="custName"/>
+            <result column="cust_no" property="custNo"/>
+            <result column="province_code" property="provinceCode"/>
+            <result column="city_code" property="cityCode"/>
+            <result column="county_code" property="countyCode"/>
+            <result column="street_code" property="streetCode"/>
+            <result column="cust_addr" property="custAddr"/>
+<!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        evaluation_id, EVENT_ID, CUST_ID, invitation_cap, reply_cap, max_load_baseline, min_load_baseline, avg_load_baseline, max_load_actual, min_load_actual, avg_load_actual, actual_cap, actual_energy, confirm_cap, is_effective, effective_time, is_qualified, is_out, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="selectPageVo" resultMap="BaseResultMap">
+        SELECT
+            eva.*,
+            c.CREDIT_CODE,
+            c.legal_name,
+            c.legal_no,
+            c.legal_card_type,
+            c.apply_no,
+            c.apply_card_type,
+            c.apply_name,
+            c.cust_name,
+            c.cust_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.STREET_CODE,
+            c.CUST_ADDR
+        FROM
+            dr_cust_evaluation_immediate eva
+            LEFT JOIN dr_cust c ON eva.cust_id = c.ID
+             ${ew.customSqlSegment}
+    </select>
+    <select id="immediateCustList"  resultMap="BaseResultMap">
+        SELECT
+            eva.*,
+            c.CREDIT_CODE,
+            c.legal_name,
+            c.legal_no,
+            c.legal_card_type,
+            c.apply_no,
+            c.apply_card_type,
+            c.apply_name,
+            c.cust_name,
+            c.cust_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.STREET_CODE,
+            c.CUST_ADDR
+        FROM
+			dr_cust_evaluation_immediate eva
+            LEFT JOIN dr_cust c ON eva.cust_id = c.ID
+             ${ew.customSqlSegment}
+    </select>
+    <select id="getCustBaseLine" parameterType="com.xqxy.dr.modular.evaluation.param.EvaluCustTaskParam" resultType="com.xqxy.dr.modular.baseline.entity.BaseLineDetail">
+        SELECT
+	base.cons_id AS consId,
+	sum( base.max_load_baseline ) AS maxLoadBaseline,
+	sum( base.min_load_baseline ) AS minLoadBaseline,
+	sum( base.avg_load_baseline ) AS avgLoadBaseline,
+	sum( p1 ) AS p1,
+	sum( p2 ) AS p2,
+	sum( p3 ) AS p3,
+	sum( p4 ) AS p4,
+	sum( p5 ) AS p5,
+	sum( p6 ) AS p6,
+	sum( p7 ) AS p7,
+	sum( p8 ) AS p8,
+	sum( p9 ) AS p9,
+	sum( p10 ) AS p10,
+	sum( p11 ) AS p11,
+	sum( p12 ) AS p12,
+	sum( p13 ) AS p13,
+	sum( p14 ) AS p14,
+	sum( p15 ) AS p15,
+	sum( p16 ) AS p16,
+	sum( p17 ) AS p17,
+	sum( p18 ) AS p18,
+	sum( p19 ) AS p19,
+	sum( p20 ) AS p20,
+	sum( p21 ) AS p21,
+	sum( p22 ) AS p22,
+	sum( p23 ) AS p23,
+	sum( p24 ) AS p24,
+	sum( p25 ) AS p25,
+	sum( p26 ) AS p26,
+	sum( p27 ) AS p27,
+	sum( p28 ) AS p28,
+	sum( p29 ) AS p29,
+	sum( p30 ) AS p30,
+	sum( p31 ) AS p31,
+	sum( p32 ) AS p32,
+	sum( p33 ) AS p33,
+	sum( p34 ) AS p34,
+	sum( p35 ) AS p35,
+	sum( p36 ) AS p36,
+	sum( p37 ) AS p37,
+	sum( p38 ) AS p38,
+	sum( p39 ) AS p39,
+	sum( p40 ) AS p40,
+	sum( p41 ) AS p41,
+	sum( p42 ) AS p42,
+	sum( p43 ) AS p43,
+	sum( p44 ) AS p44,
+	sum( p45 ) AS p45,
+	sum( p46 ) AS p46,
+	sum( p47 ) AS p47,
+	sum( p48 ) AS p48,
+	sum( p49 ) AS p49,
+	sum( p50 ) AS p50,
+	sum( p51 ) AS p51,
+	sum( p52 ) AS p52,
+	sum( p53 ) AS p53,
+	sum( p54 ) AS p54,
+	sum( p55 ) AS p55,
+	sum( p56 ) AS p56,
+	sum( p57 ) AS p57,
+	sum( p58 ) AS p58,
+	sum( p59 ) AS p59,
+	sum( p60 ) AS p60,
+	sum( p61 ) AS p61,
+	sum( p62 ) AS p62,
+	sum( p63 ) AS p63,
+	sum( p64 ) AS p64,
+	sum( p65 ) AS p65,
+	sum( p66 ) AS p66,
+	sum( p67 ) AS p67,
+	sum( p68 ) AS p68,
+	sum( p69 ) AS p69,
+	sum( p70 ) AS p70,
+	sum( p71 ) AS p71,
+	sum( p72 ) AS p72,
+	sum( p73 ) AS p73,
+	sum( p74 ) AS p74,
+	sum( p75 ) AS p75,
+	sum( p76 ) AS p76,
+	sum( p77 ) AS p77,
+	sum( p78 ) AS p78,
+	sum( p79 ) AS p79,
+	sum( p80 ) AS p80,
+	sum( p81 ) AS p81,
+	sum( p82 ) AS p82,
+	sum( p83 ) AS p83,
+	sum( p84 ) AS p84,
+	sum( p85 ) AS p85,
+	sum( p86 ) AS p86,
+	sum( p87 ) AS p87,
+	sum( p88 ) AS p88,
+	sum( p89 ) AS p89,
+	sum( p90 ) AS p90,
+	sum( p91 ) AS p91,
+	sum( p92 ) AS p92,
+	sum( p93 ) AS p93,
+	sum( p94 ) AS p94,
+	sum( p95 ) AS p95,
+	sum( p96 ) AS p96
+FROM
+	dr_cons con
+	LEFT JOIN dr_cons_invitation inv ON con.id = inv.CONS_ID
+	LEFT JOIN dr_user_cons_rela rela on rela.cons_no = con.id
+	LEFT JOIN dr_plan pla ON pla.REGULATE_ID = inv.EVENT_ID
+	LEFT JOIN dr_cons_baseline base ON base.baseline_lib_id = pla.BASELIN_ID
+	AND base.cons_id = con.id
+WHERE
+	(con.CUST_ID = #{custId} or rela.CUST_ID=#{custId})
+	AND inv.EVENT_ID = #{eventId} and inv.is_participate='Y' and base.normal='Y'
+    </select>
+
+	<select id="getConsByCustAndEvent" parameterType="com.xqxy.dr.modular.evaluation.param.EvaluCustTaskParam" resultType="String">
+        SELECT
+			base.cons_id AS consId
+		FROM
+			dr_cons con
+			LEFT JOIN dr_cons_invitation inv ON con.id = inv.CONS_ID
+			LEFT JOIN dr_user_cons_rela rela on rela.cons_no = con.id
+			LEFT JOIN dr_plan pla ON pla.REGULATE_ID = inv.EVENT_ID
+			LEFT JOIN dr_cons_baseline base ON base.baseline_lib_id = pla.BASELIN_ID
+			AND base.cons_id = con.id
+		WHERE
+			(con.CUST_ID = #{custId} or rela.CUST_ID=#{custId})
+			AND inv.EVENT_ID = #{eventId} and inv.is_participate='Y' and base.normal='Y'
+    </select>
+</mapper>

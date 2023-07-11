@@ -1,0 +1,254 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.enums.DrSysDictDataEnum;
+import com.xqxy.core.enums.PrvoinceOrgNoEnum;
+import com.xqxy.dr.modular.baseline.entity.CustBaseLineDetailAll;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.dispatch.entity.OrgDemand;
+import com.xqxy.dr.modular.dispatch.service.OrgDemandService;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.entity.EventPower;
+import com.xqxy.dr.modular.event.mapper.EventPowerDayMapper;
+import com.xqxy.dr.modular.event.mapper.EventPowerMapper;
+import com.xqxy.dr.modular.event.param.EventParam;
+import com.xqxy.dr.modular.event.result.EventPowerResult;
+import com.xqxy.dr.modular.event.service.EventPowerService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.dr.modular.event.service.EventService;
+import com.xqxy.dr.modular.event.service.PlanConsService;
+import com.xqxy.sys.modular.dict.param.DictTypeParam;
+import com.xqxy.sys.modular.dict.service.DictTypeService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.*;
+
+/**
+ * <p>
+ * 事件执行曲线 服务实现类
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-26
+ */
+@Service
+public class EventPowerServiceImpl extends ServiceImpl<EventPowerMapper, EventPower> implements EventPowerService {
+    private static final Log log = Log.get();
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private PlanConsService planConsService;
+
+    @Resource
+    private DictTypeService dictTypeService;
+
+    @Resource
+    private EventPowerDayMapper eventPowerDayMapper;
+
+    @Resource
+    private OrgDemandService orgDemandService;
+
+    @Override
+    public Map<String, Object> getEventPower(EventParam eventParam) {
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("replyCap", BigDecimal.ZERO);
+        Event event = eventService.getById(eventParam.getEventId());
+        if(null!=event) {
+            eventParam.setRegulateDate(event.getRegulateDate());
+        }
+        if(StringUtils.isEmpty(eventParam.getOrgNo())){
+            DictTypeParam dictTypeParam = new DictTypeParam();
+            dictTypeParam.setCode(DrSysDictDataEnum.CURRENT_REGION.getCode());
+            List<Dict> dicts = dictTypeService.dropDown(dictTypeParam);
+
+            for (Dict dict : dicts) {
+                String value = dict.get("value").toString();
+                String code = dict.get("code").toString();
+                if(PrvoinceOrgNoEnum.PRVOINCE_ORG_NO_.getCode().equals(code)){
+                    eventParam.setOrgNo(value);
+                    break;
+                }
+            }
+        }
+
+        EventPowerResult basePower = null;
+        EventPowerResult curvePower = null;
+        EventPowerResult curveUpper = new EventPowerResult();
+        if (ObjectUtil.isNotNull(event)) {
+            basePower = getBaseMapper().getEventPowerBase(eventParam);
+            if (ObjectUtil.isNotNull(basePower)) {
+                this.getPeriod(basePower, event);
+                basePower.setEventId(event.getEventId());
+                basePower.setStartPeriod(event.getStartTime());
+                basePower.setEndPeriod(event.getEndTime());
+                basePower.setCurveType("baseCurve");
+            }
+
+            //curvePower = getBaseMapper().getEventPowerToday(event.getRegulateDate(), orgNos);
+            // 查询事件调控日期  是过去则查询 日冻结曲线表
+            curvePower = this.getEventPowerTodayOrYesterDay(eventParam);
+            if (ObjectUtil.isNotNull(curvePower)) {
+                if (LocalDate.now().compareTo(event.getRegulateDate()) == 0) {
+                    LocalDateTime currentTime = LocalDateTime.now();
+                    if(null!=currentTime) {
+                        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        log.info (">>> 服务器当前时间：{}", currentTime.format(dateTimeFormatter));
+                    }
+                    int currentPoint = currentTime.getHour() * 4 + currentTime.getMinute() / 15 + 1;
+                    for (int temp = currentPoint + 1; temp < 97; temp ++) {
+                        ReflectUtil.setFieldValue(curvePower, "p" + temp, null);
+                    }
+
+                    if (currentPoint > 0 && currentPoint < 96) {
+                        BigDecimal currentPointField = (BigDecimal) ReflectUtil.getFieldValue(curvePower, "p" + currentPoint);
+                        if(null!=currentPointField) {
+                            if (BigDecimal.ZERO.compareTo(currentPointField) == 0) {
+                                ReflectUtil.setFieldValue(curvePower, "p" + currentPoint, null);
+                                currentPoint -= 1;
+                                if (currentPoint > 0 && currentPoint < 97) {
+                                    BigDecimal currentPointFieldTwo = (BigDecimal) ReflectUtil.getFieldValue(curvePower, "p" + currentPoint);
+                                    if (null != currentPointFieldTwo) {
+                                        if (BigDecimal.ZERO.compareTo((currentPointFieldTwo)) == 0) {
+                                            ReflectUtil.setFieldValue(curvePower, "p" + currentPoint, null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                curvePower.setEventId(event.getEventId());
+                curvePower.setStartPeriod(event.getStartTime());
+                curvePower.setEndPeriod(event.getEndTime());
+                curvePower.setCurveType("realCurve");
+            }
+
+            // 因前端不展示 计算负荷越限基准线 也不相关 故不返回
+            /*BigDecimal sumCapByEventId = planConsService.getSumCapByEventId(eventParam.getEventId());
+            int startP = CurveUtil.covDateTimeToPoint(event.getStartTime());
+            int endP = CurveUtil.covDateTimeToPoint(event.getEndTime());
+            if(ObjectUtil.isNotNull(basePower)) {
+                BigDecimal tempReplyCap = sumCapByEventId;
+                BigDecimal tempMaxbCap = Optional.ofNullable(basePower.getMaxLoadBaseline()).orElse(BigDecimal.ZERO);
+                BigDecimal upperLoad = BigDecimal.ZERO;
+                if(null!=tempMaxbCap && null!=tempReplyCap) {
+                     upperLoad = tempMaxbCap.subtract(tempReplyCap);
+                }
+                for(int i = startP;i <= endP;i++) {
+                    ReflectUtil.setFieldValue(curveUpper,"p" + i,upperLoad);
+                }
+                map.replace("replyCap", tempReplyCap);
+            }
+            curveUpper.setEventId(event.getEventId());
+            curveUpper.setStartPeriod(event.getStartTime());
+            curveUpper.setEndPeriod(event.getEndTime());*/
+        }
+
+        map.put("eventPower", curvePower);
+        map.put("eventPowerBase", basePower);
+//        map.put("eventPowerUpper", curveUpper);
+        //map.put("replyPower", replyPower);
+        //查询调度目标
+        String provinceCode = null;
+        DictTypeParam dictTypeParam3 = new DictTypeParam();
+        dictTypeParam3.setCode("province_code");
+        List<Dict> list3 = dictTypeService.dropDown(dictTypeParam3);
+        Object value2 = null;
+        if(null!=list3 && list3.size()>0) {
+            for(Dict dict : list3) {
+                if("anhui_org_code".equals(dict.get("code"))) {
+                    value2 = dict.get("value");
+                }
+            }
+            if (null != value2) {
+                provinceCode = (String) value2;
+            }
+        } else {
+            provinceCode = "34101";
+            log.error("未配置省级供电单位编码!");
+        }
+        BigDecimal targetPower = null;
+        EventPowerResult target = new EventPowerResult();
+        if(!eventParam.getOrgNo().equals(provinceCode)) {
+            LambdaQueryWrapper<OrgDemand> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(OrgDemand::getOrgId, eventParam.getOrgNo());
+            lambdaQueryWrapper.eq(OrgDemand::getRegulateId, event.getRegulateId());
+            List<OrgDemand> orgDemands = orgDemandService.list(lambdaQueryWrapper);
+            if (null != orgDemands && orgDemands.size() > 0) {
+                targetPower = orgDemands.get(0).getGoal();
+                if(null!=targetPower) {
+                    targetPower = NumberUtil.mul(targetPower,10000);
+                }
+            }
+        } else {
+            targetPower = event.getRegulateCap();
+        }
+        int startP = CurveUtil.covDateTimeToPoint(event.getStartTime());
+        int endP = CurveUtil.covDateTimeToPoint(event.getEndTime());
+        for(int i = startP;i <= endP;i++) {
+            ReflectUtil.setFieldValue(target,"p" + i,targetPower);
+        }
+        map.put("targetPower",target);
+        return map;
+    }
+
+    /**
+     * 根据 事件判断是 去事件执行曲线查询 还是 去日冻结曲线
+     * @param eventParam
+     * @return
+     */
+    private EventPowerResult getEventPowerTodayOrYesterDay(EventParam eventParam) {
+        Long eventId = eventParam.getEventId();
+
+        EventPowerResult curvePower = new EventPowerResult();
+        //根据事件id
+        Event event = eventService.getById(eventId);
+        if(LocalDate.now().equals(event.getRegulateDate())){
+            curvePower = getBaseMapper().getEventPowerToday(eventParam);
+        }else {
+            curvePower = eventPowerDayMapper.getEventPowerYesterDay(eventParam);
+        }
+
+        return curvePower;
+    }
+
+    @Override
+    public void getPeriod(EventPowerResult eventPowerResult, Event event) {
+        if (ObjectUtil.isNull(eventPowerResult)) {
+            return ;
+        }
+
+        TemporalAccessor parseStart = DateTimeFormatter.ofPattern("HH:mm").parse(event.getStartTime());
+        LocalTime startTime = LocalTime.from(parseStart);
+        int startPoint = (startTime.getHour() * 4) + (startTime.getMinute() / 15) + 1;
+
+        TemporalAccessor parseEnd = DateTimeFormatter.ofPattern("HH:mm").parse(event.getEndTime());
+        LocalTime endTime = LocalTime.from(parseEnd);
+        int endPoint = (endTime.getHour() * 4) + (endTime.getMinute() / 15) + 1;
+
+        for(int i = 1; i < startPoint; i++) {
+            ReflectUtil.setFieldValue(eventPowerResult, "p" + i, null);
+        }
+        for(int j = endPoint + 1; j < 97 ; j++) {
+            ReflectUtil.setFieldValue(eventPowerResult, "p" + j, null);
+        }
+    }
+
+}

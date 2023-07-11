@@ -1,0 +1,78 @@
+package com.xqxy.sys.modular.utils;
+
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @className: CityAndCountyUtils
+ * @description: 省市县所封装公共方法
+ * @author: Rabbit
+ * @createTime: 2022/8/2 9:53
+ * @version: 1.0
+ */
+@Slf4j
+@Configuration
+public class CityAndCountyUtils {
+    public Map<String, Object> cityAndCounty(String orgNo, JSONObject allOrgs) {
+        Map<String, Object> map = new HashMap<>();
+        if (ObjectUtil.isEmpty(orgNo) || ObjectUtil.isEmpty(allOrgs)) {
+            log.warn("Orgno and allorgs cannot be empty!");
+            return map;
+        } else {
+            // 1是省级,2是市级,3县级,4所级
+            log.info("Orgno and allorgs are not empty!");
+            JSONArray allOrgsJSONArray = allOrgs.getJSONArray("data");
+            Map<String, JSONObject> allOrgsData = new HashMap<>();
+            for (int i = 0; i < allOrgsJSONArray.size(); i++) {
+                JSONObject jsonObject = allOrgsJSONArray.getJSONObject(i);
+                allOrgsData.put(jsonObject.getString("id"), jsonObject);
+            }
+            log.info("allOrgsData：" + allOrgsData);
+
+            JSONObject orgInfo = allOrgsData.get(orgNo);
+            if (ObjectUtil.isNotEmpty(orgInfo)) {
+                if (orgInfo.getInteger("orgTitle") == 1) {
+                    map.put("province", orgInfo.getString("name"));
+                }
+                if (orgInfo.getInteger("orgTitle") == 2) {
+                    map.put("city", orgInfo.getString("name"));
+                }
+                if (orgInfo.getInteger("orgTitle") == 3) {
+                    map.put("county", orgInfo.getString("name"));
+                }
+                if (orgInfo.getInteger("orgTitle") == 4) {
+                    map.put("place", orgInfo.getString("name"));
+                }
+                String parentOrgNo = orgInfo.getString("parentId");
+                while (ObjectUtil.isNotEmpty(parentOrgNo)) {
+                    JSONObject parentOrgInfo = allOrgsData.get(parentOrgNo);
+                    if (ObjectUtil.isNotEmpty(parentOrgInfo)) {
+                        parentOrgNo = parentOrgInfo.getString("parentId");
+                        if (parentOrgInfo.getInteger("orgTitle") == 1) {
+                            map.put("province", parentOrgInfo.getString("name"));
+                        }
+                        if (parentOrgInfo.getInteger("orgTitle") == 2) {
+                            map.put("city", parentOrgInfo.getString("name"));
+                        }
+                        if (parentOrgInfo.getInteger("orgTitle") == 3) {
+                            map.put("county", parentOrgInfo.getString("name"));
+                        }
+                        if (parentOrgInfo.getInteger("orgTitle") == 4) {
+                            map.put("place", parentOrgInfo.getString("name"));
+                        }
+                    } else {
+                        parentOrgNo = null;
+                    }
+                }
+            }
+        }
+        log.info(orgNo + "---->省：" + map.get("province") + ",市：" + map.get("city") + ",县：" + map.get("county") + ",所：" + map.get("place"));
+        return map;
+    }
+}

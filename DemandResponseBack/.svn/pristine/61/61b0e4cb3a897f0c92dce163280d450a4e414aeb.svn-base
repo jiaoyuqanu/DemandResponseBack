@@ -1,0 +1,37 @@
+package com.xqxy.dr.modular.event.param;
+
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+
+import java.util.List;
+
+@ApiModel(description = "用户执行信息 参数")
+@Data
+public class EventExecuteParam extends BaseParam {
+    /**
+     * 本实体记录的唯一标识，产生规则为流水号
+     */
+    private Long id;
+
+    /**
+     * 关联事件ID
+     */
+    private Long eventId;
+
+    /**
+     * 关联用户ID
+     */
+    private String consId;
+
+    /**
+     * 是否越界:(是：Y，否：N)
+     */
+    private String isOut;
+    /**
+     *
+     */
+    private List<String> orgNos;
+
+
+}

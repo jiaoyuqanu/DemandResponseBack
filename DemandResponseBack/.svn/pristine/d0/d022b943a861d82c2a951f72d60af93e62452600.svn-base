@@ -1,0 +1,111 @@
+package com.xqxy.config;
+
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.config.GlobalConfig;
+import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.pagination.optimize.JsqlParserCountOptimize;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.xqxy.core.mybatis.CustomMetaObjectHandler;
+import com.xqxy.eum.DataSourceEnum;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.type.JdbcType;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+/**
+ * @Description
+ * @ClassName MultiDataSourceConfig
+ * @Author dongdawei
+ * @date 2021.04.13 17:49
+ */
+@Configuration
+public class MultiDataSourceConfig {
+
+    ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+
+    /**
+     * postgresql数据源
+     */
+    @Bean(name = "pgDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.pg")
+    public DataSource pgDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    /**
+     * mysql数据源
+     */
+    @Bean(name = "mysqlDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.mysql")
+    public DataSource mysqlDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    /**
+     * 多数据源动态切换
+     */
+    @Bean
+    public DataSource multiDataSource(
+            @Qualifier("mysqlDataSource") DataSource mysqlDataSource) {
+        Map<Object, Object> target = new HashMap<>();
+        target.put(DataSourceEnum.PG, pgDataSource());
+        target.put(DataSourceEnum.MYSQL, mysqlDataSource);
+
+        AbstractRoutingDataSource dataSource = new DynamicDataSource();
+        dataSource.setDefaultTargetDataSource(mysqlDataSource);
+        dataSource.setTargetDataSources(target);
+        return dataSource;
+    }
+
+    @Bean
+    public SqlSessionFactory sqlSessionFactory(@Qualifier("multiDataSource") DataSource multiDataSource) throws Exception {
+        MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
+        sqlSessionFactory.setDataSource(multiDataSource);
+        sqlSessionFactory.setGlobalConfig(new GlobalConfig().setMetaObjectHandler(new CustomMetaObjectHandler()));
+        String[] mapperLocations = new String[]{"com/xqxy/**/mapper/**/*.xml"};
+        sqlSessionFactory.setMapperLocations(resolveMapperLocations(mapperLocations));
+
+        PaginationInterceptor pi = new PaginationInterceptor();
+        pi.setDialect(new NdsDialect());
+        pi.setDialectType("mysql");
+        pi.setCountSqlParser(new JsqlParserCountOptimize(true));
+        sqlSessionFactory.setPlugins(pi);
+
+        MybatisConfiguration configuration = new MybatisConfiguration();
+        configuration.setJdbcTypeForNull(JdbcType.NULL);
+        configuration.setMapUnderscoreToCamelCase(true);
+        configuration.setCacheEnabled(false);
+        sqlSessionFactory.setConfiguration(configuration);
+        return sqlSessionFactory.getObject();
+
+    }
+
+    private Resource[] resolveMapperLocations(String[] mapperLocations) {
+        return Stream.of(Optional.ofNullable(mapperLocations).orElse(new String[0]))
+                .flatMap(location -> Stream.of(getResources(location))).toArray(Resource[]::new);
+    }
+
+    private Resource[] getResources(String location) {
+        try {
+            return resourceResolver.getResources(location);
+        } catch (IOException e) {
+            return new Resource[0];
+        }
+    }
+
+
+}

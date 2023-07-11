@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.powerplant.mapper.DrDaAggregatorElectricityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.powerplant.entity.DrDaAggregatorElectricity">
+        <id column="id" property="id" />
+        <result column="electric_market_id" property="electricMarketId" />
+        <result column="aggregator_id" property="aggregatorId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, electric_market_id, aggregator_id
+    </sql>
+    <select id="pageAggregatorByElectricityId" resultType="com.xqxy.dr.modular.powerplant.entity.DrDaAggregator">
+        SELECT
+            id,
+            aggregator_no,
+            aggregator_name,
+            province_code,
+            province_name,
+            city_code,
+            city_name,
+            county_code,
+            county_name,
+            credit_code,
+            contact_name,
+            contact_phone,
+            STATUS,
+            update_user,
+            update_time,
+            create_user,
+            create_time
+        FROM
+            dr_da_aggregator
+        WHERE
+            id IN (
+                SELECT
+                    dr_da_aggregator_electricity.aggregator_id
+                FROM
+                    dr_da_aggregator_electricity
+                <where>
+                    <if test="electricityDTO.electricMarketId != null">
+                        and dr_da_aggregator_electricity.electric_market_id = #{electricityDTO.electricMarketId}
+                    </if>
+                </where>
+            )
+    </select>
+
+</mapper>

@@ -1,0 +1,96 @@
+package com.xqxy.core.util;
+
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.client.SystemClient;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Component
+public class ConsOrgUtils {
+
+    public static final String PROVINCE = "PROVINCE";
+    public static final String CITY = "CITY";
+    public static final String AREA = "AREA";
+
+    private static ConsOrgUtils instance;
+
+    @Resource
+    private ConsService consService;
+    @Resource
+    private SystemClient systemClient;
+
+    @PostConstruct
+    private void init() {
+        ConsOrgUtils.instance = this;
+    }
+
+    public static ConsOrgUtils getInstance() {
+        return instance;
+    }
+
+    public <T> Map<String, Map<String, String>> getCityOrg(List<T> objectList, Function<T, ?> getConsFunc) {
+        return this.getCityOrg(objectList.stream().map(getConsFunc).collect(Collectors.toList()));
+    }
+
+    public Map<String, Map<String, String>> getCityOrg(List<?> consList) {
+        if (ObjectUtil.isEmpty(consList)) {
+            return new HashMap<>();
+        }
+        JSONObject allOrgs = systemClient.queryAllOrg();
+        JSONArray allOrgsJSONArray = allOrgs.getJSONArray("data");
+        Map<String, JSONObject> allOrgsData = new HashMap<>();
+        for (int i = 0; i < allOrgsJSONArray.size(); i++) {
+            JSONObject jsonObject = allOrgsJSONArray.getJSONObject(i);
+            allOrgsData.put(jsonObject.getString("id"), jsonObject);
+        }
+
+        LambdaQueryWrapper<Cons> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.in(Cons::getId, consList);
+        lambdaQueryWrapper.select(Cons::getId, Cons::getOrgNo);
+
+        Map<String, Map<String, String>> result = new HashMap<>();
+        consService.list(lambdaQueryWrapper).forEach(item -> {
+            JSONObject orgInfo = allOrgsData.get(item.getOrgNo());
+            Map<String, String> orgNameMap = new HashMap<>();
+            if (orgInfo != null) {
+                String parentOrgNo = orgInfo.getString("parentId");
+                while (ObjectUtil.isNotEmpty(parentOrgNo)) {
+                    JSONObject parentOrgInfo = allOrgsData.get(parentOrgNo);
+                    if (parentOrgInfo != null) {
+                        parentOrgNo = parentOrgInfo.getString("parentId");
+                        String orgName = parentOrgInfo.getString("name");
+                        switch (parentOrgInfo.getInteger("orgTitle")) {
+                            case 1:
+                                orgNameMap.put(PROVINCE, orgName);
+                                break;
+                            case 2:
+                                orgNameMap.put(CITY, orgName);
+                                break;
+                            case 3:
+                                orgNameMap.put(AREA, orgName);
+                                break;
+                        }
+                    } else {
+                        parentOrgNo = null;
+                    }
+                }
+            }
+            result.put(item.getId(), orgNameMap);
+        });
+        return result;
+    }
+
+
+}

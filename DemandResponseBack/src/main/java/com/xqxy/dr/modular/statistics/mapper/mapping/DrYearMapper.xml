@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.DrYearMapper">
+
+    <select id="drYearStatistics" resultType="com.xqxy.dr.modular.statistics.result.DrYearResult">
+        SELECT
+            tempc.*, round(maxEnergy.actual_energy, 2) actual_energy
+        FROM
+            (
+                SELECT
+                    tempb.*, round(maxCap.actual_cap, 2) actual_cap
+                FROM
+                    (
+                        SELECT
+                            tempa.*,
+                        IF (
+                            effective.effective IS NULL,
+                            0,
+                            effective.effective
+                        ) effective
+                        FROM
+                            (
+                                SELECT
+                                    invitation.*,
+                                IF (
+                                    participate.participate IS NULL,
+                                    0,
+                                    participate.participate
+                                ) participate
+                                FROM
+                                    (
+                                        SELECT
+                                            substr(ev.regulate_date, 1, 4) regulate_date,
+                                            pc.cons_id,
+                                            dc.cons_name,
+                                            count(pc.deleted) invitation
+                                        FROM
+                                            dr_event ev,
+                                            dr_plan dp,
+                                            dr_plan_cons pc,
+                                            dr_cons dc
+                                        WHERE
+                                            dc.id = pc.cons_id
+                                        AND pc.plan_id = dp.plan_id
+                                        AND ev.event_id = dp.regulate_id
+                                        AND pc.deleted = 'N'
+                                        <if test="statisticalParam.year != null and statisticalParam.year != ''">
+                                            AND substr(ev.regulate_date, 1, 4) = #{statisticalParam.year}
+                                        </if>
+                                        GROUP BY
+                                            pc.cons_id
+                                    ) invitation
+                                LEFT JOIN (
+                                    SELECT
+                                        pc.cons_id,
+                                        count(pc.involved_in) participate
+                                    FROM
+                                        dr_event ev,
+                                        dr_plan dp,
+                                        dr_plan_cons pc
+                                    WHERE
+                                        pc.plan_id = dp.plan_id
+                                    AND ev.event_id = dp.regulate_id
+                                    AND pc.deleted = 'N'
+                                    AND pc.involved_in = 'Y'
+                                    <if test="statisticalParam.year != null and statisticalParam.year != ''">
+                                        AND substr(ev.regulate_date, 1, 4) = #{statisticalParam.year}
+                                    </if>
+                                    GROUP BY
+                                        pc.cons_id
+                                ) participate ON invitation.cons_id = participate.cons_id
+                            ) tempa
+                        LEFT JOIN (
+                            SELECT
+                                pc.cons_id,
+                                count(ce.is_effective) effective
+                            FROM
+                                dr_event ev,
+                                dr_plan dp,
+                                dr_plan_cons pc,
+                                dr_cons_evaluation ce
+                            WHERE
+                                ce.cons_id = pc.cons_id
+                            AND ce.event_id = ev.event_id
+                            AND pc.plan_id = dp.plan_id
+                            AND ev.event_id = dp.regulate_id
+                            AND pc.deleted = 'N'
+                            AND pc.involved_in = 'Y'
+                            AND ce.is_effective = 'Y'
+                            <if test="statisticalParam.year != null and statisticalParam.year != ''">
+                                AND substr(ev.regulate_date, 1, 4) = #{statisticalParam.year}
+                            </if>
+                            GROUP BY
+                                pc.cons_id
+                        ) effective ON tempa.cons_id = effective.cons_id
+                    ) tempb
+                LEFT JOIN (
+                    SELECT
+                        pc.cons_id,
+                        max(ce.actual_cap) actual_cap
+                    FROM
+                        dr_event ev,
+                        dr_plan dp,
+                        dr_plan_cons pc,
+                        dr_cons_evaluation ce
+                    WHERE
+                        ce.cons_id = pc.cons_id
+                    AND ce.event_id = ev.event_id
+                    AND pc.plan_id = dp.plan_id
+                    AND ev.event_id = dp.regulate_id
+                    AND pc.deleted = 'N'
+                    AND pc.involved_in = 'Y'
+                    AND ce.is_effective = 'Y'
+                    <if test="statisticalParam.year != null and statisticalParam.year != ''">
+                        AND substr(ev.regulate_date, 1, 4) = #{statisticalParam.year}
+                    </if>
+                    GROUP BY
+                        pc.cons_id
+                ) maxCap ON tempb.cons_id = maxCap.cons_id
+            ) tempc
+        LEFT JOIN (
+            SELECT
+                pc.cons_id,
+                max(ce.actual_energy) actual_energy
+            FROM
+                dr_event ev,
+                dr_plan dp,
+                dr_plan_cons pc,
+                dr_cons_evaluation ce
+            WHERE
+                ce.cons_id = pc.cons_id
+            AND ce.event_id = ev.event_id
+            AND pc.plan_id = dp.plan_id
+            AND ev.event_id = dp.regulate_id
+            AND pc.deleted = 'N'
+            AND pc.involved_in = 'Y'
+            AND ce.is_effective = 'Y'
+            <if test="statisticalParam.year != null and statisticalParam.year != ''">
+                AND substr(ev.regulate_date, 1, 4) = #{statisticalParam.year}
+            </if>
+            GROUP BY
+                pc.cons_id
+        ) maxEnergy ON tempc.cons_id = maxEnergy.cons_id
+    </select>
+
+    <select id="exportYear" resultType="com.xqxy.dr.modular.statistics.result.DrYearResult">
+        SELECT
+        tempc.*, round(maxEnergy.actual_energy, 2) actual_energy
+        FROM
+        (
+        SELECT
+        tempb.*, round(maxCap.actual_cap, 2) actual_cap
+        FROM
+        (
+        SELECT
+        tempa.*,
+        IF (
+        effective.effective IS NULL,
+        0,
+        effective.effective
+        ) effective
+        FROM
+        (
+        SELECT
+        invitation.*,
+        IF (
+        participate.participate IS NULL,
+        0,
+        participate.participate
+        ) participate
+        FROM
+        (
+        SELECT
+        substr(ev.regulate_date, 1, 4) regulate_date,
+        pc.cons_id,
+        dc.cons_name,
+        count(pc.deleted) invitation
+        FROM
+        dr_event ev,
+        dr_plan dp,
+        dr_plan_cons pc,
+        dr_cons dc
+        WHERE
+        dc.id = pc.cons_id
+        AND pc.plan_id = dp.plan_id
+        AND ev.event_id = dp.regulate_id
+        AND pc.deleted = 'N'
+        <if test="year != null and year != ''">
+            AND substr(ev.regulate_date, 1, 4) = #{year}
+        </if>
+        GROUP BY
+        pc.cons_id
+        ) invitation
+        LEFT JOIN (
+        SELECT
+        pc.cons_id,
+        count(pc.involved_in) participate
+        FROM
+        dr_event ev,
+        dr_plan dp,
+        dr_plan_cons pc
+        WHERE
+        pc.plan_id = dp.plan_id
+        AND ev.event_id = dp.regulate_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        <if test="year != null and year != ''">
+            AND substr(ev.regulate_date, 1, 4) = #{year}
+        </if>
+        GROUP BY
+        pc.cons_id
+        ) participate ON invitation.cons_id = participate.cons_id
+        ) tempa
+        LEFT JOIN (
+        SELECT
+        pc.cons_id,
+        count(ce.is_effective) effective
+        FROM
+        dr_event ev,
+        dr_plan dp,
+        dr_plan_cons pc,
+        dr_cons_evaluation ce
+        WHERE
+        ce.cons_id = pc.cons_id
+        AND ce.event_id = ev.event_id
+        AND pc.plan_id = dp.plan_id
+        AND ev.event_id = dp.regulate_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="year != null and year != ''">
+            AND substr(ev.regulate_date, 1, 4) = #{year}
+        </if>
+        GROUP BY
+        pc.cons_id
+        ) effective ON tempa.cons_id = effective.cons_id
+        ) tempb
+        LEFT JOIN (
+        SELECT
+        pc.cons_id,
+        max(ce.actual_cap) actual_cap
+        FROM
+        dr_event ev,
+        dr_plan dp,
+        dr_plan_cons pc,
+        dr_cons_evaluation ce
+        WHERE
+        ce.cons_id = pc.cons_id
+        AND ce.event_id = ev.event_id
+        AND pc.plan_id = dp.plan_id
+        AND ev.event_id = dp.regulate_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="year != null and year != ''">
+            AND substr(ev.regulate_date, 1, 4) = #{year}
+        </if>
+        GROUP BY
+        pc.cons_id
+        ) maxCap ON tempb.cons_id = maxCap.cons_id
+        ) tempc
+        LEFT JOIN (
+        SELECT
+        pc.cons_id,
+        max(ce.actual_energy) actual_energy
+        FROM
+        dr_event ev,
+        dr_plan dp,
+        dr_plan_cons pc,
+        dr_cons_evaluation ce
+        WHERE
+        ce.cons_id = pc.cons_id
+        AND ce.event_id = ev.event_id
+        AND pc.plan_id = dp.plan_id
+        AND ev.event_id = dp.regulate_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="year != null and year != ''">
+            AND substr(ev.regulate_date, 1, 4) = #{year}
+        </if>
+        GROUP BY
+        pc.cons_id
+        ) maxEnergy ON tempc.cons_id = maxEnergy.cons_id
+    </select>
+</mapper>

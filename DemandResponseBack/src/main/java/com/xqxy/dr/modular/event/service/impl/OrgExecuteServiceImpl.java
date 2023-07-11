@@ -1,0 +1,199 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.enums.DrSysDictDataEnum;
+import com.xqxy.core.enums.PrvoinceOrgNoEnum;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.data.entity.ConsCurveToday;
+import com.xqxy.dr.modular.data.mapper.ConsCurveMapper;
+import com.xqxy.dr.modular.data.mapper.ConsCurveTodayMapper;
+import com.xqxy.dr.modular.event.VO.OrgExecuteVO;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.entity.EventPowerBase;
+import com.xqxy.dr.modular.event.entity.OrgExecute;
+import com.xqxy.dr.modular.event.mapper.EventPowerDayMapper;
+import com.xqxy.dr.modular.event.mapper.EventPowerMapper;
+import com.xqxy.dr.modular.event.mapper.OrgExecuteMapper;
+import com.xqxy.dr.modular.event.param.EventParam;
+import com.xqxy.dr.modular.event.param.OrgExecuteParam;
+import com.xqxy.dr.modular.event.result.EventPowerResult;
+import com.xqxy.dr.modular.event.service.EventPowerBaseService;
+import com.xqxy.dr.modular.event.service.EventService;
+import com.xqxy.dr.modular.event.service.OrgExecuteService;
+import com.xqxy.sys.modular.cust.enums.OrgTitleEnum;
+import com.xqxy.sys.modular.dict.param.DictTypeParam;
+import com.xqxy.sys.modular.dict.service.DictTypeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 组织机构执行信息 服务实现类
+ * </p>
+ *
+ * @author liqirui
+ * @since 2022-03-01
+ */
+@Service
+public class OrgExecuteServiceImpl extends ServiceImpl<OrgExecuteMapper, OrgExecute> implements OrgExecuteService {
+
+    private static final Log log = Log.get();
+
+    @Resource
+    private OrgExecuteMapper orgExecuteMapper;
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private EventPowerBaseService eventPowerBaseService;
+
+    @Resource
+    private EventPowerDayMapper eventPowerDayMapper;
+
+    @Resource
+    private EventPowerMapper eventPowerMapper;
+
+    /**
+     * 执行监测 -- 组织机构监测
+     *
+     * @author lqr
+     * @date 2022-03-01 8:49
+     */
+    @Override
+    public List<HashMap<String,Object>> pageOrgExecute(OrgExecuteParam orgExecuteParam) {
+
+        /*
+        2022.7.20 需求变动
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String date = sdf.format(new Date());
+
+        orgExecuteParam.setDate(date);
+        Page<OrgExecuteVO> page = orgExecuteMapper.pageOrgExecute(orgExecuteParam.getPage(),orgExecuteParam);*/
+
+        List<HashMap<String,Object>> result = new ArrayList<>();
+        if(orgExecuteParam == null){
+            throw new ServiceException(500,"传参不能为空");
+        }
+        if(orgExecuteParam.getEventId() != null){
+            Event event = eventService.getById(orgExecuteParam.getEventId());
+            if(null == event) {
+                throw new ServiceException(500,"未查询到该时间");
+            }
+            String startTime = event.getStartTime();
+            String endTime = event.getEndTime();
+            Integer start = CurveUtil.covDateTimeToPoint(startTime);
+            Integer end = CurveUtil.covDateTimeToPoint(endTime);
+
+            EventParam eventParam = new EventParam();
+            eventParam.setEventId(event.getEventId());
+            //基线
+            List<EventPowerBase> baseList = new ArrayList<>();
+            //用户实时/历史负荷
+            List<EventPowerResult> eventPowerResultList = new ArrayList<>();
+
+            CurrenUserInfo currentUserInfoUTF8 = SecurityUtils.getCurrentUserInfoUTF8();
+            if(currentUserInfoUTF8 != null){
+                String orgTitle = currentUserInfoUTF8.getOrgTitle();
+                LambdaQueryWrapper<EventPowerBase> baseQueryWrapper = new LambdaQueryWrapper<>();
+                //省 查看所有 省/市供电单位 基线
+                baseQueryWrapper.eq(EventPowerBase::getEventId,event.getEventId());
+
+                if(OrgTitleEnum.PROVINCE.getCode().equals(orgTitle)){
+                    if(!StringUtils.isEmpty(orgExecuteParam.getOrgNo())){
+                        //如果权限是省， 查询判断传参
+                        eventParam.setOrgNo(orgExecuteParam.getOrgNo());
+                        baseQueryWrapper.eq(EventPowerBase::getOrgNo,orgExecuteParam.getOrgNo());
+                    }
+
+                    baseList = eventPowerBaseService.list(baseQueryWrapper);
+                    //省 查看所有 省/市供电单位 用户负荷
+                    if(LocalDate.now().equals(event.getRegulateDate())){
+                        //查询今日 省/市实时负荷
+                        eventPowerResultList = eventPowerMapper.getEventPowerByEventAndOrg(eventParam);
+                    }else {
+                        //查询 历史负荷
+                        eventPowerResultList = eventPowerDayMapper.getEventPowerByEventAndOrg(eventParam);
+                    }
+                }else if(OrgTitleEnum.CITY.getCode().equals(orgTitle)){
+                    //市 只查询自己所属
+                    baseQueryWrapper.eq(EventPowerBase::getOrgNo,currentUserInfoUTF8.getOrgId());
+                    baseQueryWrapper.eq(EventPowerBase::getEventId,event.getEventId());
+                    baseList = eventPowerBaseService.list(baseQueryWrapper);
+
+                    eventParam.setOrgNo(currentUserInfoUTF8.getOrgId());
+                    if(LocalDate.now().equals(event.getRegulateDate())){
+                        //查询今日 省/市实时负荷
+                        eventPowerResultList = eventPowerMapper.getEventPowerByEventAndOrg(eventParam);
+                    }else {
+                        //查询 历史负荷
+                        eventPowerResultList = eventPowerDayMapper.getEventPowerByEventAndOrg(eventParam);
+                    }
+                }
+
+                if(!CollectionUtils.isEmpty(baseList) && !CollectionUtils.isEmpty(eventPowerResultList)){
+
+                    // 基线 - 实时负荷 = 响应负荷
+                    Map<String, List<EventPowerBase>> baseMap = baseList.stream().collect(Collectors.groupingBy(EventPowerBase::getOrgNo));
+                    Map<String, List<EventPowerResult>> curveMap = eventPowerResultList.stream().collect(Collectors.groupingBy(EventPowerResult::getOrgNo));
+
+                    for (Map.Entry<String, List<EventPowerBase>> entry : baseMap.entrySet()) {
+                        //曲线组合map
+                        HashMap<String,Object> clazzMap = new HashMap<>();
+
+                        String orgNo = entry.getKey();
+                        List<EventPowerBase> powerBaseList = entry.getValue();
+                        List<EventPowerResult> powerResultList = curveMap.get(orgNo);
+
+                        //省/市 基线 和 负荷
+                        if(!CollectionUtils.isEmpty(powerBaseList) && !CollectionUtils.isEmpty(powerResultList)){
+                            EventPowerBase eventPowerBase = powerBaseList.get(0);
+                            EventPowerResult eventPowerResult = powerResultList.get(0);
+
+                            for (int i = start; i <= end; i++) {
+                                String p = "p" + i;
+                                List<BigDecimal> list = new ArrayList<>();
+
+                                BigDecimal basePower = ReflectUtil.getFieldValue(eventPowerBase, p) == null ? BigDecimal.ZERO : (BigDecimal) ReflectUtil.getFieldValue(eventPowerBase, p);
+                                BigDecimal curvePower = ReflectUtil.getFieldValue(eventPowerResult,p) == null ? BigDecimal.ZERO : (BigDecimal) ReflectUtil.getFieldValue(eventPowerResult,p);
+                                BigDecimal responsePower = basePower.subtract(curvePower);
+
+                                list.add(curvePower);
+                                list.add(basePower);
+                                list.add(responsePower);
+                                //缺失 org
+                                clazzMap.put(p,list);
+                                clazzMap.put("orgNo",eventPowerBase.getOrgNo());
+                            }
+                            result.add(clazzMap);
+                        }
+                    }
+                }
+            }
+        }
+
+        //排序
+        if(null!=result) {
+            result = result.stream().sorted((n1, n2) -> n1.get("orgNo").toString().compareTo(n2.get("orgNo").toString())).collect(Collectors.toList());
+        }
+        return result;
+    }
+}

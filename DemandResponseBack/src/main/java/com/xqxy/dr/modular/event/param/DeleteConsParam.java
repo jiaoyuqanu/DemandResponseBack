@@ -1,0 +1,54 @@
+package com.xqxy.dr.modular.event.param;
+
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class DeleteConsParam extends BaseParam {
+
+    /**
+     * 事件id
+     */
+    @ApiModelProperty(value = "事件id")
+    private String eventId;
+
+    /**
+     * 用户名称
+     */
+    @ApiModelProperty(value = "用户名称")
+    private String consName;
+
+    /**
+     * 用户id
+     */
+    @ApiModelProperty(value = "用户id")
+    private String consId;
+
+    /**
+     * 机构名称
+     */
+    @ApiModelProperty(value = "管理单位")
+    private String orgName;
+
+    /**
+     * 标记状态
+     */
+    @ApiModelProperty(value = "标记状态")
+    private String deleted;
+
+    private List<String> orgs;
+
+    private String joinUserType;
+
+    private String delRule;
+
+    private String orgId;
+
+    private String replyTime;
+
+
+
+}

@@ -1,0 +1,151 @@
+package com.xqxy.sys.modular.cust.service;
+
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.sys.modular.cust.entity.Cust;
+import com.xqxy.sys.modular.cust.param.BusConfigParam;
+import com.xqxy.sys.modular.cust.param.CustInfoParam;
+import com.xqxy.sys.modular.cust.param.CustParam;
+
+import java.util.List;
+
+/**
+ * 系统用户service接口
+ *
+ * @author shi
+ * @date 2021/10/8 16:49
+ */
+
+public interface CustService extends IService<Cust> {
+    /**
+     * 	用户认证提交审核接口
+     * @return
+     * @author shi
+     * @date 2021-10-8 16:10
+     */
+    void approve(Long applyOrgId);
+
+    /**
+     * 客户信息更新
+     * @param custInfoParam
+     * @return
+     * @author shi
+     * @date 2021-10-9 10:10
+     */
+    void update(CustInfoParam custInfoParam);
+
+    void updateByid(Cust cust);
+
+
+    Boolean modifyInformation(CustInfoParam custInfoParam);
+
+    List<Long> getByCustNo(String custNo);
+
+    List<Long> getByCreditCode(String creditCode);
+
+    /**
+     * @return
+     */
+    CustInfoParam detailById();
+
+    /**
+     * 用户档案详情
+     * @param id
+     * @return
+     */
+    CustInfoParam detailByCustId(Long id);
+
+    /**
+     * 注册插入用户信息
+     * @param tel
+     * @return
+     * @author shi
+     * @date 2021-10-9 10:10
+     */
+    void add(String tel,Long id);
+
+    void approveResult(BusConfigParam busConfigParam);
+
+    /**
+     * 获取审核信息
+     * @param custId
+     * @return
+     * @author shi
+     * @date 2021-10-9 10:10
+     */
+    CustInfoParam getApproveInfo(Long custId);
+
+    Cust getCustById(Long custId);
+
+    /**
+     * @description: 通过用户id集合，获取用户关联的集成商集合
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/11/1 14:28
+     */
+    List<Long> getAggreListByConsId(List<String> consIdList);
+
+
+    /**
+     * 用户档案负荷集成商分页查询
+     * @param custParam
+     * @return
+     * @author shi
+     * @date 2021-11-3 10:10
+     */
+    Page<Cust> page(CustParam custParam);
+
+
+
+    /**
+     * 用户档案负荷集成商列表
+     * @param custParam
+     * @return
+     * @author shi
+     * @date 2021-11-3 10:10
+     */
+    List<Cust> list(CustParam custParam);
+
+
+
+    /**
+     * 通过统一社会信用代码获取用户
+     * @param creditCode
+     * @return
+     * @author shi
+     * @date 2021-09-26
+     */
+    Cust getUserByCreditCode(String creditCode);
+
+    /**
+     * 代理用户选择集成商, 如果当前登录用户为代理用户，返回它的集成商，否则返回为空
+     *
+     * @return com.xqxy.sys.modular.cust.entity.Cust
+     * @author Caoj
+     * @since 11/24/2021 15:42
+     */
+    Cust selectAggregator();
+
+    /**
+     * 插入集成商信息
+     * @param custParam
+     * @return
+     * @author shi
+     * @date 2021-12-24 10:10
+     */
+    void addCust(Cust cust);
+
+    /**
+     * 用户档案 新增修改接口
+     *
+     * @param custInfoParam
+     * @return
+     * @author shi
+     * @date 2021-10-9 10:10
+     */
+    void updateCust(CustInfoParam custInfoParam);
+
+    Cust getCustByConsId(String consId);
+}

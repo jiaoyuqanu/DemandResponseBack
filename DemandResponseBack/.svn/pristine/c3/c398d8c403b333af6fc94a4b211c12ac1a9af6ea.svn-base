@@ -1,0 +1,81 @@
+package com.xqxy.sys.modular.sms.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.sys.modular.sms.entity.SmsSendTemplate;
+import com.xqxy.sys.modular.sms.param.SmsSendTemplateParam;
+
+/**
+ * <p>
+ * 短信发送模板 服务类
+ * </p>
+ *
+ * @author xiao jun
+ * @since 2021-03-11
+ */
+public interface SmsSendTemplateService extends IService<SmsSendTemplate> {
+
+    /**
+     * @description: 短信模板分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/4 21:17
+     */
+    Page<SmsSendTemplate> page(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 短信模板添加
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:50
+     */
+    Long add(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 短信模板删除
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:53
+     */
+    void delete(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 短信模板编辑
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:54
+     */
+    void edit(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 短信模板详情
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 9:15
+     */
+    SmsSendTemplate detail(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 通过模板类型获取短信模板信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/7 23:17
+     */
+    SmsSendTemplate getTemplateByType(SmsSendTemplateParam templateParam);
+
+    /**
+     * @description: 通过模板类型获取短信模板信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/7 23:17
+     */
+    SmsSendTemplate getTemplateByType(String templateType);
+
+}

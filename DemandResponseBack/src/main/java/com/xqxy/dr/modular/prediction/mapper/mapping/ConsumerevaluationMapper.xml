@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.prediction.mapper.ConsumerevaluationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.prediction.entity.Consumerevaluation">
+        <id column="EVALUATIONID" property="evaluationid" />
+        <result column="CONS_ID" property="consId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="ACCURACYRATE" property="accuracyrate" />
+        <result column="ACTUALCOSTS" property="actualcosts" />
+        <result column="ACTUALDRCAP" property="actualdrcap" />
+        <result column="COMPLIANCERATE" property="compliancerate" />
+        <result column="ELECTRICBILLBENEFITS" property="electricbillbenefits" />
+        <result column="ENVBENEFITS" property="envbenefits" />
+        <result column="INVESTMENTBENEFITS" property="investmentbenefits" />
+        <result column="RELIABILITYSCORE" property="reliabilityscore" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        EVALUATIONID, CONS_ID, EVENT_ID, ACCURACYRATE, ACTUALCOSTS, ACTUALDRCAP, COMPLIANCERATE, ELECTRICBILLBENEFITS, ENVBENEFITS, INVESTMENTBENEFITS, RELIABILITYSCORE
+    </sql>
+
+</mapper>

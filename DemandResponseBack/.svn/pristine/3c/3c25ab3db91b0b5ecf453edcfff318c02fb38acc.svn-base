@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.upload.mapper.SubsidyPayMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.upload.entity.SubsidyPay">
+        <id column="pay_id" property="payId"/>
+        <result column="CONS_ID" property="consId"/>
+        <result column="pay_no" property="payNo"/>
+        <result column="begin_date" property="beginDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="partic_num" property="particNum"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+    </resultMap>
+
+
+    <select id="getConSubsidy" resultType="com.xqxy.dr.modular.upload.entity.SubsidyPay">
+        SELECT CONS_ID,subsidy_amount,pay_id,CREATE_TIME FROM dr_cons_subsidy_pay
+    </select>
+</mapper>

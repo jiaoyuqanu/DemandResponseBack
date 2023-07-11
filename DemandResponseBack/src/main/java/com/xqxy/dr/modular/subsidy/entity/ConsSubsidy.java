@@ -1,0 +1,112 @@
+package com.xqxy.dr.modular.subsidy.entity;
+
+import java.math.BigDecimal;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.TableField;
+import java.io.Serializable;
+
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import com.xqxy.dr.modular.evaluation.entity.ConsEvaluation;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * <p>
+ * 用户事件激励费用
+ * </p>
+ *
+ * @author hu xingxing
+ * @since 2021-10-20
+ */
+@Data
+@EqualsAndHashCode(callSuper = false)
+@TableName("dr_cons_subsidy")
+@ApiModel(value="ConsSubsidy对象", description="用户事件激励费用")
+public class ConsSubsidy extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
+    @ApiModelProperty(value = "补贴标识")
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long subsidyId;
+
+    @ApiModelProperty(value = "用户标识")
+    @TableField("CONS_ID")
+    private String consId;
+
+    @ApiModelProperty(value = "事件标识")
+    @TableField("EVENT_ID")
+    private Long eventId;
+
+    @ApiModelProperty(value = "实际响应负荷")
+    private BigDecimal actualCap;
+
+    @ApiModelProperty(value = "实际响应电量")
+    private BigDecimal actualEnergy;
+
+    @ApiModelProperty(value = "签约价格")
+    @TableField("CONTRACT_PRICE")
+    private BigDecimal contractPrice;
+
+    @ApiModelProperty(value = "激励金额")
+    private BigDecimal subsidyAmount;
+
+    @ApiModelProperty(value = "实际金额")
+    private BigDecimal settledAmount;
+
+    @ApiModelProperty(value = "异常描述")
+    private String remark;
+
+    @ApiModelProperty(value = "计算规则，1，2，3")
+    private String calRule;
+
+    @TableField(exist = false)
+    private Event event;
+
+    @TableField(exist = false)
+    private ConsEvaluation consEvaluation;
+
+    @TableField(exist = false)
+    private Cons cons;
+
+    @ApiModelProperty(value = "用户参与方式")
+    @TableField("join_user_type")
+    private String joinUserType;
+
+    @TableField(exist = false)
+    private String extractRatio;
+
+    @ApiModelProperty(value = "调控时间系数")
+    @TableField("time_coefficient")
+    private BigDecimal timeCoefficient;
+
+    @ApiModelProperty(value = "负荷响应率系数")
+    @TableField("rate_coefficient")
+    private BigDecimal rateCoefficient;
+
+    @ApiModelProperty(value = "是否申诉")
+    @TableField("is_appeal")
+    private String isAppeal;
+
+    @ApiModelProperty(value = "申诉前调控时间系数")
+    @TableField("time_coefficient_old")
+    private BigDecimal timeCoefficientOld;
+
+    @ApiModelProperty(value = "申诉前负荷响应率系数")
+    @TableField("rate_coefficient_old")
+    private BigDecimal rateCoefficientOld;
+
+    @ApiModelProperty(value = "申诉前激励金额")
+    private BigDecimal subsidyAmountOld;
+
+    @ApiModelProperty(value = "申诉前实际金额")
+    private BigDecimal settledAmountOld;
+}

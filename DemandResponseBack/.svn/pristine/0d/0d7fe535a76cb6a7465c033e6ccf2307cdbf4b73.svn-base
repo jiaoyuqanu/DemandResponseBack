@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.CustContractInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        <id column="contract_id" property="contractId" />
+        <result column="project_id" property="projectId" />
+        <result column="CUST_ID" property="custId" />
+        <result column="first_contact_name" property="firstContactName" />
+        <result column="first_contact_info" property="firstContactInfo" />
+        <result column="second_contact_name" property="secondContactName" />
+        <result column="second_contact_inifo" property="secondContactInifo" />
+        <result column="status" property="status" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <association property="custContractDetail" javaType="com.xqxy.dr.modular.project.entity.CustContractDetail">
+            <result column="id" property="detailId"/>
+            <result column="contract_id" property="contractId"/>
+            <result column="content" property="responseType"/>
+            <result column="status" property="timeType"/>
+            <result column="phone_numbers" property="startTime"/>
+            <result column="phone_numbers" property="endTime"/>
+            <result column="business_rela" property="responseCap"/>
+            <result column="business_code" property="contractCap"/>
+            <result column="test_for_sms" property="contractPrice"/>
+            <result column="business_rela" property="extractRatio"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        contract_id, project_id, CUST_ID, first_contact_name, first_contact_info, second_contact_name, second_contact_inifo, status, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="listCustTractInfo" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+               SELECT
+            c.*,
+            de.DETAIL_ID,
+            de.RESPONSE_TYPE,
+            de.TIME_TYPE,
+            de.RESPONSE_CAP,
+            de.CONTRACT_CAP,
+            de.START_TIME,
+            de.END_TIME,
+            de.CONTRACT_PRICE,
+            de.EXTRACT_RATIO
+        FROM
+            dr_cust_contract_info c
+            LEFT JOIN dr_cust_contract_detail de ON c.contract_id = de.contract_id
+        WHERE
+            c.project_id = #{projectId}
+            AND de.START_TIME = #{startTime}
+            AND de.END_TIME = #{endTime}
+    </select>
+
+    <select id="listConsTractInfoReigon" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        SELECT
+        c.*,
+        de.DETAIL_ID,
+        de.RESPONSE_TYPE,
+        de.TIME_TYPE,
+        de.RESPONSE_CAP,
+        de.CONTRACT_CAP,
+        de.START_TIME,
+        de.END_TIME,
+        de.CONTRACT_PRICE,
+        de.EXTRACT_RATIO
+        FROM
+        dr_cust_contract_info c
+        LEFT JOIN dr_cust_contract_detail de ON c.contract_id = de.contract_id
+        left join dr_cust con on c.CUST_ID = con.ID
+        WHERE
+        c.project_id = #{projectId}
+        and de.advance_notice_time = #{advanceNoticeTime}
+        and de.RESPONSE_TYPE = #{responseType}
+        and de.TIME_TYPE = #{timeType}
+        and de.CONTRACT_CAP is not null
+        <if test="provinceList != null and provinceList.size > 0">
+            AND con.PROVINCE_CODE in
+            <foreach collection="provinceList" index="index" item="provinceCode" open="(" separator="," close=")">
+                #{provinceCode}
+            </foreach>
+        </if>
+        <if test="cityList != null and cityList.size > 0">
+            AND con.city_code in
+            <foreach collection="cityList" index="index" item="cityCode" open="(" separator="," close=")">
+                #{cityCode}
+            </foreach>
+        </if>
+        <if test="countyList != null and countyList.size > 0">
+            AND con.county_code in
+            <foreach collection="countyList" index="index" item="countyCode" open="(" separator="," close=")">
+                #{countyCode}
+            </foreach>
+        </if>
+    </select>
+    <select id="listConsTractInfoOrg" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        SELECT
+        c.*,
+        de.DETAIL_ID,
+        de.RESPONSE_TYPE,
+        de.TIME_TYPE,
+        de.RESPONSE_CAP,
+        de.CONTRACT_CAP,
+        de.START_TIME,
+        de.END_TIME,
+        de.CONTRACT_PRICE,
+        de.EXTRACT_RATIO
+        FROM
+        dr_cust_contract_info c
+        LEFT JOIN dr_cust_contract_detail de ON c.contract_id = de.contract_id
+        left join dr_cust con on c.CUST_ID = con.ID
+        WHERE
+        c.project_id = #{projectId}
+        and de.advance_notice_time = #{advanceNoticeTime}
+        and de.RESPONSE_TYPE = #{responseType}
+        and de.TIME_TYPE = #{timeType}
+        and de.CONTRACT_CAP is not null
+        <if test="orgNoList != null and orgNoList.size > 0">
+            AND con.ORG_NO in
+            <foreach collection="orgNoList" index="index" item="orgNo" open="(" separator="," close=")">
+                #{orgNo}
+            </foreach>
+        </if>
+    </select>
+
+    <!--<select id="listCustTractInfo" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        SELECT
+            tra.contract_id,
+            tra.project_id,
+            tra.CUST_ID,
+            tra.integrator,
+            tra.first_contact_name,
+            tra.first_contact_info,
+            tra.second_contact_name,
+            tra.second_contact_inifo,
+            tra.CONTRACT_CAP,
+            tra. STATUS,
+            tra. check_status,
+            tra.CREATE_TIME,
+            tra.CREATE_USER,
+            tra.UPDATE_TIME,
+            tra.UPDATE_USER,
+            tra.file_name,
+            tra.file_id,
+            tra.file_type
+        FROM
+            dr_cust_contract_info tra
+        LEFT JOIN dr_cust u ON tra.CUST_ID = u.id
+        LEFT JOIN dr_user_cons_rela r ON u.id = r.cust_id
+        LEFT JOIN dr_cons c ON r.cons_no = c.id
+            WHERE
+                tra.project_id = #{projectId}
+            <if test="consIdList != null and consIdList.size()>0 ">
+                and c.id IN
+                <foreach collection="consIdList" index="index" item="consId" open="(" close=")" separator=",">
+                    #{consId}
+                </foreach>
+            </if>
+        GROUP BY tra.CUST_ID
+    </select>-->
+
+    <select id="queryDrCustContractDetails" parameterType="com.xqxy.dr.modular.project.params.ConsContractParam" resultType="com.xqxy.dr.modular.project.VO.DrConsContractDetailsVO">
+        SELECT
+            cust.CITY_CODE cityCode,
+            cust.COUNTY_CODE countyCode,
+            cust.legal_name name,
+            cust.tel firstContactInfo,
+            cust.CREDIT_CODE creditCode,
+            info.check_status checkStatus,
+            info.CREATE_TIME createTime,
+            info.project_id,
+            info.contract_id contractId,
+            cust.id custId
+        FROM
+        dr_cust_contract_info info
+        LEFT JOIN dr_cust cust ON info.cust_id = cust.id
+        <where>
+            info.project_id = #{consContractParam.projectId}
+            and cust.integrator = 1
+            and info.integrator = 1
+            <if test="consContractParam.cityCode != null and consContractParam.cityCode != '' ">
+                and cust.CITY_CODE = #{consContractParam.cityCode}
+            </if>
+            <if test="consContractParam.countyCode != null and consContractParam.countyCode != '' ">
+                and cust.COUNTY_CODE = #{consContractParam.countyCode}
+            </if>
+            <if test="consContractParam.startDate != null and consContractParam.startDate != '' ">
+                and info.CREATE_TIME &gt;  #{consContractParam.startDate}
+            </if>
+            <if test="consContractParam.startDate != null and consContractParam.startDate != '' ">
+                and info.CREATE_TIME &lt;  #{consContractParam.endDate}
+            </if>
+            <if test="consContractParam.checkMess != null and consContractParam.checkMess != '' ">
+                and info.check_status = #{consContractParam.checkMess}
+            </if>
+            <if test="consContractParam.creditCode != null and consContractParam.creditCode != '' ">
+                and cust.CREDIT_CODE like CONCAT('%', #{consContractParam.creditCode}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="exportDrConsDetails" resultType="com.xqxy.dr.modular.project.VO.DrConsContractDetailsVO">
+        SELECT
+            cust.CITY_CODE cityCode,
+            cust.COUNTY_CODE countyCode,
+            cust.legal_name name,
+            cust.tel firstContactInfo,
+            info.check_status checkStatus,
+            info.CREATE_TIME createTime,
+            info.project_id,
+            info.contract_id contractId,
+            cust.id custId
+        FROM
+            dr_cust_contract_info info
+        LEFT JOIN dr_cust cust ON info.cust_id = cust.id
+        <where>
+            info.project_id = #{projectId}
+            and cust.integrator = 1
+            and info.integrator = 1
+            <if test="cityCode != null and cityCode != '' ">
+                and cust.CITY_CODE = #{cityCode}
+            </if>
+            <if test="countyCode != null and countyCode != '' ">
+                and cust.COUNTY_CODE = #{countyCode}
+            </if>
+            <if test="startDate != null and startDate != '' ">
+                and info.CREATE_TIME &gt;=  #{startDate}
+            </if>
+            <if test="startDate != null and startDate != '' ">
+                and info.CREATE_TIME &lt;=  #{endDate}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="pageDeclareProject" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        SELECT
+            dcci.*,
+            dp.project_name,
+            dp.project_type,
+            dp.project_target,
+            dp.pub_time,
+            dc.cust_name
+        FROM
+            dr_cust_contract_info dcci
+            LEFT JOIN dr_project dp ON dcci.project_id = dp.project_id
+            LEFT JOIN dr_cust dc ON dc.ID = dcci.cust_id
+        WHERE
+            dcci.cust_id = #{custId}
+            AND dp.project_name LIKE CONCAT('%', #{projectName}, '%')
+        <if test="consId != null and consId != ''">
+            and dcci.project_id in (select project_id from dr_cons_contract_info where cons_id = #{consId} and cust_id = #{custId})
+        </if>
+        ORDER BY dcci.CREATE_TIME DESC
+    </select>
+
+    <select id="pageAgentContractProject" resultType="com.xqxy.dr.modular.project.entity.CustContractInfo">
+        SELECT
+            dcci.*,
+            dp.project_name,
+            dp.project_type,
+            dp.project_target,
+            dp.pub_time,
+            dc.cust_name
+        FROM
+            dr_cust_contract_info dcci
+            LEFT JOIN dr_project dp ON dcci.project_id = dp.project_id
+            LEFT JOIN dr_cust dc ON dc.ID = dcci.cust_id
+        WHERE
+            dcci.cust_id = #{custId}
+            AND dp.project_name LIKE CONCAT('%', #{projectName}, '%')
+            AND dcci.project_id IN (
+                SELECT
+                    project_id
+                FROM
+                    dr_cons_contract_info info
+                    LEFT JOIN dr_cons cons ON cons.ID = info.CONS_ID
+                WHERE
+                    cons.CUST_ID = #{agentCustId}
+                GROUP BY
+                    project_id
+            )
+        ORDER BY dcci.CREATE_TIME DESC
+    </select>
+    <select id="getIntegratorContractSize" resultType="java.lang.Integer" parameterType="java.lang.String">
+        SELECT
+            count(0)
+        FROM
+            dr_cust_contract_info cci
+                LEFT JOIN dr_cust c ON c.ID = cci.CUST_ID
+        WHERE
+            cci.PROJECT_ID = #{projectId}
+          AND cci.`status` = 2
+          AND cci.check_status = 3
+          AND c.integrator = 1
+    </select>
+</mapper>

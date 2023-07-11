@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.DrCustMapper">
+
+    <select id="queryAllTelAtDrCust"  resultType="String">
+        select tel from dr_cust
+    </select>
+
+
+    <select id="changeMobile"  resultType="Integer">
+       update dr_cust set tel=#{tel} where ID=#{id}
+    </select>
+
+
+    <select id="changeAdminMobile"  resultType="Integer">
+       select mobile from sc_admin_pro.t_sys_users
+    </select>
+
+
+    <select id="queryAllTelAtSysUsers"  resultType="String">
+       update sc_admin_pro.t_sys_users set mobile=#{tel} where ID=#{id}
+    </select>
+
+</mapper>

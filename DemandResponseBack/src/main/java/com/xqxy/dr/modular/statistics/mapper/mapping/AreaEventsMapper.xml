@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.AreaEventsMapper">
+
+    <select id="areaEventsStatistics" resultType="com.xqxy.dr.modular.statistics.result.AreaProjectResult">
+        SELECT
+            ev.event_id,
+            ev.event_no,
+            ev.event_name,
+            round(ev.regulate_cap, 2) regulate_cap,
+            round(cn.actual_cap, 2) actual_cap,
+            round(cn.actual_energy, 2) actual_energy,
+            cn.cons_num,
+            concat(
+                round(
+                    cn.actual_cap / ev.regulate_cap * 100,
+                    2
+                ),
+                '%'
+            ) complate_rate
+        FROM
+            dr_event ev
+        LEFT JOIN (
+            SELECT
+                event_id,
+                sum(actual_cap) actual_cap,
+                sum(actual_energy) actual_energy,
+                count(evaluation_id) cons_num
+            FROM
+                dr_cons_evaluation
+            WHERE
+                is_effective = 'Y'
+            GROUP BY
+                event_id
+        ) cn ON ev.event_id = cn.event_id
+    </select>
+
+    <select id="exportRegion" resultType="com.xqxy.dr.modular.statistics.result.AreaProjectResult">
+        SELECT
+            ev.event_id,
+            ev.event_no,
+            ev.event_name,
+            round(ev.regulate_cap, 2) regulate_cap,
+            round(cn.actual_cap, 2) actual_cap,
+            round(cn.actual_energy, 2) actual_energy,
+            cn.cons_num,
+            concat(
+                    round(
+                            cn.actual_cap / ev.regulate_cap * 100,
+                            2
+                        ),
+                    '%'
+                ) complate_rate
+        FROM
+            dr_event ev
+                LEFT JOIN (
+                SELECT
+                    event_id,
+                    sum(actual_cap) actual_cap,
+                    sum(actual_energy) actual_energy,
+                    count(evaluation_id) cons_num
+                FROM
+                    dr_cons_evaluation
+                WHERE
+                    is_effective = 'Y'
+                GROUP BY
+                    event_id
+            ) cn ON ev.event_id = cn.event_id
+    </select>
+</mapper>

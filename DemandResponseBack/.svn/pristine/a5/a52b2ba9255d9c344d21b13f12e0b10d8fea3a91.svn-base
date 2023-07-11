@@ -1,0 +1,105 @@
+package com.xqxy.dr.modular.anhui.utils;
+
+
+import cn.hutool.log.Log;
+import com.alibaba.cloudapi.sdk.constant.SdkConstant;
+import com.alibaba.cloudapi.sdk.model.ApiCallback;
+import com.alibaba.cloudapi.sdk.model.ApiRequest;
+import com.alibaba.cloudapi.sdk.model.ApiResponse;
+import com.alibaba.cloudapi.sdk.model.HttpClientBuilderParams;
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ * 安徽数据中台历史负荷接口服务实现类
+ * </p>
+ *
+ * @author liuyu
+ * @since 2021-12-01
+ */
+
+public class AnhuiAdsCstUtils {
+
+    private static final Log log = Log.get();
+
+    private static final ThreadLocal<List<Map<Object,Object>>> bachList=new ThreadLocal<>();
+    static{
+        //HTTP Client init
+        HttpClientBuilderParams httpParam = new HttpClientBuilderParams();
+        httpParam.setAppKey("164923233285833");
+        httpParam.setAppSecret("d92dccc33eb24cb6a00f60f3408e2fb4");
+        HttpApiClientAPI.getInstance().init(httpParam);
+    }
+
+    public static String queryHistoryCurveToAnhuiApi(String pageNo,String pageSize,String consNo,String dataTime) {
+
+        HttpApiClientAPI.getInstance().queryAdsCstZhnyHistoryCurve(pageNo , pageSize , consNo ,dataTime , new ApiCallback() {
+            @Override
+            public void onFailure(ApiRequest request, Exception e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(ApiRequest request, ApiResponse response) {
+             /*   try {
+                    String resultString = getResultString(response);
+                    System.out.println("jieguojji:"+resultString);
+                    if(bachList.get()==null){
+                        bachList.set(Lists.newArrayList());
+                    }else {
+                        bachList.get().clear();
+                    }
+                    if(resultString!=null){
+                        bachList.get().add(resultString);
+                    }
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                }*/
+            }
+        });
+        return null;
+    }
+    public static  Map<Object, Object>  queryCons(String pageNo,String pageSize,String consNO){
+
+        ApiResponse response = HttpApiClientAPI.getInstance().query_ads_cst_zhny_dr_cons_Mode(pageNo, pageSize , consNO);
+        try {
+            Map<Object, Object> resultString = getResultString(response);
+            if(bachList.get()==null){
+                bachList.set(Lists.newArrayList());
+            }else {
+                bachList.get().clear();
+            }
+            if(resultString!=null){
+                bachList.get().add(resultString);
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        List<Map<Object, Object>> maps = bachList.get();
+        if(null != maps && maps.size()>0){
+            return maps.get(0);
+        }
+        return null;
+    }
+
+    private static   Map<Object,Object> getResultString(ApiResponse response) throws IOException {
+        StringBuilder result = new StringBuilder();
+        result.append(SdkConstant.CLOUDAPI_LF).append(new String(response.getBody() , SdkConstant.CLOUDAPI_ENCODING));
+        log.info(">>> 中台返回数据：{}",result);
+        Map<String,Object> cons = (Map<String, Object>) JSON.parse(String.valueOf(result));
+       if(null!=cons && cons.size()>0){
+           Map<Object,Object> data= (Map<Object, Object>) cons.get("data");
+           if(null!=data && data.size()>0){
+               List<Map<Object,Object>> rows= (List<Map<Object, Object>>) data.get("rows");
+               if(rows!=null && rows.size()>0){
+                   return rows.get(0);
+               }
+           }
+       }
+        return null;
+    }
+}

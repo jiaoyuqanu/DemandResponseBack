@@ -1,0 +1,108 @@
+package com.xqxy.dr.modular.subsidy.controller;
+
+
+import com.xqxy.core.annotion.BusinessLog;
+import com.xqxy.core.enums.LogAnnotionOpTypeEnum;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.project.params.ExamineParam;
+import com.xqxy.dr.modular.subsidy.param.SubsidyAppealParam;
+import com.xqxy.dr.modular.subsidy.service.SubsidyAppealService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+
+/**
+ * <p>
+ * 补贴申诉 前端控制器
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-25
+ */
+@Api(tags = "用户补贴申诉API接口")
+@RestController
+@RequestMapping("/subsidy/subsidy-appeal")
+public class SubsidyAppealController {
+
+    @Resource
+    SubsidyAppealService subsidyAppealService;
+
+    /**
+     * 编辑异议工单
+     * @param subsidyAppealParam
+     * @return
+     * @author shen
+     * @date 2021-10-25 14:50
+     */
+//    @BusinessLog(title = "编辑异议工单", opType = LogAnnotionOpTypeEnum.EDIT)
+    @ApiOperation(value = "编辑异议工单", notes = "编辑异议工单", produces = "application/json")
+    @PostMapping("/add")
+    public ResponseData add(@RequestBody SubsidyAppealParam subsidyAppealParam) {
+        subsidyAppealService.update(subsidyAppealParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * 异议工单提交审核
+     * @param subsidyAppealParam
+     * @return
+     * @author shen
+     * @date 2021-10-25 14:47
+     */
+//    @BusinessLog(title = "异议工单提交审核", opType = LogAnnotionOpTypeEnum.ADD)
+    @ApiOperation(value = "异议工单提交审核", notes = "异议工单提交审核", produces = "application/json")
+    @PostMapping("/submitCheck")
+    public ResponseData submitCheck(@RequestBody SubsidyAppealParam subsidyAppealParam) {
+        subsidyAppealService.sumbitCheck(subsidyAppealParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * 异议工单详情
+     * @param busId
+     * @return
+     * @author shen
+     * @date 2021-10-25 15:50
+     */
+//    @BusinessLog(title = "异议工单详情", opType = LogAnnotionOpTypeEnum.DETAIL)
+    @ApiOperation(value = "异议工单详情", notes = "异议工单详情", produces = "application/json")
+    @GetMapping("/detail")
+    public ResponseData detail(@RequestParam(name="busId",required = true) Long busId) {
+        return ResponseData.success(subsidyAppealService.detail(busId));
+    }
+
+    /**
+     * 异议工单审核
+     * @param examineParam
+     * @return
+     * @author shi
+     * @date 2021-11-12 15:50
+     */
+//    @BusinessLog(title = "异议工单详情", opType = LogAnnotionOpTypeEnum.DETAIL)
+    @ApiOperation(value = "异议工单审核", notes = "异议工单审核", produces = "application/json")
+    @PostMapping("/examine")
+    public ResponseData examine(@RequestBody ExamineParam examineParam) {
+        subsidyAppealService.examine(examineParam);
+        return ResponseData.success();
+    }
+
+
+    /**
+     * 异议工单分页
+     * @param subsidyAppealParam
+     * @return
+     * @author shen
+     * @date 2021-10-27 10:33
+     */
+//    @BusinessLog(title = "异议工单分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "异议工单分页", notes = "异议工单分页", produces = "application/json")
+    @PostMapping("/page")
+    public ResponseData page(@RequestBody SubsidyAppealParam subsidyAppealParam) {
+        return ResponseData.success(subsidyAppealService.page(subsidyAppealParam));
+    }
+
+
+}
+

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.dict.mapper.DictDataMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.sys.modular.dict.entity.DictData">
+        <id column="data_id" property="dataId" />
+        <result column="type_id" property="typeId" />
+        <result column="value" property="value" />
+        <result column="code" property="code" />
+        <result column="sort" property="sort" />
+        <result column="remark" property="remark" />
+        <result column="status" property="status" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        data_id, type_id, value, code, sort, remark, status
+    </sql>
+
+    <select id="getDictCodesByDictTypeCode" resultType="java.lang.String">
+        SELECT
+        dict.`code`
+        FROM
+        sys_dict_data dict
+        INNER JOIN sys_dict_type type ON dict.type_id = type.id
+        where type.code in
+        <foreach collection="array" index="index" item="i" open="(" separator="," close=")">
+            #{i}
+        </foreach>
+    </select>
+
+</mapper>

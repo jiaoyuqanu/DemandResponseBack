@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.device.mapper.DeviceMonitorMapper">
+
+
+    <select id="page" resultType="com.xqxy.dr.modular.device.entity.DeviceMonitor" parameterType="com.xqxy.dr.modular.device.param.DeviceMonitorParam">
+        SELECT
+            base.device_id deviceId,
+            cons.CONS_NAME,
+            cons.id consId,
+            base.DEVICE_NAME,
+            base.DEVICE_TYPE_NAME,
+            base.DEVICE_TYPE_CODE,
+            base.RATED_POWER,
+            base.DEVICE_RISE_TIME
+        FROM
+            `dr_device_adjustable_base` base
+        JOIN dr_cons cons ON base.CONS_ID = cons.ID
+        <where>
+            <if test="item.orgIds != null">
+                IFNULL(base.CITY_ELE_CODE, PROVINCE_ELE_CODE) IN
+                <foreach collection="item.orgIds" open="(" close=")" separator="," item="orgId">
+                    #{orgId}
+                </foreach>
+            </if>
+            <if test="item.deviceId != null and item.deviceId != '' ">
+                and base.device_id like concat(concat("%",#{item.deviceId}),"%")
+            </if>
+            <if test="item.deviceName != null and item.deviceName != '' ">
+                and base.DEVICE_NAME like concat(concat("%",#{item.deviceName}),"%")
+            </if>
+            <if test="item.deviceTypeName != null and item.deviceTypeName != '' ">
+                and base.DEVICE_TYPE_NAME like concat(concat("%",#{item.deviceTypeName}),"%")
+            </if>
+            <if test="item.consName != null and item.consName != '' ">
+                and cons.CONS_NAME like concat(concat("%",#{item.consName}),"%")
+            </if>
+            <if test="item.deviceTypeCode != null and item.deviceTypeCode != '' ">
+                and base.DEVICE_TYPE_CODE =#{item.deviceTypeCode}
+            </if>
+            <if test="item.consId != null and item.consId != '' ">
+                and cons.id like concat(concat("%",#{item.consId}),"%")
+            </if>
+        </where>
+    </select>
+
+    <select id="getUserNum" resultType="java.lang.Integer">
+        SELECT COUNT(ID) FROM dr_cons
+    </select>
+    <select id="getDeviceNum" resultType="java.lang.Integer">
+        SELECT SUM(DEVICE_NUM) FROM `dr_device_adjustable_base`
+    </select>
+    <select id="getAccessCapacity" resultType="java.math.BigDecimal">
+        SELECT SUM(CONS_DES_POWER+CONS_RIS_POWER) FROM `dr_cons_adjustable_potential`
+    </select>
+    <select id="getBigUserNum" resultType="java.lang.Integer">
+        select COUNT(ID) FROM dr_cust
+        WHERE integrator=1
+    </select>
+    <select id="regionalResources" resultType="com.xqxy.dr.modular.device.entity.RegionalResources">
+        SELECT
+            SUM(potential.CONS_RIS_POWER + potential.CONS_DES_POWER) resources,
+            cons.CITY_CODE cityCode
+        FROM
+            dr_cons_adjustable_potential potential
+        JOIN dr_cons cons ON potential.CONS_ID = cons.ID
+        GROUP BY
+            cons.CITY_CODE
+    </select>
+
+</mapper>

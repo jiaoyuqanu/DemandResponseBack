@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.powerplant.mapper.DrDaAggregatorPriceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.powerplant.entity.DrDaAggregatorPrice">
+        <id column="id" property="id" />
+        <result column="electric_bid_notice_id" property="electricBidNoticeId" />
+        <result column="aggregator_no" property="aggregatorNo" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="response_capacity" property="responseCapacity" />
+        <result column="response_rate" property="responseRate" />
+        <result column="response_price" property="responsePrice" />
+        <result column="declare_name" property="declareName" />
+        <result column="adjust_capacity" property="adjustCapacity" />
+        <result column="declare_price" property="declarePrice" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, electric_bid_notice_id, aggregator_no, start_time, end_time, response_capacity, response_rate, response_price, declare_name, adjust_capacity, declare_price
+    </sql>
+
+</mapper>

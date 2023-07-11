@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.data.mapper.GridPowerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.data.entity.GridPower">
+        <id column="id" property="id" />
+        <result column="max_p" property="maxP" />
+        <result column="max_p_time" property="maxPTime" />
+        <result column="min_p" property="minP" />
+        <result column="min_P_time" property="minPTime" />
+        <result column="max_yxyd" property="maxYxyd" />
+        <result column="max_yxyd_date" property="maxYxydDate" />
+        <result column="year" property="year" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, max_p, max_p_time, min_p, min_P_time, max_yxyd, max_yxyd_date, year
+    </sql>
+
+</mapper>

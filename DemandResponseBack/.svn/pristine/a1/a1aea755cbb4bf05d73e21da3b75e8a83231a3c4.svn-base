@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.CustSubsidyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.CustSubsidy">
+        <id column="subsidy_id" property="subsidyId"/>
+        <result column="EVENT_ID" property="eventId"/>
+        <result column="CUST_ID" property="custId"/>
+        <result column="integrator" property="integrator"/>
+        <result column="remark" property="remark"/>
+        <result column="actual_cap" property="actualCap"/>
+        <result column="actual_energy" property="actualEnergy"/>
+        <result column="CONTRACT_PRICE" property="contractPrice"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="cal_rule" property="calRule"/>
+        <result column="time_coefficient" property="timeCoefficient"/>
+        <result column="rate_coefficient" property="rateCoefficient"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+
+        <association property="event" javaType="com.xqxy.dr.modular.event.entity.Event">
+            <result column="event_name" property="eventName"/>
+            <result column="start_time" property="startTime"/>
+            <result column="end_time" property="endTime"/>
+            <result column="EVENT_NO" property="eventNo"/>
+        </association>
+
+        <association property="custEvaluation" javaType="com.xqxy.dr.modular.evaluation.entity.CustEvaluation">
+            <result column="is_effective" property="isEffective"/>
+            <result column="reply_cap" property="replyCap"/>
+            <result column="invitation_cap" property="invitationCap"/>
+            <result column="actual_cap" property="actualCap"/>
+            <result column="confirm_cap" property="confirmCap"/>
+        </association>
+
+        <association property="cust" javaType="com.xqxy.sys.modular.cust.entity.Cust">
+            <result column="legal_name" property="legalName"/>
+            <result column="credit_code" property="creditCode"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        subsidy_id
+        , EVENT_ID, CUST_ID, integrator, remark, actual_cap, actual_energy, CONTRACT_PRICE, subsidy_amount, cal_rule, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="custSubsidyPage" resultMap="BaseResultMap">
+        select
+        s.*, d.legal_name, e.event_name,e.EVENT_NO, e.start_time, e.end_time, v.is_effective, v.reply_cap as invitation_cap,v.confirm_cap as confirmCap
+        from
+        dr_cust_subsidy s, dr_event e, dr_cust_evaluation v, dr_cust d
+        <where>
+            1 = 1
+            <if test="map.custId != '' and map.custId != null">
+                and s.cust_id = #{map.custId}
+            </if>
+            <if test="map.eventIds != null and map.eventIds.size >0">
+                and s.event_id in
+                <foreach collection="map.eventIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and s.event_id = e.event_id
+            and s.cust_id = v.cust_id
+            and s.event_id = v.event_id
+            and s.cust_id = d.id
+        </where>
+    </select>
+
+    <select id="custSubsidyByEventIdPage" resultMap="BaseResultMap">
+        select
+        s.*, c.legal_name, c.credit_code, e.is_effective
+        from
+        dr_cust_subsidy s, dr_cust c, dr_cust_evaluation e
+        <where>
+            1 = 1
+            <if test="map.eventId != '' and map.eventId != null">
+                and s.event_id = #{map.eventId}
+            </if>
+            and s.cust_id = c.id
+            and s.cust_id = e.cust_id
+            and s.event_id = e.event_id
+            <if test="map.creditCode != null and map.creditCode != ''">
+                and c.credit_code like concat('%', #{map.creditCode}, '%')
+            </if>
+            <if test="map.legalName != null and map.legalName != ''">
+                and c.legal_name like concat('%', #{map.legalName}, '%')
+            </if>
+            <if test="map.integrator != null and map.integrator != ''">
+                and s.integrator = #{map.integrator}
+            </if>
+            <if test="map.isEffective != null and map.isEffective != ''">
+                and e.is_effective = #{map.isEffective}
+            </if>
+        </where>
+    </select>
+
+    <select id="custSubsidyByConsIdsPage" resultType="com.xqxy.dr.modular.subsidy.result.CustSubsidyByConsIds">
+        SELECT
+        e.EVENT_ID AS EVENT_ID,
+        cs.CONS_ID AS consId,
+        co.CONS_NAME AS consName,
+        e.EVENT_NAME AS eventName,
+        cs.actual_cap AS actualCap,
+        ce.is_effective AS isEffective,
+        ce.effective_time AS effectiveTime,
+        ROUND(( ce.actual_cap / reply_cap ), 0) AS loadResponseRate,
+        cci.EXTRACT_RATIO AS extractRadio,
+        e.RESPONSE_TYPE AS responceType,
+        e.TIME_TYPE AS timeType,
+        ce.reply_cap AS replyCap,
+        ce.confirm_cap AS confirmCap,
+        cs.CONTRACT_PRICE as contractPrice,
+        cs.subsidy_amount as subsidyAmount,
+        cs.time_coefficient timeCoefficient
+        FROM
+        dr_cons_subsidy cs
+        LEFT JOIN dr_cons co ON co.ID = cs.CONS_ID
+        LEFT JOIN dr_event e ON e.EVENT_ID = cs.EVENT_ID
+        LEFT JOIN dr_cons_contract_info cci ON cci.CONS_ID = cs.CONS_ID
+        AND cci.project_id = e.PROJECT_ID
+        LEFT JOIN dr_cons_evaluation ce ON ce.EVENT_ID = cs.EVENT_ID
+        AND ce.CONS_ID = cs.CONS_ID
+        AND cci.project_id = e.PROJECT_ID
+        LEFT JOIN dr_cons_contract_detail ccd ON ccd.contract_id = cci.contract_id
+        AND ccd.RESPONSE_TYPE = e.RESPONSE_TYPE
+        AND ccd.TIME_TYPE = e.TIME_TYPE
+        where cs.EVENT_ID = #{param.eventId}
+        <if test="param.consIds != '' and param.consIds != null">
+            and cs.CONS_ID in
+            <foreach collection="param.consIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="param.consName != null and param.consName != ''">
+            and co.CONS_NAME like concat('%', #{param.consName}, '%')
+        </if>
+        <if test="param.consCode != null and param.consCode != ''">
+            and co.ID like concat('%', #{param.consCode}, '%')
+        </if>
+        group by e.EVENT_ID,cs.CONS_ID
+    </select>
+
+    <select id="getProjectCustSubsidy" resultType="java.math.BigDecimal">
+        SELECT
+            ifnull(sum(subsidy.subsidy_amount), 0)
+        FROM
+            dr_cust_subsidy subsidy
+        LEFT JOIN dr_event eve ON eve.EVENT_ID = subsidy.EVENT_ID
+        LEFT JOIN dr_cust cust ON cust.ID = subsidy.CUST_ID
+        WHERE eve.PROJECT_ID = #{projectId} and cust.integrator = #{integrator}
+    </select>
+
+    <select id="exportCustByEventId" resultType="com.xqxy.dr.modular.subsidy.model.CustSubsidyModel">
+        select
+        s.*, c.legal_name, c.credit_code, e.is_effective
+        from
+        dr_cust_subsidy s, dr_cust c, dr_cust_evaluation e
+        <where>
+            1 = 1
+            <if test="map.eventId != '' and map.eventId != null">
+                and s.event_id = #{map.eventId}
+            </if>
+            and s.cust_id = c.id
+            and s.cust_id = e.cust_id
+            and s.event_id = e.event_id
+            <if test="map.creditCode != null and map.creditCode != ''">
+                and c.credit_code like concat('%', #{map.creditCode}, '%')
+            </if>
+            <if test="map.legalName != null and map.legalName != ''">
+                and c.legal_name like concat('%', #{map.legalName}, '%')
+            </if>
+            <if test="map.integrator != null and map.integrator != ''">
+                and s.integrator = #{map.integrator}
+            </if>
+            <if test="map.isEffective != null and map.isEffective != ''">
+                and e.is_effective = #{map.isEffective}
+            </if>
+        </where>
+    </select>
+
+</mapper>

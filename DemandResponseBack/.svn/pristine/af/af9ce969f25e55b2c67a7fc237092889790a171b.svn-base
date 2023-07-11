@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.CustContractDetailMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.CustContractDetail">
+        <id column="DETAIL_ID" property="detailId" />
+        <result column="contract_id" property="contractId" />
+        <result column="RESPONSE_TYPE" property="responseType" />
+        <result column="TIME_TYPE" property="timeType" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="RESPONSE_CAP" property="responseCap" />
+        <result column="CONTRACT_CAP" property="contractCap" />
+        <result column="CONTRACT_PRICE" property="contractPrice" />
+        <result column="EXTRACT_RATIO" property="extractRatio" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        DETAIL_ID, contract_id, RESPONSE_TYPE, TIME_TYPE, START_TIME, END_TIME, RESPONSE_CAP, CONTRACT_CAP, CONTRACT_PRICE, EXTRACT_RATIO, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+</mapper>

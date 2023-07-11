@@ -1,0 +1,89 @@
+package com.xqxy.dr.modular.event.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.event.entity.ConsInvitation;
+import com.xqxy.dr.modular.event.entity.CustInvitation;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.param.ConsInvitationParam;
+import com.xqxy.dr.modular.event.param.CustInvitationParam;
+import com.xqxy.dr.modular.project.entity.ConsContractInfo;
+import io.swagger.annotations.ApiOperation;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * <p>
+ * 客户邀约 服务类
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+public interface CustInvitationService extends IService<CustInvitation> {
+
+    /**
+     * @description: 删除用户邀约信息
+     * @param: custInvitationParam 删除参数
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/9 14:30
+     */
+    void delete(CustInvitationParam custInvitationParam);
+
+    /**
+     * 客户邀约信息列表
+     * @param custInvitationParam 查询参数
+     * @return 客户邀约信息列表
+     * @author hu xingxing
+     * @date 2021/10/19 14:20
+     */
+    Object list(CustInvitationParam custInvitationParam);
+
+    /**
+     * @description:
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/22 14:28
+     */
+    Page<CustInvitation> page(CustInvitationParam custInvitationParam);
+
+
+    LocalDateTime getMaxDeadlineTimeByEventId(Long eventId);
+
+    /**
+     * @description: 获取邀约用户的最大反馈截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 14:58
+     */
+    LocalDateTime getMaxDeadlineTimeByEventIdAndState(Long eventId,String synchToPlan);
+
+    List<CustInvitation> listOrder(Long eventId);
+
+
+    /**
+     * @description: 客户邀约反馈
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/22 14:25
+     */
+    void submitFeedback (ConsInvitationParam consInvitationParam,Event event,ConsContractInfo consContractInfo);
+
+    List<Event> getMaxDeadlineTimeByCon(List<Event> eventList);
+
+    List<CustInvitation> getConsInfoByEvent(long eventId);
+
+    List<CustInvitation> getConsInfoByEvent(long eventId,Long custId);
+
+    List<CustInvitation> getConsInfoByEvents(List<Event> eventIds);
+
+}

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.ProjectEffectMapper">
+
+    <select id="projectEffectStatistics" resultType="com.xqxy.dr.modular.statistics.result.ProjectEffectResult">
+        SELECT
+	        tempc.*, round(maxEnergy.actual_energy, 2) actual_energy
+        FROM
+            (
+                SELECT
+                    tempb.*, round(maxCap.actual_cap, 2) actual_cap
+                FROM
+                    (
+                        SELECT
+                            tempa.*,
+                        IF (
+                            effective.effective IS NULL,
+                            0,
+                            effective.effective
+                        ) effective
+                        FROM
+                            (
+                                SELECT
+                                    invitation.*,
+                                IF (
+                                    participate.participate IS NULL,
+                                    0,
+                                    participate.participate
+                                ) participate
+                                FROM
+                                    (
+                                        SELECT
+                                            dc.id cons_id,
+                                            dc.cons_name cons_name,
+                                            count(pc.deleted) invitation
+                                        FROM
+                                            dr_event ev,
+                                            dr_plan pa,
+                                            dr_plan_cons pc,
+                                            dr_cons dc
+                                        WHERE
+                                            pc.cons_id = dc.id
+                                        AND ev.event_id = pa.regulate_id
+                                        AND pa.plan_id = pc.plan_id
+                                        AND pc.deleted = 'N'
+                                        <if test="statisticalParam.projectId != null and statisticalParam.projectId != ''">
+                                            AND project_id = #{statisticalParam.projectId}
+                                        </if>
+                                        GROUP BY
+                                            cons_id
+                                    ) invitation
+                                LEFT JOIN (
+                                    SELECT
+                                        dc.id cons_id,
+                                        count(pc.involved_in) participate
+                                    FROM
+                                        dr_event ev,
+                                        dr_plan pa,
+                                        dr_plan_cons pc,
+                                        dr_cons dc
+                                    WHERE
+                                        pc.cons_id = dc.id
+                                    AND ev.event_id = pa.regulate_id
+                                    AND pa.plan_id = pc.plan_id
+                                    AND pc.deleted = 'N'
+                                    AND pc.involved_in = 'Y'
+                                    <if test="statisticalParam.projectId != null and statisticalParam.projectId != ''">
+                                        AND project_id = #{statisticalParam.projectId}
+                                    </if>
+                                    GROUP BY
+                                        cons_id
+                                ) participate ON invitation.cons_id = participate.cons_id
+                            ) tempa
+                        LEFT JOIN (
+                            SELECT
+                                dc.id cons_id,
+                                count(ce.is_effective) effective
+                            FROM
+                                dr_event ev,
+                                dr_plan pa,
+                                dr_plan_cons pc,
+                                dr_cons dc,
+                                dr_cons_evaluation ce
+                            WHERE
+                                ev.event_id = ce.event_id
+                            AND dc.id = ce.cons_id
+                            AND pc.cons_id = dc.id
+                            AND ev.event_id = pa.regulate_id
+                            AND pa.plan_id = pc.plan_id
+                            AND pc.deleted = 'N'
+                            AND pc.involved_in = 'Y'
+                            AND ce.is_effective = 'Y'
+                            <if test="statisticalParam.projectId != null and statisticalParam.projectId != ''">
+                                AND project_id = #{statisticalParam.projectId}
+                            </if>
+                            GROUP BY
+                                cons_id
+                        ) effective ON tempa.cons_id = effective.cons_id
+                    ) tempb
+                LEFT JOIN (
+                    SELECT
+                        dc.id cons_id,
+                        max(ce.actual_cap) actual_cap
+                    FROM
+                        dr_event ev,
+                        dr_plan pa,
+                        dr_plan_cons pc,
+                        dr_cons dc,
+                        dr_cons_evaluation ce
+                    WHERE
+                        ev.event_id = ce.event_id
+                    AND dc.id = ce.cons_id
+                    AND pc.cons_id = dc.id
+                    AND ev.event_id = pa.regulate_id
+                    AND pa.plan_id = pc.plan_id
+                    AND pc.deleted = 'N'
+                    AND pc.involved_in = 'Y'
+                    AND ce.is_effective = 'Y'
+                    <if test="statisticalParam.projectId != null and statisticalParam.projectId != ''">
+                        AND project_id = #{statisticalParam.projectId}
+                    </if>
+                    GROUP BY
+                        cons_id
+                ) maxCap ON tempb.cons_id = maxCap.cons_id
+            ) tempc
+        LEFT JOIN (
+            SELECT
+                dc.id cons_id,
+                max(ce.actual_energy) actual_energy
+            FROM
+                dr_event ev,
+                dr_plan pa,
+                dr_plan_cons pc,
+                dr_cons dc,
+                dr_cons_evaluation ce
+            WHERE
+                ev.event_id = ce.event_id
+            AND dc.id = ce.cons_id
+            AND pc.cons_id = dc.id
+            AND ev.event_id = pa.regulate_id
+            AND pa.plan_id = pc.plan_id
+            AND pc.deleted = 'N'
+            AND pc.involved_in = 'Y'
+            AND ce.is_effective = 'Y'
+            <if test="statisticalParam.projectId != null and statisticalParam.projectId != ''">
+                AND project_id = #{statisticalParam.projectId}
+            </if>
+            GROUP BY
+                cons_id
+        ) maxEnergy ON tempc.cons_id = maxEnergy.cons_id
+    </select>
+
+    <select id="exportProject" resultType="com.xqxy.dr.modular.statistics.result.ProjectEffectResult">
+        SELECT
+        tempc.*, round(maxEnergy.actual_energy, 2) actual_energy
+        FROM
+        (
+        SELECT
+        tempb.*, round(maxCap.actual_cap, 2) actual_cap
+        FROM
+        (
+        SELECT
+        tempa.*,
+        IF (
+        effective.effective IS NULL,
+        0,
+        effective.effective
+        ) effective
+        FROM
+        (
+        SELECT
+        invitation.*,
+        IF (
+        participate.participate IS NULL,
+        0,
+        participate.participate
+        ) participate
+        FROM
+        (
+        SELECT
+        dc.id cons_id,
+        dc.cons_name cons_name,
+        count(pc.deleted) invitation
+        FROM
+        dr_event ev,
+        dr_plan pa,
+        dr_plan_cons pc,
+        dr_cons dc
+        WHERE
+        pc.cons_id = dc.id
+        AND ev.event_id = pa.regulate_id
+        AND pa.plan_id = pc.plan_id
+        AND pc.deleted = 'N'
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        GROUP BY
+        cons_id
+        ) invitation
+        LEFT JOIN (
+        SELECT
+        dc.id cons_id,
+        count(pc.involved_in) participate
+        FROM
+        dr_event ev,
+        dr_plan pa,
+        dr_plan_cons pc,
+        dr_cons dc
+        WHERE
+        pc.cons_id = dc.id
+        AND ev.event_id = pa.regulate_id
+        AND pa.plan_id = pc.plan_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        GROUP BY
+        cons_id
+        ) participate ON invitation.cons_id = participate.cons_id
+        ) tempa
+        LEFT JOIN (
+        SELECT
+        dc.id cons_id,
+        count(ce.is_effective) effective
+        FROM
+        dr_event ev,
+        dr_plan pa,
+        dr_plan_cons pc,
+        dr_cons dc,
+        dr_cons_evaluation ce
+        WHERE
+        ev.event_id = ce.event_id
+        AND dc.id = ce.cons_id
+        AND pc.cons_id = dc.id
+        AND ev.event_id = pa.regulate_id
+        AND pa.plan_id = pc.plan_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        GROUP BY
+        cons_id
+        ) effective ON tempa.cons_id = effective.cons_id
+        ) tempb
+        LEFT JOIN (
+        SELECT
+        dc.id cons_id,
+        max(ce.actual_cap) actual_cap
+        FROM
+        dr_event ev,
+        dr_plan pa,
+        dr_plan_cons pc,
+        dr_cons dc,
+        dr_cons_evaluation ce
+        WHERE
+        ev.event_id = ce.event_id
+        AND dc.id = ce.cons_id
+        AND pc.cons_id = dc.id
+        AND ev.event_id = pa.regulate_id
+        AND pa.plan_id = pc.plan_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        GROUP BY
+        cons_id
+        ) maxCap ON tempb.cons_id = maxCap.cons_id
+        ) tempc
+        LEFT JOIN (
+        SELECT
+        dc.id cons_id,
+        max(ce.actual_energy) actual_energy
+        FROM
+        dr_event ev,
+        dr_plan pa,
+        dr_plan_cons pc,
+        dr_cons dc,
+        dr_cons_evaluation ce
+        WHERE
+        ev.event_id = ce.event_id
+        AND dc.id = ce.cons_id
+        AND pc.cons_id = dc.id
+        AND ev.event_id = pa.regulate_id
+        AND pa.plan_id = pc.plan_id
+        AND pc.deleted = 'N'
+        AND pc.involved_in = 'Y'
+        AND ce.is_effective = 'Y'
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        GROUP BY
+        cons_id
+        ) maxEnergy ON tempc.cons_id = maxEnergy.cons_id
+    </select>
+</mapper>

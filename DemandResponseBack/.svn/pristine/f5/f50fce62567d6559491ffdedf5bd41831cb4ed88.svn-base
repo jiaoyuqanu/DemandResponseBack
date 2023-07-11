@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.EventExecuteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.EventExecute">
+        <id column="id" property="id" />
+        <result column="event_id" property="eventId" />
+        <result column="cons_id" property="consId" />
+        <result column="baseline_cap" property="baselineCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="real_time_cap" property="realTimeCap" />
+        <result column="execute_time" property="executeTime" />
+        <result column="execute_cap" property="executeCap" />
+        <result column="execute_rate" property="executeRate" />
+        <result column="is_out" property="isOut" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="max_execute_cap" property="maxExecuteCap" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, event_id, cons_id, baseline_cap, max_load_baseline, reply_cap, real_time_cap, execute_time, execute_cap, execute_rate, is_out, is_qualified, create_time, create_user, update_time, update_user, max_execute_cap
+    </sql>
+    <select id="selectPageVo" resultType="com.xqxy.dr.modular.event.entity.EventExecute">
+        SELECT
+            execute_time executeTime,
+            SUM( execute_cap ) executeCap,
+            SUM( baseline_cap ) baselineCap,
+            SUM( max_load_baseline ) maxLoadBaseline,
+            SUM( reply_cap ) replyCap,
+            SUM( max_execute_cap ) maxExecuteCap
+        FROM
+            dr_event_execute
+        <where>
+            <if test="eventExecuteParam.eventId != null">
+                event_id = #{eventExecuteParam.eventId}
+            </if>
+        </where>
+        GROUP BY execute_time
+        <if test="eventExecuteParam.sortColumn != null and eventExecuteParam.sortColumn != '' ">
+            ORDER BY ${eventExecuteParam.sortColumn} ${eventExecuteParam.order}
+        </if>
+    </select>
+    
+    <select id="getMaxReduceCurve" resultType="com.xqxy.dr.modular.newloadmanagement.vo.ExchPointCurve96Vo" parameterType="map">
+        SELECT * from sc_dataupload.exch_rt_curve_data_org where curve_tgt_type = #{type} and curve_type=#{curveType} and data_date = #{dataDate}
+    </select>
+
+    <select id="getMaxReduceDayCurve" resultType="com.xqxy.dr.modular.newloadmanagement.vo.ExchPointCurve96Vo" parameterType="map">
+        SELECT * from sc_dataupload.exch_static_curve_data_org where curve_tgt_type = #{type} and curve_type=#{curveType} and data_date = #{dataDate}
+    </select>
+
+    <select id="getTowHighCons" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+            a.cons_no as consId,
+            b.ORG_NO as orgNo
+        FROM
+            sc_loadctl.t_elec_comp a,
+            dr_cons b
+        WHERE
+            a.IS_DOUBLE_HIGH = 1
+            <if test="consList != null and consList.size > 0">
+                AND a.cons_no in
+                <foreach collection="consList" index="index" item="cons" open="(" separator="," close=")">
+                    #{cons}
+                </foreach>
+            </if>
+            and a.cons_no = b.id
+    </select>
+
+    <select id="queryExeConsIdByEventId" resultType="String" parameterType="Long">
+        SELECT
+            cons.CONS_ID consId
+        FROM
+            dr_plan_cons cons
+        WHERE
+        cons.IMPLEMENT = 'Y' AND cons.INVOLVED_IN = 'Y'
+        AND cons.plan_id = #{planId}
+    </select>
+
+</mapper>

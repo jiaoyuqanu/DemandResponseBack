@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.workbench.mapper.LoadCurveMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.workbench.entity.LoadCurve">
+        <result column="p1" property="p1" />
+        <result column="p2" property="p2" />
+        <result column="p3" property="p3" />
+        <result column="p4" property="p4" />
+        <result column="p5" property="p5" />
+        <result column="p6" property="p6" />
+        <result column="p7" property="p7" />
+        <result column="p8" property="p8" />
+        <result column="p9" property="p9" />
+        <result column="p10" property="p10" />
+        <result column="p11" property="p11" />
+        <result column="p12" property="p12" />
+        <result column="p13" property="p13" />
+        <result column="p14" property="p14" />
+        <result column="p15" property="p15" />
+        <result column="p16" property="p16" />
+        <result column="p17" property="p17" />
+        <result column="p18" property="p18" />
+        <result column="p19" property="p19" />
+        <result column="p20" property="p20" />
+        <result column="p21" property="p21" />
+        <result column="p22" property="p22" />
+        <result column="p23" property="p23" />
+        <result column="p24" property="p24" />
+        <result column="p25" property="p25" />
+        <result column="p26" property="p26" />
+        <result column="p27" property="p27" />
+        <result column="p28" property="p28" />
+        <result column="p29" property="p29" />
+        <result column="p30" property="p30" />
+        <result column="p31" property="p31" />
+        <result column="p32" property="p32" />
+        <result column="p33" property="p33" />
+        <result column="p34" property="p34" />
+        <result column="p35" property="p35" />
+        <result column="p36" property="p36" />
+        <result column="p37" property="p37" />
+        <result column="p38" property="p38" />
+        <result column="p39" property="p39" />
+        <result column="p40" property="p40" />
+        <result column="p41" property="p41" />
+        <result column="p42" property="p42" />
+        <result column="p43" property="p43" />
+        <result column="p44" property="p44" />
+        <result column="p45" property="p45" />
+        <result column="p46" property="p46" />
+        <result column="p47" property="p47" />
+        <result column="p48" property="p48" />
+        <result column="p49" property="p49" />
+        <result column="p50" property="p50" />
+        <result column="p51" property="p51" />
+        <result column="p52" property="p52" />
+        <result column="p53" property="p53" />
+        <result column="p54" property="p54" />
+        <result column="p55" property="p55" />
+        <result column="p56" property="p56" />
+        <result column="p57" property="p57" />
+        <result column="p58" property="p58" />
+        <result column="p59" property="p59" />
+        <result column="p60" property="p60" />
+        <result column="p61" property="p61" />
+        <result column="p62" property="p62" />
+        <result column="p63" property="p63" />
+        <result column="p64" property="p64" />
+        <result column="p65" property="p65" />
+        <result column="p66" property="p66" />
+        <result column="p67" property="p67" />
+        <result column="p68" property="p68" />
+        <result column="p69" property="p69" />
+        <result column="p70" property="p70" />
+        <result column="p71" property="p71" />
+        <result column="p72" property="p72" />
+        <result column="p73" property="p73" />
+        <result column="p74" property="p74" />
+        <result column="p75" property="p75" />
+        <result column="p76" property="p76" />
+        <result column="p77" property="p77" />
+        <result column="p78" property="p78" />
+        <result column="p79" property="p79" />
+        <result column="p80" property="p80" />
+        <result column="p81" property="p81" />
+        <result column="p82" property="p82" />
+        <result column="p83" property="p83" />
+        <result column="p84" property="p84" />
+        <result column="p85" property="p85" />
+        <result column="p86" property="p86" />
+        <result column="p87" property="p87" />
+        <result column="p88" property="p88" />
+        <result column="p89" property="p89" />
+        <result column="p90" property="p90" />
+        <result column="p91" property="p91" />
+        <result column="p92" property="p92" />
+        <result column="p93" property="p93" />
+        <result column="p94" property="p94" />
+        <result column="p95" property="p95" />
+        <result column="p96" property="p96" />
+        <result column="data_date" property="dataDate" />
+    </resultMap>
+
+    <select id="getLoadCurve" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+           sum( dct.p1 )/10000 AS p1, sum( dct.p2 )/10000 AS p2, sum( dct.p3 )/10000 AS p3, sum( dct.p4 )/10000 AS p4, sum( dct.p5 )/10000 AS p5,
+           sum( dct.p6 )/10000 AS p6, sum( dct.p7 )/10000 AS p7, sum( dct.p8 )/10000 AS p8, sum( dct.p9 )/10000 AS p9, sum( dct.p10 )/10000 AS p10,
+           sum( dct.p11 )/10000 AS p11, sum( dct.p12 )/10000 AS p12, sum( dct.p13 )/10000 AS p13, sum( dct.p14 )/10000 AS p14, sum( dct.p15 )/10000 AS p15,
+           sum( dct.p16 )/10000 AS p16, sum( dct.p17 )/10000 AS p17, sum( dct.p18 )/10000 AS p18, sum( dct.p19 )/10000 AS p19, sum( dct.p20 )/10000 AS p20,
+           sum( dct.p21 )/10000 AS p21, sum( dct.p22 )/10000 AS p22, sum( dct.p23 )/10000 AS p23, sum( dct.p24 )/10000 AS p24, sum( dct.p25 )/10000 AS p25,
+           sum( dct.p26 )/10000 AS p26, sum( dct.p27 )/10000 AS p27, sum( dct.p28 )/10000 AS p28, sum( dct.p29 )/10000 AS p29, sum( dct.p30 )/10000 AS p30,
+           sum( dct.p31 )/10000 AS p31, sum( dct.p32 )/10000 AS p32, sum( dct.p33 )/10000 AS p33, sum( dct.p34 )/10000 AS p34, sum( dct.p35 )/10000 AS p35,
+           sum( dct.p36 )/10000 AS p36, sum( dct.p37 )/10000 AS p37, sum( dct.p38 )/10000 AS p38, sum( dct.p39 )/10000 AS p39, sum( dct.p40 )/10000 AS p40,
+           sum( dct.p41 )/10000 AS p41, sum( dct.p42 )/10000 AS p42, sum( dct.p43 )/10000 AS p43, sum( dct.p44 )/10000 AS p44, sum( dct.p45 )/10000 AS p45,
+           sum( dct.p46 )/10000 AS p46, sum( dct.p47 )/10000 AS p47, sum( dct.p48 )/10000 AS p48, sum( dct.p49 )/10000 AS p49, sum( dct.p50 )/10000 AS p50,
+           sum( dct.p51 )/10000 AS p51, sum( dct.p52 )/10000 AS p52, sum( dct.p53 )/10000 AS p53, sum( dct.p54 )/10000 AS p54, sum( dct.p55 )/10000 AS p55,
+           sum( dct.p56 )/10000 AS p56, sum( dct.p57 )/10000 AS p57, sum( dct.p58 )/10000 AS p58, sum( dct.p59 )/10000 AS p59, sum( dct.p60 )/10000 AS p60,
+           sum( dct.p61 )/10000 AS p61, sum( dct.p62 )/10000 AS p62, sum( dct.p63 )/10000 AS p63, sum( dct.p64 )/10000 AS p64, sum( dct.p65 )/10000 AS p65,
+           sum( dct.p66 )/10000 AS p66, sum( dct.p67 )/10000 AS p67, sum( dct.p68 )/10000 AS p68, sum( dct.p69 )/10000 AS p69, sum( dct.p70 )/10000 AS p70,
+           sum( dct.p71 )/10000 AS p71, sum( dct.p72 )/10000 AS p72, sum( dct.p73 )/10000 AS p73, sum( dct.p74 )/10000 AS p74, sum( dct.p75 )/10000 AS p75,
+           sum( dct.p76 )/10000 AS p76, sum( dct.p77 )/10000 AS p77, sum( dct.p78 )/10000 AS p78, sum( dct.p79 )/10000 AS p79, sum( dct.p80 )/10000 AS p80,
+           sum( dct.p81 )/10000 AS p81, sum( dct.p82 )/10000 AS p82, sum( dct.p83 )/10000 AS p83, sum( dct.p84 )/10000 AS p84, sum( dct.p85 )/10000 AS p85,
+           sum( dct.p86 )/10000 AS p86, sum( dct.p87 )/10000 AS p87, sum( dct.p88 )/10000 AS p88, sum( dct.p89 )/10000 AS p89, sum( dct.p90 )/10000 AS p90,
+           sum( dct.p91 )/10000 AS p91, sum( dct.p92 )/10000 AS p92, sum( dct.p93 )/10000 AS p93, sum( dct.p94 )/10000 AS p94, sum( dct.p95 )/10000 AS p95,
+           sum( dct.p96 )/10000 AS p96, dct.data_date
+        FROM
+            dr_cons dc,
+            dr_cons_contract_info dci,
+            dr_cons_curve_today dct
+        <where>
+            dci.CONS_ID = dct.cons_id
+            and dc.id = dct.cons_id
+            and dct.data_date = CURRENT_DATE()
+            <if test="param.projectId != null and param.projectId != ''">
+                and dci.project_id = #{param.projectId}
+            </if>
+            <if test="param.orgList != null and param.orgList != ''">
+                and dc.ORG_NO in
+                <foreach collection="param.orgList" item="org" open="(" separator="," close=")">
+                    #{org}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

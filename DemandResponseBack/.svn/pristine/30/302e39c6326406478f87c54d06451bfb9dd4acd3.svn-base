@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.EventPowerBaseMapper">
+
+    <select id="selectPointValue" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        select *
+        from dr_event_power_base
+        where event_id = #{eventId}
+          and org_no = #{orgId}
+    </select>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.CustExecuteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.EventExecute">
+        <id column="id" property="id" />
+        <result column="event_id" property="eventId" />
+        <result column="cons_id" property="consId" />
+        <result column="baseline_cap" property="baselineCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="real_time_cap" property="realTimeCap" />
+        <result column="execute_time" property="executeTime" />
+        <result column="execute_cap" property="executeCap" />
+        <result column="execute_rate" property="executeRate" />
+        <result column="is_out" property="isOut" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="max_execute_cap" property="maxExecuteCap" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, event_id, cons_id, baseline_cap, max_load_baseline, reply_cap, real_time_cap, execute_time, execute_cap, execute_rate, is_out, is_qualified, create_time, create_user, update_time, update_user, max_execute_cap
+    </sql>
+    <select id="selectPageVo" resultType="com.xqxy.dr.modular.event.entity.EventExecute">
+        SELECT
+            execute_time executeTime,
+            SUM( execute_cap ) executeCap,
+            SUM( baseline_cap ) baselineCap,
+            SUM( max_load_baseline ) maxLoadBaseline,
+            SUM( reply_cap ) replyCap,
+            SUM( max_execute_cap ) maxExecuteCap
+        FROM
+            dr_cust_execute
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="getCustBaseByEventId" resultType="com.xqxy.dr.modular.event.entity.CustExecute" parameterType="com.xqxy.dr.modular.event.param.CustExecuteParam">
+        SELECT
+            max_load_baseline AS maxLoadBaseline,
+            baseline_cap baselineCap,
+            SUM(reply_cap) AS replyCap,
+            baseline_cap AS baselineCap
+        FROM
+            dr_cust_execute
+            where cust_id = #{custId} and event_id = #{eventId}
+    </select>
+
+</mapper>

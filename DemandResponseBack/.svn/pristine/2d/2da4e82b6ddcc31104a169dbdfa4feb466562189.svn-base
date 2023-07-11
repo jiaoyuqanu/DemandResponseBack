@@ -1,0 +1,41 @@
+package com.xqxy.dr.modular.newloadmanagement.mapper;
+
+import com.xqxy.dr.modular.newloadmanagement.entity.*;
+import com.xqxy.dr.modular.newloadmanagement.param.DemandParam;
+import com.xqxy.dr.modular.newloadmanagement.param.OrgDemand64PointParam;
+import com.xqxy.dr.modular.newloadmanagement.param.RegionContractInfoParam;
+import com.xqxy.dr.modular.newloadmanagement.po.DemandEvaluationPo;
+import com.xqxy.dr.modular.newloadmanagement.vo.OrgDemand64PointVo;
+import com.xqxy.dr.modular.newloadmanagement.vo.RegionContractInfoVo;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
+
+@Mapper
+public interface DemandMapper {
+    List<Drcons> userBaseProfile(String createTime);
+
+    List<AdjustPotential> adjustablePotential(Map<String, Object> paramMap);
+
+    void orderInformation(Map<String, Object> paramMap);
+
+    List<Drevent> outUserList(String regulateId);
+
+    Drevent planExecutionEffect(String regulateId);
+
+    Drevent planExecutionEffectValue(String regulateId);
+
+    List<PlanCurve> planExecutionCurve(String regulateId);
+
+    List<DrConsCurve> userExecutionCurve(Map<String, Object> paramMap);
+
+
+    RegionContractInfoVo getRegionContractInfo(@Param("orgNos") List<String> orgNos);
+
+    List<DemandEvaluationPo> getDemandEvaluation(@Param("orgNos") List<String> orgNos,@Param("startDate") String startDate,@Param("endDate") String endDate);
+
+    OrgDemand64PointVo getOrgDemand64Point(@Param("isToday") Boolean isToday, @Param("date") String date,
+                                           @Param("orgNos") List<String> orgNos, @Param("ps") List<String> psKey);
+}

@@ -1,0 +1,144 @@
+package com.xqxy.dr.modular.event.param;
+
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModel;
+import io.swagger.models.auth.In;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@ApiModel(description = "用户邀约信息 参数")
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class ConsInvitationParam extends BaseParam {
+
+    private static final long serialVersionUID = 4684623149122043585L;
+    /**
+     * 邀约标识
+     */
+    private Long invitationId;
+
+    /**
+     * 用户标识
+     */
+    @NotNull(message = "户号不能为空，consId", groups = {detail.class})
+    private String consId;
+
+    /**
+     * 事件标识
+     */
+    private Long eventId;
+
+    /**
+     * 事件编号
+     */
+    private String eventNo;
+    /**
+     * 用户编号
+     */
+
+    List<String> consIdList;
+
+    /**
+     * 响应类型
+     */
+    private String responseType;
+
+    /**
+     * 基线负荷标识
+     */
+    private String baselineCapId;
+
+    /**
+     * 邀约时间
+     */
+    private LocalDateTime invitationTime;
+
+    /**
+     * 邀约响应量
+     */
+    private BigDecimal invitationCap;
+
+    /**
+     * 邀约轮次
+     */
+    private Integer invitationRound;
+
+    /**
+     * 邀约序位
+     */
+    private Integer invitationNo;
+
+    /**
+     * 反馈截止时间
+     */
+    private LocalDateTime deadlineTime;
+
+    /**
+     * 是否响应邀约:N 不参与 Y 参与
+     */
+    private String isParticipate;
+
+    /**
+     * 反馈响应量
+     */
+    private BigDecimal replyCap;
+
+    /**
+     * 反馈价格
+     */
+    private BigDecimal replyPrice;
+
+    /**
+     * 反馈时间
+     */
+    private LocalDateTime replyTime;
+
+    /**
+     * 反馈途径:1 需求响应web 2 需求响应app
+     */
+    private String replySource;
+
+    /**
+     * 用户名
+     */
+    private String consName;
+
+    /**
+     * 当日评价状态
+     */
+    private String neImmediateEvalStatus;
+
+    /**
+     * 邀约状态
+     */
+    private String invitationStatus;
+
+    /**
+     * 调控日期
+     */
+    private String regulateDate;
+
+    /**
+     * 组织机构
+     */
+    private List<String> orgs;
+
+    /**
+     * 未反馈原因
+     */
+    private String noReplyReason;
+
+    private String isReply;
+
+
+    private Integer orgId;
+
+    private String consNo;
+
+
+}

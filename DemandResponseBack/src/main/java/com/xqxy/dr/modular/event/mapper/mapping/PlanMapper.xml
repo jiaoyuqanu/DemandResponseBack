@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.PlanMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.Plan">
+        <id column="PLAN_ID" property="planId" />
+        <result column="REGULATE_ID" property="regulateId" />
+        <result column="PLAN_NO" property="planNo" />
+        <result column="PLAN_NAME" property="planName" />
+        <result column="CREATE_ORG_NAME" property="createOrgName" />
+        <result column="CREATE_ORG" property="createOrg" />
+        <result column="RESPONSE_TYPE" property="responseType" />
+        <result column="TIME_TYPE" property="timeType" />
+        <result column="RANGE_TYPE" property="rangeType" />
+        <result column="REGULATE_RANGE" property="regulateRange" />
+        <result column="REGULATE_CAP" property="regulateCap" />
+        <result column="REGULATE_DATE" property="regulateDate" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="advance_notice_time" property="advanceNoticeTime" />
+        <result column="del_rule" property="delRule" />
+        <result column="STATE" property="state" />
+        <result column="check_status" property="checkStatus" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        PLAN_ID, REGULATE_ID, PLAN_NO, PLAN_NAME, CREATE_ORG_NAME, CREATE_ORG, RESPONSE_TYPE, TIME_TYPE, RANGE_TYPE, REGULATE_RANGE, REGULATE_CAP, REGULATE_DATE, START_TIME, END_TIME, advance_notice_time, del_rule, STATE, check_status, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    
+    <select id="getConsIdByCustAndEvent" resultType="com.xqxy.dr.modular.event.entity.PlanCons" parameterType="com.xqxy.dr.modular.event.param.PlanParam">
+        SELECT
+            partic_id as particId,
+            cons_id as consId
+        FROM
+            dr_plan_cons
+        WHERE
+         plan_id = (
+        SELECT
+        PLAN_ID
+        FROM
+        dr_plan
+        WHERE
+        REGULATE_ID = #{eventId})
+        and INVOLVED_IN = 'Y'
+        and deleted = 'N'
+        <if test="custIdList != null and custIdList.size > 0">
+            and cust_id in
+            <foreach collection="custIdList" index="index" item="cust" open="(" separator="," close=")">
+                #{cust}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getConsIdByCustAndEvent2" resultType="com.xqxy.dr.modular.event.entity.PlanCons" parameterType="com.xqxy.dr.modular.event.param.PlanParam">
+        SELECT
+        partic_id as particId,
+        cons_id as consId
+        FROM
+        dr_plan_cons
+        WHERE
+        plan_id = (
+        SELECT
+        PLAN_ID
+        FROM
+        dr_plan
+        WHERE
+        REGULATE_ID = #{eventId})
+        <if test="custIdList != null and custIdList.size > 0">
+            and cust_id in
+            <foreach collection="custIdList" index="index" item="cust" open="(" separator="," close=")">
+                #{cust}
+            </foreach>
+        </if>
+    </select>
+    
+    <insert id="saveOutBoxMessage" parameterType="Map">
+        insert into dr_outbox_message(topic,message_key,send_status,consume_status,create_time)
+        values(#{topic},#{message_key},#{send_status},#{consume_status},#{create_time})
+    </insert>
+
+    <select id="getOutBoxMessageCount" parameterType="Map" resultType="Integer">
+        select count(*) from dr_outbox_message where topic = #{topic} and message_key = #{message_key}
+    </select>
+
+
+</mapper>

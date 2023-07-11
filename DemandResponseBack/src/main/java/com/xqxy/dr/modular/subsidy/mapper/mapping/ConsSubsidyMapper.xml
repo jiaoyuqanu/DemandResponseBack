@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.ConsSubsidyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.ConsSubsidy">
+        <id column="subsidy_id" property="subsidyId"/>
+        <result column="CONS_ID" property="consId"/>
+        <result column="EVENT_ID" property="eventId"/>
+        <result column="actual_cap" property="actualCap"/>
+        <result column="actual_energy" property="actualEnergy"/>
+        <result column="CONTRACT_PRICE" property="contractPrice"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="settled_amount" property="settledAmount"/>
+        <result column="time_coefficient" property="timeCoefficient"/>
+        <result column="rate_coefficient" property="rateCoefficient"/>
+        <result column="remark" property="remark"/>
+        <result column="cal_rule" property="calRule"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+
+        <result column="extract_ratio" property="extractRatio"/>
+
+        <association property="event" javaType="com.xqxy.dr.modular.event.entity.Event">
+            <result column="event_name" property="eventName"/>
+            <result column="start_time" property="startTime"/>
+            <result column="end_time" property="endTime"/>
+            <result column="EVENT_NO" property="eventNo"/>
+        </association>
+
+        <association property="consEvaluation" javaType="com.xqxy.dr.modular.evaluation.entity.ConsEvaluation">
+            <result column="is_effective" property="isEffective"/>
+            <result column="reply_cap" property="replyCap"/>
+            <result column="invitation_cap" property="invitationCap"/>
+            <result column="actual_cap" property="actualCap"/>
+            <result column="confirm_cap" property="confirmCap"/>
+        </association>
+
+        <association property="cons" javaType="com.xqxy.sys.modular.cust.entity.Cons">
+            <result column="cons_name" property="consName"/>
+            <result column="org_no" property="orgNo"/>
+            <result column="org_name" property="orgName"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        subsidy_id
+        , CONS_ID, EVENT_ID, actual_cap, actual_energy, CONTRACT_PRICE, subsidy_amount, settled_amount, remark, cal_rule, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="consSubsidyPage" resultMap="BaseResultMap">
+        select
+        c.*, d.cons_name, e.event_name,e.EVENT_NO, e.start_time, e.end_time, v.is_effective, v.invitation_cap,
+        v.actual_cap
+        from
+        dr_cons_subsidy c, dr_event e, dr_cons_evaluation v, dr_cons d
+        <where>
+            1 = 1
+            <if test="map.consId != '' and map.consId != null">
+                and c.cons_id = #{map.consId}
+            </if>
+            <if test="map.eventIds != '' and map.eventIds != null">
+                and c.event_id in
+                <foreach collection="map.eventIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and c.event_id = e.event_id
+            and c.event_id = v.event_id
+            and c.cons_id = v.cons_id
+            and c.cons_id = d.id
+        </where>
+    </select>
+
+    <select id="dailySubsidyConsDetail" resultMap="BaseResultMap">
+        SELECT e.EVENT_NO,
+               e.event_name,
+               c.CONTRACT_PRICE,
+               sum(c.subsidy_amount) subsidy_amount,
+               sum(c.settled_amount) settled_amount,
+               v.is_effective,
+               v.invitation_cap,
+               v.actual_cap
+        FROM dr_cons_subsidy c
+                 LEFT JOIN dr_event e ON e.EVENT_ID = c.event_id
+                 LEFT JOIN dr_cons_evaluation v ON c.cons_id = v.cons_id and c.event_id = v.event_id
+        where c.cons_id = #{map.consId}
+          and e.REGULATE_DATE = #{map.subsidyDate}
+        GROUP BY e.EVENT_ID
+    </select>
+
+    <select id="dailySubsidyConsTotal" resultType="BigDecimal">
+        SELECT IFNULL(sum(c.subsidy_amount), 0) subsidy_amount
+        FROM dr_cons_subsidy c
+                 LEFT JOIN dr_event e ON e.EVENT_ID = c.event_id
+                 LEFT JOIN dr_cons_evaluation v ON c.cons_id = v.cons_id and c.event_id = v.event_id
+        where c.cons_id = #{map.consId}
+          and e.REGULATE_DATE = #{map.subsidyDate}
+    </select>
+
+    <select id="dailySubsidyCustDetail" resultMap="BaseResultMap">
+        SELECT e.EVENT_NO,
+               e.EVENT_NAME,
+               c.CONTRACT_PRICE,
+               sum(c.subsidy_amount) subsidy_amount,
+               v.is_effective,
+               v.invitation_cap,
+               v.actual_cap
+        FROM dr_cust_subsidy c
+                 LEFT JOIN dr_event e ON e.EVENT_ID = c.event_id
+                 LEFT JOIN dr_cust_evaluation v ON c.cust_id = v.cust_id and c.event_id = v.event_id
+        where c.cust_id = #{map.custId}
+          and e.REGULATE_DATE = #{map.subsidyDate}
+        GROUP BY e.EVENT_ID
+    </select>
+
+    <select id="dailySubsidyCustTotal" resultType="BigDecimal">
+        SELECT IFNULL(sum(c.subsidy_amount), 0) subsidy_amount
+        FROM dr_cust_subsidy c
+                 LEFT JOIN dr_event e ON e.EVENT_ID = c.event_id
+                 LEFT JOIN dr_cust_evaluation v ON c.cust_id = v.cust_id and c.event_id = v.event_id
+        where c.cust_id = #{map.custId}
+          and e.REGULATE_DATE = #{map.subsidyDate}
+    </select>
+
+    <select id="getConsSubsidyInfos" resultType="com.xqxy.dr.modular.subsidy.result.ConsSubsidyInfo">
+        SELECT
+        uc.cust_id custId,
+        ci.cons_id consId,
+        ci.extract_ratio / 100 extractRatio,
+        t.subsidy_status subsidyStatus
+        FROM
+        dr_user_cons_rela uc,
+        dr_cons_contract_info ci,
+        dr_evalu_task t,
+        dr_event e
+        WHERE
+        uc.cons_no = ci.cons_id
+        AND e.project_id = ci.project_id
+        AND ci.cons_id = t.cons_id
+        AND rela_type = 2
+        and e.event_id in
+        <if test="events != null and events.size>0">
+            <foreach collection="events" item="eventId" separator="," open="(" close=")">
+                #{eventId}
+            </foreach>
+        </if>
+        t.event_id in
+        <if test="events != null and events.size>0">
+            <foreach collection="events" item="eventId" separator="," open="(" close=")">
+                #{eventId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="consSubsidyByEventIdPage" resultMap="BaseResultMap">
+        select
+        s.*, c.cons_name, c.org_name, c.org_no, e.reply_cap, e.is_effective, e.confirm_cap
+        from
+        dr_cons_subsidy s, dr_cons c, dr_cons_evaluation e
+        <where>
+            1 = 1
+            <if test="map.eventId != null and map.eventId != ''">
+                and s.event_id = #{map.eventId}
+            </if>
+            and s.cons_id = c.id
+            and s.cons_id = e.cons_id
+            and s.event_id = e.event_id
+            <if test="map.joinUserType != null and map.joinUserType != ''">
+                and s.join_user_type = #{map.joinUserType}
+            </if>
+            <if test="map.consId != null and map.consId != ''">
+                and c.id = #{map.consId}
+            </if>
+            <if test="map.consName != null and map.consName != ''">
+                and c.cons_name like concat('%', #{map.consName}, '%')
+            </if>
+            <if test="map.isEffective != null and map.isEffective != ''">
+                and e.is_effective like concat('%', #{map.isEffective}, '%')
+            </if>
+            <if test="map.orgIds != null and map.orgIds.size>0">
+                and c.ORG_NO in
+                <foreach collection="map.orgIds" item="orgid" separator="," open="(" close=")">
+                    #{orgid}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="consSubsidyByEventIdAndConsIdPage" resultMap="BaseResultMap">
+        select
+        s.*, c.cons_name, e.reply_cap, e.is_effective, e.confirm_cap, i.extract_ratio
+        from
+        dr_cons_subsidy s, dr_cons c, dr_cons_evaluation e, dr_event t, dr_cons_contract_info i
+        <where>
+            1 = 1
+            <if test="map.eventId != null and map.eventId != '' ">
+                and s.event_id = #{map.eventId}
+            </if>
+            <if test="map.consIds != null and map.consIds.size>0 ">
+                and s.cons_id in
+                <foreach collection="map.consIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and s.cons_id = c.id
+            and s.cons_id = e.cons_id
+            and s.event_id = e.event_id
+            and s.event_id = t.event_id
+            and t.project_id = i.project_id
+            and i.cons_id = s.cons_id
+            <if test="map.orgIds != null and map.orgIds.size>0">
+                and c.ORG_NO in
+                <foreach collection="map.orgIds" item="orgid" separator="," open="(" close=")">
+                    #{orgid}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="consNoSubsidy" resultType="com.xqxy.dr.modular.subsidy.result.ConsNoSubsidy">
+        select
+        subsidy.cons_id consId, subsidy.event_id eventId, ev.event_name eventName, ev.event_no eventNo,
+        evaluation.is_effective isEffective, subsidy.actual_cap actualCap, contract_price contractPrice,
+        subsidy_amount subsidyAmount, cons_name consName, ev.REGULATE_DATE as regulateDate,
+        ev.START_TIME as startTime,
+        ev.END_TIME as endTime,
+        ci.deadline_time as deadlineTime,
+        subsidy.create_time as createTime
+        from
+        dr_cons_subsidy subsidy, dr_cons cons, dr_event ev, dr_cons_evaluation evaluation, dr_cons_invitation ci
+        <where>
+            subsidy.cons_id = cons.id and
+            subsidy.cons_id = evaluation.cons_id and
+            subsidy.event_id = evaluation.event_id and
+            subsidy.event_id = ev.event_id and
+            subsidy.event_id = ci.event_id and
+            subsidy.cons_id = ci.cons_id and
+            ev.subsidy_pub='1'
+            <if test="map.eventId != null and map.eventId != ''">
+                and subsidy.event_id = #{map.eventId}
+            </if>
+            <if test="map.consId != null and map.consId != ''">
+                and subsidy.cons_id like concat('%', #{map.consId}, '%')
+            </if>
+            <if test="map.consIds != null and map.consIds != ''">
+                and subsidy.cons_id in
+                <foreach collection="map.consIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="map.startTime !=null and map.startTime != ''">
+                <![CDATA[ and ev.REGULATE_DATE >= #{map.startTime} ]]>
+            </if>
+            <if test="map.endTime !=null and map.endTime != ''">
+                <![CDATA[ and ev.REGULATE_DATE <= #{map.endTime} ]]>
+            </if>
+        </where>
+    </select>
+
+    <select id="consNoSubsidyInfo" resultType="java.util.HashMap">
+        SELECT
+        sum( subsidy.subsidy_amount ) AS subsidyAmount,
+        sum( settled_amount ) AS settledAmount,
+        count( 0 ) AS totalNum,
+        sum( CASE WHEN subsidy.subsidy_id IS NOT NULL THEN 1 ELSE 0 END ) AS subsidyNum
+        FROM
+        dr_cons_invitation ci
+        LEFT JOIN  dr_event ev on ci.EVENT_ID = ev.EVENT_ID
+        LEFT JOIN dr_cons_evaluation evaluation ON evaluation.event_id = ev.event_id and evaluation.cons_id = ci.cons_id
+        LEFT JOIN dr_cons_subsidy subsidy ON subsidy.cons_id = evaluation.cons_id AND subsidy.event_id = ev.event_id
+        <where>
+            1=1
+            <if test="map.eventId != null and map.eventId != ''">
+                and ev.event_id = #{map.eventId}
+            </if>
+            <if test="map.consId != null and map.consId != ''">
+                and ci.cons_id like concat('%', #{map.consId}, '%')
+            </if>
+            <if test="map.consIds != null and map.consIds != ''">
+                and ci.cons_id in
+                <foreach collection="map.consIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="map.startTime !=null and map.startTime != ''">
+                <![CDATA[ and ev.REGULATE_DATE >= #{map.startTime} ]]>
+            </if>
+            <if test="map.endTime !=null and map.endTime != ''">
+                <![CDATA[ and ev.REGULATE_DATE <= #{map.endTime} ]]>
+            </if>
+        </where>
+    </select>
+
+    <select id="getProjectSubsidyInfo" resultType="java.math.BigDecimal">
+        SELECT
+        ifnull(sum(cs.subsidy_amount), 0)
+        FROM
+        dr_cons_subsidy cs
+        LEFT JOIN dr_event e ON e.EVENT_ID = cs.EVENT_ID
+        left JOIN dr_cons c on c.ID = cs.CONS_ID
+        where
+        e.PROJECT_ID = #{projectId}
+        AND c.ID IN (
+        SELECT
+        cons.id
+        FROM
+        dr_cust cust
+        LEFT JOIN dr_cons cons ON cons.cust_id = cust.ID
+        WHERE
+        cust.integrator = #{integrator}
+        )
+        <if test="orgNos != null and orgNos.size > 0">
+            and c.ORG_NO in
+            <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getProjectConsSubsidy" resultType="java.math.BigDecimal">
+        SELECT
+        ifnull(sum(cs.subsidy_amount), 0)
+        FROM
+        dr_cons_subsidy cs
+        LEFT JOIN dr_event e ON e.EVENT_ID = cs.EVENT_ID
+        left JOIN dr_cons c on c.ID = cs.CONS_ID
+        where
+        e.PROJECT_ID = #{projectId} and cs.join_user_type = "2"
+        <if test="orgNos != null and orgNos.size > 0">
+            and c.ORG_NO in
+            <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="exportConsByEventId" resultType="com.xqxy.dr.modular.subsidy.model.ConsSubsidyModel">
+        select
+        s.*, c.cons_name, c.org_name, c.org_no, e.reply_cap, e.is_effective, e.confirm_cap
+        from
+        dr_cons_subsidy s, dr_cons c, dr_cons_evaluation e
+        <where>
+            1 = 1
+            <if test="map.eventId != null and map.eventId != ''">
+                and s.event_id = #{map.eventId}
+            </if>
+            and s.cons_id = c.id
+            and s.cons_id = e.cons_id
+            and s.event_id = e.event_id
+            <if test="map.joinUserType != null and map.joinUserType != ''">
+                and s.join_user_type = #{map.joinUserType}
+            </if>
+            <if test="map.consId != null and map.consId != ''">
+                and c.id = #{map.consId}
+            </if>
+            <if test="map.consName != null and map.consName != ''">
+                and c.cons_name like concat('%', #{map.consName}, '%')
+            </if>
+            <if test="map.isEffective != null and map.isEffective != ''">
+                and e.is_effective like concat('%', #{map.isEffective}, '%')
+            </if>
+            <if test="map.orgIds != null and map.orgIds.size>0">
+                and c.ORG_NO in
+                <foreach collection="map.orgIds" item="orgid" separator="," open="(" close=")">
+                    #{orgid}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getCustSubsidy" resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidy">
+        SELECT
+            sum( a.subsidy_amount ) AS subsidyAmount
+        FROM
+            dr_cons_subsidy a
+            LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+        WHERE
+            a.event_id = #{eventId}  and b.cust_id = #{custId}
+    </select>
+
+</mapper>

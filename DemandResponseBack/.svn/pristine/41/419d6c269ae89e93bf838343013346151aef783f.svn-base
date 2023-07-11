@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.DemandMapper">
+
+    <!--1.1用户基础档案-->
+    <select id="userBaseProfile" parameterType="java.lang.String" resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drcons">
+        SELECT
+        dr_cust.CUST_NAME,
+        dr_cons.ID,
+        dr_cust.CUST_ADDR,
+        dr_cons.CONTRACT_CAP,
+        dr_cons.RUN_CAP,
+        dr_cons.SAFETY_LOAD,
+        dr_cons.BIG_TRADE_CODE,
+        dr_cons.TRADE_CODE,
+        dr_cons.first_contact_name,
+        dr_cons.first_contact_info,
+        dr_cons.second_contact_name,
+        dr_cons.second_contact_inifo,
+        dr_cust.CREDIT_CODE,
+        dr_cust.legal_name,
+        dr_cust.legal_no,
+        dr_cust.CREATE_TIME
+        FROM dr_user_cons_rela
+        LEFT JOIN dr_cons ON dr_cons.ID=dr_user_cons_rela.cons_no
+        LEFT JOIN dr_cust ON dr_cust.ID=dr_user_cons_rela.cust_id
+        where left(dr_cust.CREATE_TIME,10) between #{createTime} and #{createTime}  ;
+    </select>
+
+    <!--1.2需求响应可调节潜力-->
+    <select id="adjustablePotential" parameterType="java.util.Map" resultType="com.xqxy.dr.modular.newloadmanagement.entity.AdjustPotential">
+        SELECT
+        dr_cons_contract_detail.CONTRACT_CAP
+        FROM
+        dr_cons_contract_info
+        LEFT JOIN dr_project ON dr_project.project_id = dr_cons_contract_info.project_id
+        LEFT JOIN dr_cons_contract_detail ON dr_cons_contract_detail.contract_id = dr_cons_contract_info.contract_id
+        WHERE
+        dr_project.begin_date = #{beginDate}
+        AND dr_project.end_date = #{endDate}
+        LIMIT 1;
+    </select>
+
+    <!--1.3负荷调控指令信息-->
+    <insert id="orderInformation" parameterType="java.util.Map">
+        INSERT INTO dr_demand (
+        stregy_id,
+        project_id,
+        REGULATE_NO,
+        RESPONSE_TYPE,
+        TIME_TYPE,
+        RANGE_TYPE,
+        REGULATE_RANGE,
+        REGULATE_CAP,
+        REGULATE_DATE,
+        START_TIME,
+        END_TIME,
+        ADVANCE_NOTICE_TIME,
+        CREATE_USER_NAME,
+        STATUS,
+        CREATE_TIME,
+        CREATE_USER,
+        UPDATE_TIME,
+        UPDATE_USER
+        )
+        VALUES
+        (#{stregyId},NULL , #{regulateNo}, #{responseType}, #{timeType}, #{rangeType}, #{regulateRange}, #{regulateCap}, #{regulateTime}, #{startTime}, #{endTime}, #{advanceNoticeTime}, NULL, #{status}, #{createTime}, NULL, NULL, NULL)
+    </insert>
+
+    <update id="updateOrderInfoByStregyId" parameterType="com.xqxy.dr.modular.newloadmanagement.entity.Drdemand">
+        update dr_demand
+        set
+            project_id = #{projectId},
+            RANGE_TYPE = #{rangeType},
+            REGULATE_RANGE = #{regulateRange},
+            REGULATE_CAP = #{regulateCap},
+            REGULATE_DATE = #{regulateDate},
+            START_TIME = #{startTime},
+            END_TIME = #{endTime},
+            UPDATE_TIME = now()
+        where stregy_id = #{stregyId}
+    </update>
+
+    <!--1.6未到位用户清单    -->
+    <select id="outUserList"  parameterType="java.lang.String"  resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drevent">
+        SELECT
+        dr_demand.REGULATE_ID,
+        dr_event.EVENT_ID,
+        dr_cons_invitation.CONS_ID,
+        dr_cons_evaluation.max_load_baseline,
+        dr_cons_evaluation.avg_load_baseline,
+        dr_cons_evaluation.actual_cap,
+        dr_cons_evaluation.confirm_cap,
+        dr_cons_evaluation.reply_cap,
+        dr_cons_invitation.reply_price,
+        dr_cons_evaluation.is_effective,
+        dr_cons_evaluation.CREATE_TIME,
+        dr_cons_evaluation.UPDATE_TIME,
+        dr_cons_evaluation.CREATE_USER,
+        dr_cons_evaluation.UPDATE_USER
+        FROM
+        dr_event
+        LEFT JOIN dr_demand ON dr_event.REGULATE_ID = dr_demand.REGULATE_ID
+        LEFT JOIN dr_cons_evaluation ON dr_event.EVENT_ID = dr_cons_evaluation.EVENT_ID
+        LEFT JOIN dr_cons_invitation ON dr_event.EVENT_ID = dr_cons_invitation.EVENT_ID
+        WHERE
+        dr_demand.REGULATE_ID = #{regulateId};
+    </select>
+
+    <!-- 1.7方案执行效果   -->
+    <select id="planExecutionEffect"  parameterType="java.lang.String"  resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drevent">
+        SELECT
+        dr_demand.REGULATE_ID,
+        dr_event.EVENT_ID,
+        dr_cons_evaluation.invitation_cap,
+        dr_cons_evaluation.avg_load_baseline,
+        dr_cons_evaluation.actual_energy,
+        dr_cons_evaluation.reply_cap,
+        count(dr_cons_evaluation.EVENT_ID) as planQuantity,
+        dr_cons_invitation.reply_price,
+        dr_cons_evaluation.is_effective,
+        dr_cons_evaluation.CREATE_TIME,
+        dr_cons_evaluation.UPDATE_TIME,
+        dr_cons_evaluation.CREATE_USER,
+        dr_cons_evaluation.UPDATE_USER
+        FROM
+        dr_event
+        LEFT JOIN dr_demand ON dr_event.REGULATE_ID = dr_demand.REGULATE_ID
+        LEFT JOIN dr_cons_evaluation ON dr_event.EVENT_ID = dr_cons_evaluation.EVENT_ID
+        LEFT JOIN dr_cons_invitation ON dr_event.EVENT_ID = dr_cons_invitation.EVENT_ID
+        WHERE
+        dr_demand.REGULATE_ID = #{regulateId};
+    </select>
+
+    <!-- 1.7方案执行效果 单独查询执行到位户数   -->
+    <select id="planExecutionEffectValue"  parameterType="java.lang.String"  resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drevent">
+        SELECT count(*) as executeQuantity FROM
+        dr_event
+        LEFT JOIN dr_demand ON dr_event.REGULATE_ID = dr_demand.REGULATE_ID
+        LEFT JOIN dr_cons_evaluation ON dr_event.EVENT_ID = dr_cons_evaluation.EVENT_ID
+        LEFT JOIN dr_cons_invitation ON dr_event.EVENT_ID = dr_cons_invitation.EVENT_ID
+        WHERE
+        dr_demand.REGULATE_ID = #{regulateId} and  dr_cons_evaluation.is_effective = 'Y'
+
+    </select>
+
+    <!-- 1.8方案执行曲线   -->
+    <select id="planExecutionCurve"  parameterType="java.lang.String"  resultType="com.xqxy.dr.modular.newloadmanagement.entity.PlanCurve">
+        SELECT
+        dr_demand.REGULATE_ID,
+        dr_event.EVENT_ID,
+        dr_ah_curve_base_view.data_date,
+        dr_ah_curve_base_view.avg_load_baseline,
+        '2' as loadType,
+        p1,
+        p2,
+        p3,
+        p4,
+        p5,
+        p6,
+        p7,
+        p8,
+        p9,
+        p10,
+        p11,
+        p12,
+        p13,
+        p14,
+        p15,
+        p16,
+        p17,
+        p18,
+        p19,
+        p20,
+        p21,
+        p22,
+        p23,
+        p24,
+        p25,
+        p26,
+        p27,
+        p28,
+        p29,
+        p30,
+        p31,
+        p32,
+        p33,
+        p34,
+        p35,
+        p36,
+        p37,
+        p38,
+        p39,
+        p40,
+        p41,
+        p42,
+        p43,
+        p44,
+        p45,
+        p46,
+        p47,
+        p48,
+        p49,
+        p50,
+        p51,
+        p52,
+        p53,
+        p54,
+        p55,
+        p56,
+        p57,
+        p58,
+        p59,
+        p60,
+        p61,
+        p62,
+        p63,
+        p64,
+        p65,
+        p66,
+        p67,
+        p68,
+        p69,
+        p70,
+        p71,
+        p72,
+        p73,
+        p74,
+        p75,
+        p76,
+        p77,
+        p78,
+        p79,
+        p80,
+        p81,
+        p82,
+        p83,
+        p84,
+        p85,
+        p86,
+        p87,
+        p88,
+        p89,
+        p90,
+        p91,
+        p92,
+        p93,
+        p94,
+        p95,
+        p96
+        FROM
+        dr_event
+        LEFT JOIN dr_demand ON dr_event.REGULATE_ID = dr_demand.REGULATE_ID
+        LEFT JOIN dr_ah_curve_base_view ON dr_event.EVENT_ID = dr_ah_curve_base_view.EVENT_ID
+        WHERE
+        dr_demand.REGULATE_ID = #{regulateId} limit 1;
+
+    </select>
+
+     <!-- 用户执行曲线   -->
+    <select id="userExecutionCurve"  parameterType="java.util.Map"  resultType="com.xqxy.dr.modular.newloadmanagement.entity.DrConsCurve">
+        SELECT
+        data_id,
+        source_id,
+        cons_id,
+        data_date,
+        data_point_flag,
+        '2' as loadType,
+        p1,
+        p2,
+        p3,
+        p4,
+        p5,
+        p6,
+        p7,
+        p8,
+        p9,
+        p10,
+        p11,
+        p12,
+        p13,
+        p14,
+        p15,
+        p16,
+        p17,
+        p18,
+        p19,
+        p20,
+        p21,
+        p22,
+        p23,
+        p24,
+        p25,
+        p26,
+        p27,
+        p28,
+        p29,
+        p30,
+        p31,
+        p32,
+        p33,
+        p34,
+        p35,
+        p36,
+        p37,
+        p38,
+        p39,
+        p40,
+        p41,
+        p42,
+        p43,
+        p44,
+        p45,
+        p46,
+        p47,
+        p48,
+        p49,
+        p50,
+        p51,
+        p52,
+        p53,
+        p54,
+        p55,
+        p56,
+        p57,
+        p58,
+        p59,
+        p60,
+        p61,
+        p62,
+        p63,
+        p64,
+        p65,
+        p66,
+        p67,
+        p68,
+        p69,
+        p70,
+        p71,
+        p72,
+        p73,
+        p74,
+        p75,
+        p76,
+        p77,
+        p78,
+        p79,
+        p80,
+        p81,
+        p82,
+        p83,
+        p84,
+        p85,
+        p86,
+        p87,
+        p88,
+        p89,
+        p90,
+        p91,
+        p92,
+        p93,
+        p94,
+        p95,
+        p96,
+        create_date,
+        data_type,
+        CREATE_TIME,
+        CREATE_USER as createdBy,
+        UPDATE_USER as updatedBy
+        FROM
+        dr_cons_curve
+        LEFT JOIN dr_cons ON dr_cons.ID = dr_cons_curve.cons_id
+        WHERE
+        cons_id = #{consId}
+        AND data_date = #{dataDate};
+    </select>
+    <select id="getRegionContractInfo"
+            resultType="com.xqxy.dr.modular.newloadmanagement.vo.RegionContractInfoVo">
+        SELECT
+            count( 0 ) AS num,
+            sum( CONTRACT_CAP ) AS cap
+        FROM
+            (
+                SELECT
+                    c.ID AS CONS_ID,
+                    sum( ccd.CONTRACT_CAP ) AS CONTRACT_CAP
+                FROM
+                    dr_cons c
+                        LEFT JOIN dr_cons_contract_info cci ON cci.CONS_ID = c.ID
+                        LEFT JOIN dr_cons_contract_detail ccd ON ccd.contract_id = cci.contract_id
+                WHERE
+                    cci.`status` = 2
+                  AND c.ID IS NOT NULL
+                  and ccd.advance_notice_time = 1 and ccd.TIME_TYPE = 1 and ccd.RESPONSE_TYPE=1
+                  AND c.ORG_NO in
+                  <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+                    #{item}
+                  </foreach>
+                GROUP BY
+                    c.ID
+            ) e
+    </select>
+    <select id="getOrgDemand64Point" resultType="com.xqxy.dr.modular.newloadmanagement.vo.OrgDemand64PointVo">
+        SELECT
+            count( 0 ) AS userNum,
+            <foreach collection="ps" item="item" open="" separator="," close="">
+                SUM( ${item} ) AS ${item}
+            </foreach>
+        FROM
+            (
+                SELECT
+                    c.ID AS consId,
+                    <foreach collection="ps" item="item" open="" separator="," close="">
+                        SUM( ${item} ) AS ${item}
+                    </foreach>
+                FROM
+                    <choose>
+                        <when test="isToday != null and isToday">
+                            dr_cons_curve_today
+                        </when>
+                        <otherwise>
+                            dr_cons_curve
+                        </otherwise>
+                    </choose>
+                     ct
+                        LEFT JOIN dr_cons c ON c.ID = ct.cons_id
+                WHERE
+                    c.ID IS NOT NULL
+                    <if test="date != null and date != ''">
+                    and ct.data_date = #{date}
+                    </if>
+                    AND c.ORG_NO in
+                    <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                GROUP BY
+                    c.ID
+            ) t1
+    </select>
+    
+
+    <select id="getDemandEvaluation" resultType="com.xqxy.dr.modular.newloadmanagement.po.DemandEvaluationPo">
+        SELECT
+            e.EVENT_ID AS eventId,
+            e.REGULATE_DATE AS regulateDate,
+            e.START_TIME AS startTime,
+            e.END_TIME AS endTime,
+            e.REGULATE_CAP AS regulateCap,
+            SUM( ce.avg_load_baseline - ce.min_load_actual ) AS cbfCap,
+            count( 0 ) AS consSize
+        FROM
+            dr_event e
+                LEFT JOIN dr_plan p ON p.REGULATE_ID = e.EVENT_ID
+                LEFT JOIN dr_plan_cons pc ON pc.PLAN_ID = p.PLAN_ID
+                LEFT JOIN dr_cons_evaluation ce ON e.EVENT_ID = ce.EVENT_ID
+                AND ce.CONS_ID = pc.CONS_ID
+                LEFT JOIN dr_cons c ON c.ID = ce.CONS_ID
+        WHERE
+            e.REGULATE_DATE BETWEEN #{startDate} and #{endDate}
+          AND pc.IMPLEMENT = 'Y'
+        AND c.ORG_NO in
+        <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY
+            e.EVENT_ID
+    </select>
+
+
+
+    <select id="selectEventByRegulateId"  parameterType="java.lang.String"  resultType="com.xqxy.dr.modular.event.entity.Event">
+        SELECT
+        t1.EVENT_ID,
+        t1.event_status,
+        t1.START_TIME,
+        t1.REGULATE_DATE,
+        t2.REGULATE_ID
+        FROM
+        dr_event t1
+        left join dr_demand t2 on t1.REGULATE_ID=t2.REGULATE_ID
+        WHERE
+        t2.stregy_id=#{regulateId}
+    </select>
+</mapper>

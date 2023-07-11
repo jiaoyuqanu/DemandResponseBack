@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.ProjectDetailMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.ProjectDetail">
+        <id column="DETAIL_ID" property="detailId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="RESPONSE_TYPE" property="responseType"/>
+        <result column="TIME_TYPE" property="timeType"/>
+        <result column="START_TIME" property="startTime"/>
+        <result column="END_TIME" property="endTime"/>
+        <result column="advance_notice_time" property="advanceNoticeTime"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        DETAIL_ID
+        , project_id, RESPONSE_TYPE, TIME_TYPE, RESPONSE_PERIOD, advance_notice_time, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="consDeclareDetail" resultType="map">
+        SELECT dp.project_id projectId,
+               project_name  projectName,
+               file_id       fileId,
+               dcci.integrator,
+               cust_name     custName,
+               contract_id   contractId
+        FROM dr_cust_contract_info dcci
+                 LEFT JOIN dr_cust dc ON dc.ID = dcci.CUST_ID
+                 LEFT JOIN dr_project dp ON dp.project_id = dcci.project_id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="listContractInfo" resultType="com.xqxy.dr.modular.project.entity.ProjectDetail">
+        SELECT
+            dcci.contract_id contractId,
+            dcci.CONS_ID consId,
+            dcci.project_id projectId,
+            dcci.partic_type particType,
+            dcci.`status`,
+            dcci.check_status checkStatus,
+            dcci.file_id fileId,
+            dcci.file_name fileName,
+            dcci.file_type fileType,
+            dcci.extract_ratio extractRatio,
+            dp.DETAIL_ID detailId,
+            dp.RESPONSE_TYPE responseType,
+            dp.TIME_TYPE timeType,
+            dp.advance_notice_time advanceNoticeTime,
+            dccd.min_times,
+            dccd.spare_min_times,
+            dccd.detail_id contractDetailId,
+            dccd.response_cap responseCap,
+            dccd.contract_cap contractCap,
+            dccd.contract_price contractPrice,
+            dccd.spare_cap spareCap,
+            dccd.aircondition_cap,
+            IFNULL(dccd.sumCap, 0) sumCap
+        FROM
+            dr_cons_contract_info dcci
+        LEFT JOIN dr_project_detail dp ON dcci.project_id = dp.project_id
+        LEFT JOIN (
+            SELECT
+                SUM(spare.contract_cap) sumCap,
+                detail.*
+            FROM
+                dr_cons_contract_detail detail
+            LEFT JOIN dr_cons_contract_info info ON info.contract_id = detail.contract_id
+            LEFT JOIN dr_spare_contract_device spare ON spare.project_detail_id = detail.PROJECT_DETAIL_ID
+            AND spare.cons_id = info.CONS_ID
+            WHERE
+                detail.contract_id = #{contractId}
+            GROUP BY
+                detail.project_detail_id
+        ) dccd ON dccd.PROJECT_DETAIL_ID = dp.DETAIL_ID
+        WHERE
+            dcci.contract_id = #{contractId}
+        ORDER BY
+            dp.time_type,
+            dp.response_type,
+            dp.advance_notice_time
+    </select>
+
+</mapper>

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.UserRealTimeLoadMapper">
+    <select id="realLoad" resultType="BigDecimal">
+        SELECT
+        <trim suffixOverrides=",">
+        <if test="pi =='p1'">
+            sum(p1),
+        </if>
+        <if test="pi =='p2'">
+            sum(p2),
+        </if>
+        <if test="pi=='p3'">
+            sum(p3),
+        </if>
+        <if test="pi=='p4'">
+            sum(p4),
+        </if>
+        <if test="pi=='p5'">
+            sum(p5),
+        </if>
+        <if test="pi=='p6'">
+            sum(p6),
+        </if>
+        <if test="pi=='p7'">
+            sum(p7),
+        </if>
+        <if test="pi=='p8'">
+            sum(p8),
+        </if>
+        <if test="pi=='p9'">
+            sum(p9),
+        </if>
+        <if test="pi=='p10'">
+            sum(p10),
+        </if>
+        <if test="pi=='p11'">
+            sum(p11),
+        </if>
+        <if test="pi=='p12'">
+            sum(p12),
+        </if>
+        <if test="pi=='p13'">
+            sum(p13),
+        </if>
+        <if test="pi=='p14'">
+            sum(p14),
+        </if>
+        <if test="pi=='p15'">
+            sum(p15),
+        </if>
+        <if test="pi=='p16'">
+            sum(p16),
+        </if>
+        <if test="pi=='p17'">
+            sum(p17),
+        </if>
+        <if test="pi=='p18'">
+            sum(p18),
+        </if>
+        <if test="pi=='p19'">
+            sum(p19),
+        </if>
+        <if test="pi=='p20'">
+            sum(p20),
+        </if>
+        <if test="pi =='p21'">
+            sum(p21),
+        </if>
+        <if test="pi=='p22'">
+            sum(p22),
+        </if>
+        <if test="pi=='p23'">
+            sum(p23),
+        </if>
+        <if test="pi=='p24'">
+            sum(p24),
+        </if>
+        <if test="pi=='p25'">
+            sum(p25),
+        </if>
+        <if test="pi=='p26'">
+            sum(p26),
+        </if>
+        <if test="pi=='p27'">
+            sum(p27),
+        </if>
+        <if test="pi=='p28'">
+            sum(p28),
+        </if>
+        <if test="pi=='p29'">
+            sum(p29),
+        </if>
+        <if test="pi=='p30'">
+            sum(p30),
+        </if>
+        <if test="pi=='p31'">
+            sum(p31),
+        </if>
+        <if test="pi=='p32'">
+            sum(p32),
+        </if>
+        <if test="pi=='p33'">
+            sum(p33),
+        </if>
+        <if test="pi=='p34'">
+            sum(p34),
+        </if>
+        <if test="pi=='p35'">
+            sum(p35),
+        </if>
+        <if test="pi=='p36'">
+            sum(p36),
+        </if>
+        <if test="pi=='p37'">
+            sum(p37),
+        </if>
+        <if test="pi=='p38'">
+            sum(p38),
+        </if>
+        <if test="pi=='p39'">
+            sum(p39),
+        </if>
+        <if test="pi=='p40'">
+            sum(p40),
+        </if>
+        <if test="pi=='p41'">
+            sum(p41),
+        </if>
+        <if test="pi=='p42'">
+            sum(p42),
+        </if>
+        <if test="pi=='p43'">
+            sum(p43),
+        </if>
+        <if test="pi=='p44'">
+            sum(p44),
+        </if>
+        <if test="pi=='p45'">
+            sum(p45),
+        </if>
+        <if test="pi=='p46'">
+            sum(p46),
+        </if>
+        <if test="pi=='p47'">
+            sum(p47),
+        </if>
+        <if test="pi=='p48'">
+            sum(p48),
+        </if>
+        <if test="pi=='p49'">
+            sum(p49),
+        </if>
+        <if test="pi=='p50'">
+            sum(p50),
+        </if>
+        <if test="pi=='p51'">
+            sum(p51),
+        </if>
+        <if test="pi=='p52'">
+            sum(p52),
+        </if>
+        <if test="pi=='p53'">
+            sum(p53),
+        </if>
+        <if test="pi=='p54'">
+            sum(p54),
+        </if>
+        <if test="pi=='p55'">
+            sum(p55),
+        </if>
+        <if test="pi=='p56'">
+            sum(p56),
+        </if>
+        <if test="pi=='p57'">
+            sum(p57),
+        </if>
+        <if test="pi=='p58'">
+            sum(p58),
+        </if>
+        <if test="pi=='p59'">
+            sum(p59),
+        </if>
+        <if test="pi=='p60'">
+            sum(p60),
+        </if>
+        <if test="pi=='p61'">
+            sum(p61),
+        </if>
+        <if test="pi=='p62'">
+            sum(p62),
+        </if>
+        <if test="pi=='p63'">
+            sum(p63),
+        </if>
+        <if test="pi=='p64'">
+            sum(p64),
+        </if>
+        <if test="pi=='p65'">
+            sum(p65),
+        </if>
+        <if test="pi=='p66'">
+            sum(p66),
+        </if>
+        <if test="pi=='p67'">
+            sum(p67),
+        </if>
+        <if test="pi=='p68'">
+            sum(p68),
+        </if>
+        <if test="pi=='p69'">
+            sum(p69),
+        </if>
+        <if test="pi=='p70'">
+            sum(p70),
+        </if>
+        <if test="pi=='p71'">
+            sum(p71),
+        </if>
+        <if test="pi=='p72'">
+            sum(p72),
+        </if>
+        <if test="pi=='p73'">
+            sum(p73),
+        </if>
+        <if test="pi=='p74'">
+            sum(p74),
+        </if>
+        <if test="pi=='p75'">
+            sum(p75),
+        </if>
+        <if test="pi=='p76'">
+            sum(p76),
+        </if>
+        <if test="pi=='p77'">
+            sum(p77),
+        </if>
+        <if test="pi=='p78'">
+            sum(p78),
+        </if>
+        <if test="pi=='p79'">
+            sum(p79),
+        </if>
+        <if test="pi=='p80'">
+            sum(p80),
+        </if>
+        <if test="pi=='p81'">
+            sum(p81),
+        </if>
+        <if test="pi=='p82'">
+            sum(p82),
+        </if>
+        <if test="pi=='p83'">
+            sum(p83),
+        </if>
+        <if test="pi=='p84'">
+            sum(p84),
+        </if>
+        <if test="pi=='p85'">
+            sum(p85),
+        </if>
+        <if test="pi=='p86'">
+            sum(p86),
+        </if>
+        <if test="pi=='p87'">
+            sum(p87),
+        </if>
+        <if test="pi=='p88'">
+            sum(p88),
+        </if>
+        <if test="pi=='p89'">
+            sum(p89),
+        </if>
+        <if test="pi=='p90'">
+            sum(p90),
+        </if>
+        <if test="pi=='p91'">
+            sum(p91),
+        </if>
+        <if test="pi=='p92'">
+            sum(p92),
+        </if>
+        <if test="pi=='p93'">
+            sum(p93),
+        </if>
+        <if test="pi=='p94'">
+            sum(p94),
+        </if>
+        <if test="pi=='p95'">
+            sum(p95),
+        </if>
+        <if test="pi=='p96'">
+            sum(p96)
+        </if>
+        </trim>
+        FROM dr_cons_curve_today
+        where
+        CONS_ID in (
+        <foreach collection="consIds" item="consid" separator=",">
+            #{consid}
+        </foreach>
+        )
+        and data_date=#{date}
+    </select>
+
+
+
+
+</mapper>

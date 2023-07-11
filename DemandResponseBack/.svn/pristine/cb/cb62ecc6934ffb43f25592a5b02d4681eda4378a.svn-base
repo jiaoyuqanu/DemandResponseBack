@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.BaselineAndMeasurementMapper">
+
+    <select id="getEventId" resultType="Long">
+        select EVENT_ID from dr_event
+        where  REGULATE_DATE = #{time}
+        and event_status="03"
+    </select>
+
+
+    <select id="getEventId2" resultType="Long">
+        select EVENT_ID from dr_event
+        where  REGULATE_DATE = #{time}
+        and (event_status="03" or event_status="04")
+    </select>
+
+    <!--    <select id="getEventId" resultType="Long">-->
+    <!--        select EVENT_ID from dr_event-->
+    <!--        where  REGULATE_DATE = "2022-7-4"-->
+    <!--    </select>-->
+
+
+    <!--    <select id="getEventTime" resultType="com.xqxy.dr.modular.newloadmanagement.vo.DrEventTime">-->
+    <!--        select EVENT_ID,START_TIME,END_TIME from dr_event-->
+    <!--        where  REGULATE_DATE = "2022-7-4" and START_TIME &lt;= "11:30" and  END_TIME &gt;= "11:30"-->
+    <!--    </select>-->
+
+
+    <select id="getEventTime" resultType="com.xqxy.dr.modular.newloadmanagement.vo.DrEventTime">
+        select EVENT_ID,START_TIME,END_TIME from dr_event
+        where  REGULATE_DATE = #{time}
+        and EVENT_ID in(
+        <foreach collection="event_id" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </select>
+
+
+    <select id="getEventTime2" resultType="com.xqxy.dr.modular.newloadmanagement.vo.DrEventTime">
+        select EVENT_ID,START_TIME,END_TIME from dr_event
+        where  REGULATE_DATE = #{time}
+        and EVENT_ID =#{event_id}
+    </select>
+
+
+    <select id="getBaseLine" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96,
+        org_no,event_id
+        from dr_event_power_base
+        where event_id in (
+        <foreach collection="event_id" item="id" separator=",">
+            #{id}
+        </foreach>
+        ) and org_no = #{orgNo}
+    </select>
+
+
+    <select id="getRealTimeData" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96,
+        org_no,event_id
+        from dr_event_power
+        where event_id in (
+        <foreach collection="event_id" item="id" separator=",">
+            #{id}
+        </foreach>
+        ) and org_no = #{orgNo}
+    </select>
+
+
+
+    <select id="getRealTimeDataByEvent" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96,
+        org_no,event_id
+        from dr_event_power
+        where event_id = #{event_id} and org_no = #{orgNo}
+    </select>
+
+
+
+
+
+    <select id="getFrozenData" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96,
+        org_no,event_id
+        from dr_event_power
+        where event_id in (
+        <foreach collection="event_id" item="id" separator=",">
+            #{id}
+        </foreach>
+        ) and org_no = #{orgNo}
+    </select>
+
+
+    <select id="getPlanIdAndBaseLineID" resultType="com.xqxy.dr.modular.evaluation.entity.DrPlan">
+        select plan_id,BASELIN_ID,REGULATE_ID from dr_plan where REGULATE_ID in(
+        <foreach collection="event_id" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </select>
+
+    <select id="getPlanIdAndBaseLineIDByEvent" resultType="com.xqxy.dr.modular.evaluation.entity.DrPlan">
+        select plan_id,BASELIN_ID from dr_plan where REGULATE_ID =#{event_id}
+    </select>
+
+
+
+
+    <select id="getConsId" resultType="LONG">
+        select distinct cons_id from dr_plan_cons where plan_id = #{planId}
+        and IMPLEMENT="Y"
+    </select>
+
+
+
+
+    <select id="getBaseLine96Point" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        SELECT
+        IFNULL(sum(p1)/10000,null) as p1,IFNULL(sum(p2)/10000,null) as p2,IFNULL(sum(p3)/10000,null) as p3,
+        IFNULL(sum(p4)/10000,null) as p4,IFNULL(sum(p5)/10000,null) as p5,IFNULL(sum(p6)/10000,null) as p6,
+        IFNULL(sum(p7)/10000,null) as p7,IFNULL(sum(p8)/10000,null) as p8,IFNULL(sum(p9)/10000,null) as p9,
+        IFNULL(sum(p10)/10000,null) as p10,IFNULL(sum(p11)/10000,null) as p11,IFNULL(sum(p12)/10000,null) as p12,
+        IFNULL(sum(p13)/10000,null) as p13,IFNULL(sum(p14)/10000,null) as p14, IFNULL(sum(p15)/10000,null) as p15,
+        IFNULL(sum(p16)/10000,null) as p16,IFNULL(sum(p17)/10000,null) as p17,IFNULL(sum(p18)/10000,null) as p18,
+        IFNULL(sum(p19)/10000,null) as p19,IFNULL(sum(p20)/10000,null) as p20,IFNULL(sum(p21)/10000,null) as p21,
+        IFNULL(sum(p22)/10000,null) as p22,IFNULL(sum(p23)/10000,null) as p23,IFNULL(sum(p24)/10000,null) as p24,
+        IFNULL(sum(p25)/10000,null) as p25,IFNULL(sum(p26)/10000,null) as p26,IFNULL(sum(p27)/10000,null) as p27,
+        IFNULL(sum(p28)/10000,null) as p28,IFNULL(sum(p29)/10000,null) as p29,IFNULL(sum(p30)/10000,null) as p30,
+        IFNULL(sum(p31)/10000,null) as p31,IFNULL(sum(p32)/10000,null) as p32,IFNULL(sum(p33)/10000,null) as p33,
+        IFNULL(sum(p34)/10000,null) as p34,IFNULL(sum(p35)/10000,null) as p35,IFNULL(sum(p36)/10000,null) as p36,
+        IFNULL(sum(p37)/10000,null) as p37,IFNULL(sum(p38)/10000,null) as p38,IFNULL(sum(p39)/10000,null) as p39,
+        IFNULL(sum(p40)/10000,null) as p40,IFNULL(sum(p41)/10000,null) as p41,IFNULL(sum(p42)/10000,null) as p42,
+        IFNULL(sum(p43)/10000,null) as p43,IFNULL(sum(p44)/10000,null) as p44,IFNULL(sum(p45)/10000,null) as p45,
+        IFNULL(sum(p46)/10000,null) as p46,IFNULL(sum(p47)/10000,null) as p47,IFNULL(sum(p48)/10000,null) as p48,
+        IFNULL(sum(p49)/10000,null) as p49,IFNULL(sum(p50)/10000,null) as p50,IFNULL(sum(p51)/10000,null) as p51,
+        IFNULL(sum(p52)/10000,null) as p52,IFNULL(sum(p53)/10000,null) as p53,IFNULL(sum(p54)/10000,null) as p54,
+        IFNULL(sum(p55)/10000,null) as p55,IFNULL(sum(p56)/10000,null) as p56,IFNULL(sum(p57)/10000,null) as p57,
+        IFNULL(sum(p58)/10000,null) as p58,IFNULL(sum(p59)/10000,null) as p59,IFNULL(sum(p60)/10000,null) as p60,
+        IFNULL(sum(p61)/10000,null) as p61,IFNULL(sum(p62)/10000,null) as p62,IFNULL(sum(p63)/10000,null) as p63,
+        IFNULL(sum(p64)/10000,null) as p64,IFNULL(sum(p65)/10000,null) as p65,IFNULL(sum(p66)/10000,null) as p66,
+        IFNULL(sum(p67)/10000,null) as p67,IFNULL(sum(p68)/10000,null) as p68,IFNULL(sum(p69)/10000,null) as p69,
+        IFNULL(sum(p70)/10000,null) as p70,IFNULL(sum(p71)/10000,null) as p71,IFNULL(sum(p72)/10000,null) as p72,
+        IFNULL(sum(p73)/10000,null) as p73,IFNULL(sum(p74)/10000,null) as p74,IFNULL(sum(p75)/10000,null) as p75,
+        IFNULL(sum(p76)/10000,null) as p76,IFNULL(sum(p77)/10000,null) as p77,IFNULL(sum(p78)/10000,null) as p78,
+        IFNULL(sum(p79)/10000,null) as p79,IFNULL(sum(p80)/10000,null) as p80,IFNULL(sum(p81)/10000,null) as p81,
+        IFNULL(sum(p82)/10000,null) as p82,IFNULL(sum(p83)/10000,null) as p83,IFNULL(sum(p84)/10000,null) as p84,
+        IFNULL(sum(p85)/10000,null) as p85,IFNULL(sum(p86)/10000,null) as p86,IFNULL(sum(p87)/10000,null) as p87,
+        IFNULL(sum(p88)/10000,null) as p88,IFNULL(sum(p89)/10000,null) as p89,IFNULL(sum(p90)/10000,null) as p90,
+        IFNULL(sum(p91)/10000,null) as p91,IFNULL(sum(p92)/10000,null) as p92,IFNULL(sum(p93)/10000,null) as p93,
+        IFNULL(sum(p94)/10000,null) as p94,IFNULL(sum(p95)/10000,null) as p95,IFNULL(sum(p96)/10000,null) as p96
+        from dr_cons_baseline_all
+        where cons_id in (
+        <foreach collection="cons_id" item="id" separator=",">
+           #{id}
+        </foreach>
+        )
+        and baseline_lib_id = #{baseId}
+    </select>
+
+
+    <!--    <select id="getRealTime" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo ">-->
+    <!--        SELECT sum(p1) as p1,sum(p2) as p2,sum(p3) as p3,sum(p4) as p4,sum(p5) as p5,sum(p6) as p6,sum(p7) as p7,-->
+    <!--        sum(p8) as p8,sum(p9) as p9,sum(p10) as p10-->
+    <!--        ,sum(p11) as p11,sum(p12) as p12,sum(p13) as p13,sum(p14) as p14,sum(p15) as p15,sum(p16) as p16,sum(p17) as-->
+    <!--        p17,-->
+    <!--        sum(p18) as p18,sum(p19) as p19,sum(p20) as p20-->
+    <!--        ,sum(p21) as p21,sum(p22) as p22,sum(p23) as p23,sum(p24) as p24,sum(p25) as p25,sum(p26) as p26,-->
+    <!--        sum(p27) as p27,sum(p28) as p28,sum(p29) as p29,sum(p30) as p30-->
+    <!--        ,sum(p31) as p31,sum(p32) as p32,sum(p33) as p33,sum(p34) as p34,sum(p35) as p35,sum(p36) as p36,-->
+    <!--        sum(p37) as p37,sum(p38) as p38,sum(p39) as p39,sum(p40) as p40-->
+    <!--        ,sum(p41) as p41,sum(p42) as p42,sum(p43) as p43,sum(p44) as p44,sum(p45) as p45,sum(p46) as p46,sum(p47) as p47-->
+    <!--        ,sum(p48) as p48, sum(p49) as p49,sum(p50) as p50-->
+    <!--        ,sum(p51) as p51,sum(p52) as p52,sum(p53) as p53,sum(p54) as p54,sum(p55) as p55,sum(p56) as p56,-->
+    <!--        sum(p57) as p57,sum(p58) as p58,sum(p59) as p59,sum(p60) as p60-->
+    <!--        ,sum(p61) as p61,sum(p62) as p62,sum(p63) as p63,sum(p64) as p64,sum(p65) as p65,sum(p66) as p66,-->
+    <!--        sum(p67) as p67,sum(p68) as p68,sum(p69) as p69,sum(p70) as p70-->
+    <!--        ,sum(p71) as p71,sum(p72) as p72,sum(p73) as p73,sum(p74) as p74,sum(p75) as p75,sum(p76) as p76,-->
+    <!--        sum(p77) as p77,sum(p78) as p78,sum(p79) as p79,sum(p80) as p80-->
+    <!--        ,sum(p81) as p81,sum(p82) as p82,sum(p83) as p83,sum(p84) as p84,sum(p85) as p85,sum(p86) as p86,-->
+    <!--        sum(p87) as p87,sum(p88) as p88,sum(p89) as p89,sum(p90) as p90-->
+    <!--        ,sum(p91) as p91,sum(p92) as p92,sum(p93) as p93,sum(p94) as p94,sum(p95) as p95,sum(p96) as p96-->
+    <!--        from dr_cons_curve_today-->
+    <!--        where cons_id in-->
+    <!--        (-->
+    <!--        <foreach collection="cons_id" item="id" separator=",">-->
+    <!--            #{id}-->
+    <!--        </foreach>-->
+    <!--        )-->
+    <!--        and data_date=#{time}-->
+    <!--    </select>-->
+
+
+    <!--    <select id="getFrozenData" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo ">-->
+    <!--        SELECT sum(p1) as p1,sum(p2) as p2,sum(p3) as p3,sum(p4) as p4,sum(p5) as p5,sum(p6) as p6,sum(p7) as p7,-->
+    <!--        sum(p8) as p8,sum(p9) as p9,sum(p10) as p10-->
+    <!--        ,sum(p11) as p11,sum(p12) as p12,sum(p13) as p13,sum(p14) as p14,sum(p15) as p15,sum(p16) as p16,sum(p17) as-->
+    <!--        p17,-->
+    <!--        sum(p18) as p18,sum(p19) as p19,sum(p20) as p20-->
+    <!--        ,sum(p21) as p21,sum(p22) as p22,sum(p23) as p23,sum(p24) as p24,sum(p25) as p25,sum(p26) as p26,-->
+    <!--        sum(p27) as p27,sum(p28) as p28,sum(p29) as p29,sum(p30) as p30-->
+    <!--        ,sum(p31) as p31,sum(p32) as p32,sum(p33) as p33,sum(p34) as p34,sum(p35) as p35,sum(p36) as p36,-->
+    <!--        sum(p37) as p37,sum(p38) as p38,sum(p39) as p39,sum(p40) as p40-->
+    <!--        ,sum(p41) as p41,sum(p42) as p42,sum(p43) as p43,sum(p44) as p44,sum(p45) as p45,sum(p46) as p46,sum(p47) as p47-->
+    <!--        ,sum(p48) as p48, sum(p49) as p49,sum(p50) as p50-->
+    <!--        ,sum(p51) as p51,sum(p52) as p52,sum(p53) as p53,sum(p54) as p54,sum(p55) as p55,sum(p56) as p56,-->
+    <!--        sum(p57) as p57,sum(p58) as p58,sum(p59) as p59,sum(p60) as p60-->
+    <!--        ,sum(p61) as p61,sum(p62) as p62,sum(p63) as p63,sum(p64) as p64,sum(p65) as p65,sum(p66) as p66,-->
+    <!--        sum(p67) as p67,sum(p68) as p68,sum(p69) as p69,sum(p70) as p70-->
+    <!--        ,sum(p71) as p71,sum(p72) as p72,sum(p73) as p73,sum(p74) as p74,sum(p75) as p75,sum(p76) as p76,-->
+    <!--        sum(p77) as p77,sum(p78) as p78,sum(p79) as p79,sum(p80) as p80-->
+    <!--        ,sum(p81) as p81,sum(p82) as p82,sum(p83) as p83,sum(p84) as p84,sum(p85) as p85,sum(p86) as p86,-->
+    <!--        sum(p87) as p87,sum(p88) as p88,sum(p89) as p89,sum(p90) as p90-->
+    <!--        ,sum(p91) as p91,sum(p92) as p92,sum(p93) as p93,sum(p94) as p94,sum(p95) as p95,sum(p96) as p96-->
+    <!--        from dr_cons_curve-->
+    <!--        where cons_id in-->
+    <!--        (-->
+    <!--        <foreach collection="cons_id" item="id" separator=",">-->
+    <!--            #{id}-->
+    <!--        </foreach>-->
+    <!--        )-->
+    <!--        and data_date=#{time}-->
+    <!--    </select>-->
+
+
+    <select id="getTimeBaseLine" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+        select * from dr_event_power_base where event_id = #{event_id}
+        and org_no="34101"
+    </select>
+
+
+</mapper>

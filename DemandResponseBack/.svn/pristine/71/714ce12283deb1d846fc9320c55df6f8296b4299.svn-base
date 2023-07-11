@@ -1,0 +1,272 @@
+package com.xqxy.dr.modular.event.mapper;
+
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.dr.modular.baseline.entity.CityTargetSend;
+import com.xqxy.dr.modular.event.VO.PlanConsVO;
+import com.xqxy.dr.modular.event.entity.*;
+import com.xqxy.dr.modular.event.param.*;
+import com.xqxy.dr.modular.event.result.EventConsOrCustResult;
+import com.xqxy.dr.modular.event.result.EventUserConsPlanListResult;
+import com.xqxy.dr.modular.event.result.ExecutePlanTotal;
+import com.xqxy.executor.entity.ScheduleOfCustomers;
+import org.apache.ibatis.annotations.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * <p>
+ * 方案参与用户 Mapper 接口
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+public interface PlanConsMapper extends BaseMapper<PlanCons> {
+
+    /**
+     * 查询基线为空的方案参与用户
+     *
+     * @param planId
+     * @return
+     */
+    List<PlanCons> listWithEmptyBaseline(@Param("planId") Long planId);
+
+    /**
+     * 基线容量小于某个容量的方案参与用户
+     *
+     * @param planId
+     * @param avgBaselineCap
+     * @return
+     */
+    List<PlanCons> listWithCapLessThan(@Param("planId") Long planId, @Param("avgBaselineCap") BigDecimal avgBaselineCap);
+
+    /**
+     * 平均基线负荷小于可响应容量列表
+     *
+     * @param planId
+     * @return
+     */
+    List<PlanCons> listLessThanDemandCap(@Param("planId") Long planId);
+
+    /**
+     * 通过省码查看方案参与用户的列表
+     *
+     * @param planId
+     * @param regulateRange
+     * @return
+     */
+    List<PlanCons> listByProvinceCode(@Param("planId") Long planId, @Param("regulateRange") String regulateRange);
+
+    /**
+     * 通过市码查看方案参与用户的列表
+     *
+     * @param planId
+     * @param regulateRange
+     * @return
+     */
+    List<PlanCons> listByCityCode(@Param("planId") Long planId, @Param("regulateRange") String regulateRange);
+
+    /**
+     * 通过区码查看方案参与用户的列表
+     *
+     * @param planId
+     * @param regulateRange
+     * @return
+     */
+    List<PlanCons> listByCountyCode(@Param("planId") Long planId, @Param("regulateRange") String regulateRange);
+
+    /**
+     * 通过供电单位编码查看方案参与用户
+     *
+     * @param planId
+     * @param regulateRange
+     * @return
+     */
+    List<PlanCons> listByOrgNo(@Param("planId") Long planId, @Param("regulateRange") String regulateRange);
+
+    /**
+     * @description: 查询某个事件的反馈容量之和
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/26 20:01
+     */
+    BigDecimal getSumCapByEventId(@Param("planId") Long planId, @Param("code") String code);
+
+    /**
+     * 执行监测-用户监测-分页
+     *
+     * @param defaultPage
+     * @param ew
+     * @return
+     */
+    Page<PlanCons> pageConsMonitor(Page<Object> defaultPage, @Param(Constants.WRAPPER) Wrapper ew);
+
+    List<PlanCons> listByGovCode(@Param("planId") Long planId, @Param("provinceList") List<String> provinceList, @Param("cityList") List<String> cityList, @Param("countyList") List<String> countyList);
+
+    List<PlanCons> listByOrgNoList(@Param("planId") Long planId, @Param("orgNoList") List<String> regulateRangeList);
+
+    List<PlanCons> listByConsIds(@Param(Constants.WRAPPER) QueryWrapper<Object> queryWrapper);
+
+    Page<PlanCons> pageByDeleteRule(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteRuleParam deleteRuleParam);
+
+
+    Page<PlanCons> pageConfirmed(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteRuleParam deleteRuleParam);
+
+    Page<PlanCons> consDeleteList(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteConsParam deleteRuleParam);
+
+    List<PlanCons> consDeleteIdList(@Param("deleteRuleParam") DeleteConsParam deleteRuleParam);
+
+    Page<PlanCust> custDeleteList(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteCustParam deleteRuleParam);
+
+    Page<PlanCons> getConsExecuteList(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteConsParam deleteRuleParam);
+
+    List<PlanCons> exportConsExecuteList(@Param("deleteRuleParam") DeleteConsParam deleteRuleParam);
+
+    Page<PlanCust> getCustExecuteList(Page<Object> defaultPage, @Param("deleteRuleParam") DeleteCustParam deleteRuleParam);
+
+    List<PlanCust> exportCustExecuteList(@Param("deleteRuleParam") DeleteCustParam deleteRuleParam);
+
+    Page<ConsMessage> getConsMessageList(Page<Object> defaultPage, @Param("deleteRuleParam") ConsMessageParam deleteRuleParam);
+
+    Page<CustMessage> getCustMessageList(Page<Object> defaultPage, @Param("deleteRuleParam") CustMessageParam deleteRuleParam);
+
+    ConsExecuteStatistic getExecuteStatistic(PlanParam planParam);
+
+    /**
+     * 查询参与执行客户信息
+     *
+     * @param defaultPage
+     * @param planConsParam
+     * @return
+     */
+    Page<EventConsOrCustResult> queryExecuteCust(Page<Object> defaultPage, @Param("planConsParam") ExecutePlanConsParam planConsParam);
+
+    /**
+     * 查询参与执行用户信息
+     *
+     * @param defaultPage
+     * @param planConsParam
+     * @return
+     */
+    Page<EventConsOrCustResult> queryExecuteCons(Page<Object> defaultPage, @Param("planConsParam") ExecutePlanConsParam planConsParam);
+
+    /**
+     * 查询执行方案汇总数据
+     *
+     * @param planConsParam
+     * @return
+     */
+    ExecutePlanTotal queryExecutePlanTotal(ExecutePlanConsParam planConsParam);
+
+    /**
+     * 获取所有邀约用户信息，筛选执行用户
+     *
+     * @param planConsParam
+     * @return
+     */
+    List<EventConsOrCustResult> getExecuteAllCons(ExecutePlanConsParam planConsParam);
+
+    /**
+     * 获取被执行的客户
+     *
+     * @param planConsParam
+     * @return
+     */
+    List<EventConsOrCustResult> getExecuteAllCust(ExecutePlanConsParam planConsParam);
+
+    /**
+     * 将该计划下所有客户执行状态改为N
+     *
+     * @param planConsParam
+     */
+    void updatePlanCustByPlan(ExecutePlanConsParam planConsParam);
+
+
+    /**
+     * 查询未被剔除的方案用户
+     *
+     * @return
+     */
+    List<PlanCons> getPlanNoDe(@Param("eventIds") List<Long> eventIds);
+
+    Page<EventUserConsPlanListResult> getEventConsList(Page page, @Param("eventId") String eventId, @Param("consIds") Set<String> consIds);
+
+    // Page<PlanCons> notDeletedPageVo(Page<Object> defaultPage, @Param(Constants.WRAPPER) Wrapper queryWrapper);
+
+    /**
+     * 我的响应新接口
+     */
+    Page<Event> getMyResponsePage(Page<?> page, @Param("consInvitationParam") ConsInvitationParam consInvitationParam);
+
+    List<PlanCons> getCustPlan(long planId);
+
+    int getPlanConsCount(DeleteConsParam deleteConsParam);
+
+    List<PlanCust> getCustCount(@Param("map") Map<String, Object> map);
+
+    List<PlanCust> getDeletedCount(@Param("map") Map<String, Object> map);
+
+
+    /**
+     * 查询实际曲线 关联条件 客户id 事件id
+     *
+     * @param custExecuteParam
+     * @return
+     */
+    List<PlanConsVO> queryConsByEventIdAndCustId(CustExecuteParam custExecuteParam);
+
+    Page<PlanCust> pageCustMonitor(Page<Object> defaultPage, @Param(Constants.WRAPPER) Wrapper ew);
+
+    /**
+     * 本年度需求响应累计执行户次（户次）
+     *
+     * @param orgNoList 供电单位
+     * @return 数量
+     */
+    int annualExecutionAccount(@Param("orgNoList") List<String> orgNoList);
+
+    List<String> queryConsByPlanId(Long planId);
+
+    List<PlanConsVo> queryConsInfoByPlanId(Long planId);
+
+    List<PlanConsVo> getPlanConsInfoByPlanId(@Param("planId") Long planId, @Param("consIds") List<String> consId, @Param("baselineId") Long baselineId);
+
+    void updateSendStatus(@Param("planList") List<PlanConsVo> planCons);
+
+    List<CityTargetSend> getCityTarget(Long regulateId);
+
+    Integer getBaselineSendCount(Long eventId);
+
+    BigDecimal getSumDemandCapByPlanId(@Param("planId") Long planId,@Param("orgs") List<String> orgs);
+
+    /**
+     * 需求响应计划客户明细表--------->日前邀约削峰
+     *
+     * @param date
+     * @return
+     */
+    List<ScheduleOfCustomers> daysAgoScheduleOfCustomers(String date, String eventId);
+
+    /**
+     * 需求响应计划客户明细表----->日内邀约削峰
+     *
+     * @return
+     */
+    List<ScheduleOfCustomers> intradayScheduleOfCustomers(String eventId);
+
+    /**
+     * 需求响应计划客户明细表----->实时邀约削峰
+     *
+     * @return
+     */
+    List<ScheduleOfCustomers> realTimeScheduleOfCustomers(String eventId);
+
+}

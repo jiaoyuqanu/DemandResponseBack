@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.UserListMapper">
+    <!--    查询未到位用户列表，返回每个用户最新的监测记录-->
+    <select id="userListInfo" resultType="com.xqxy.dr.modular.newloadmanagement.vo.UserListVo">
+        SELECT
+        a.*
+        FROM
+        (
+        SELECT dee.baseline_cap baseLoad,
+        dee.execute_rate completeRate,
+        dc.CONS_NAME consName,
+        dc.ID consNo,
+        dc.first_contact_info contactInfo,
+        dc.first_contact_name enterpriseUser,
+        dee.reply_cap indexValue,
+        dee.real_time_cap realLoad,
+        dee.execute_cap regulationLoad
+        FROM dr_event_execute dee
+        LEFT JOIN dr_cons dc ON dee.cons_id = dc.ID
+        LEFT JOIN dr_event de ON dee.event_id = de.EVENT_ID
+        <where>
+            <if test="data != null and data.size > 0 ">
+                and dc.ORG_NO in
+                <foreach collection="data" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="drEventList != null and drEventList.size > 0">
+                and dee.event_id in
+                <foreach collection="drEventList" item="item1" separator="," open="(" close=")">
+                    #{item1.eventId}
+                </foreach>
+            </if>
+            and dee.is_qualified='N'
+        </where>
+        order by dee.execute_time DESC
+        limit 10000000
+        ) a
+        GROUP BY a.consNo
+    </select>
+    <!--    查询当前时间在执行的时间段内的事件id列表-->
+    <select id="eventList" resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drevent">
+        select event_id
+        from dr_event
+        where REGULATE_DATE = #{date}
+          and #{time} between START_TIME and END_TIME
+          and event_status = '03'
+    </select>
+    <select id="eventLoad" resultType="com.xqxy.dr.modular.newloadmanagement.vo.EventLoadVo">
+        SELECT sum(dpc.DEMAND_CAP) invitedLoad,
+        count(*) invitedCons,
+        -- 应邀负荷 / 签约容量
+        sum(dpc.DEMAND_CAP) / sum(dpc.CONTRACT_CAP) invitedRate,
+        concat( de.START_TIME, '-', de.END_TIME ) executeTime
+        FROM dr_plan_cons dpc
+        JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        JOIN dr_plan dp ON dp.PLAN_ID = dpc.PLAN_ID
+        JOIN dr_event de ON de.EVENT_ID = dp.REGULATE_ID
+        <where>
+            <if test="data != null and data.size > 0 ">
+                and dc.ORG_NO in
+                <foreach collection="data" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and dp.REGULATE_ID =#{eventId}
+            and dpc.IMPLEMENT = 'Y'
+        </where>
+    </select>
+
+    <select id="eventLoadAll" resultType="com.xqxy.dr.modular.newloadmanagement.vo.EventLoadVo">
+        SELECT
+        count(*) invitationCons
+        FROM dr_plan_cons dpc
+        JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        JOIN dr_plan dp ON dp.PLAN_ID = dpc.PLAN_ID
+        JOIN dr_event de ON de.EVENT_ID = dp.REGULATE_ID
+        <where>
+            <if test="data != null and data.size > 0 ">
+                and dc.ORG_NO in
+                <foreach collection="data" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and dp.REGULATE_ID =#{eventId}
+        </where>
+    </select>
+    <select id="realTimeLoadAndExecutionRate" resultType="com.xqxy.dr.modular.newloadmanagement.vo.EventLoadVo">
+        SELECT a.*
+        FROM (SELECT execute_rate executeRate, org_id
+              FROM dr_org_execute
+              WHERE event_id = #{eventId}
+                AND org_id = #{orgId}
+              ORDER BY execute_time DESC LIMIT 1,10000000) a
+        GROUP BY a.org_id;
+    </select>
+    <select id="realTimeCapAndExecuteTime" resultType="com.xqxy.dr.modular.newloadmanagement.vo.ParamsVo">
+        SELECT a.*
+        FROM (SELECT real_time_cap realTimeCap, execute_time executeTime, org_id
+              FROM dr_org_execute
+              WHERE event_id = #{eventId}
+                AND org_id = #{orgId}
+              ORDER BY execute_time DESC LIMIT 1,10000000) a
+        GROUP BY a.org_id;
+    </select>
+    <!--    <select id="realTimeLoadAndExecutionRate1" resultType="com.xqxy.dr.modular.newloadmanagement.vo.EventLoadVo">-->
+    <!--        SELECT a.*-->
+    <!--        FROM (SELECT execute_rate executeRate, org_id-->
+    <!--              FROM dr_org_execute-->
+    <!--              WHERE event_id = #{eventId}-->
+    <!--                AND org_id = #{orgId}-->
+    <!--              ORDER BY execute_time DESC LIMIT 17,10000000) a-->
+    <!--        GROUP BY a.org_id;-->
+    <!--    </select>-->
+    <!--    <select id="realTimeCapAndExecuteTime1" resultType="com.xqxy.dr.modular.newloadmanagement.vo.ParamsVo">-->
+    <!--        SELECT a.*-->
+    <!--        FROM (SELECT real_time_cap realTimeCap, execute_time executeTime, org_id-->
+    <!--              FROM dr_org_execute-->
+    <!--              WHERE event_id = #{eventId}-->
+    <!--                AND org_id = #{orgId}-->
+    <!--              ORDER BY execute_time DESC LIMIT 17,10000000) a-->
+    <!--        GROUP BY a.org_id;-->
+    <!--    </select>-->
+</mapper>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.powerplant.mapper.DaMarketMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.powerplant.entity.DaMarket">
+        <id column="id" property="id" />
+        <result column="num" property="num" />
+        <result column="user_type" property="userType" />
+        <result column="name" property="name" />
+        <result column="join_type" property="joinType" />
+        <result column="fuhe" property="fuhe" />
+        <result column="type" property="type" />
+        <result column="join_way" property="joinWay" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, num, user_type, name, join_type, fuhe, type, join_way, start_date, end_date, status, create_time, create_user, update_time, update_user
+    </sql>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.powerplant.mapper.DrDaElectricBidNoticeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.powerplant.entity.DrDaElectricBidNotice">
+        <id column="id" property="id" />
+        <result column="electric_type_code" property="electricTypeCode" />
+        <result column="electric_type_name" property="electricTypeName" />
+        <result column="electric_capacity" property="electricCapacity" />
+        <result column="date" property="date" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="release_time" property="releaseTime" />
+        <result column="declare_time" property="declareTime" />
+        <result column="effect_date" property="effectDate" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, electric_type_code, electric_type_name, electric_capacity, date, start_time, end_time, release_time, declare_time, effect_date, update_user, update_time, create_user, create_time
+    </sql>
+
+</mapper>

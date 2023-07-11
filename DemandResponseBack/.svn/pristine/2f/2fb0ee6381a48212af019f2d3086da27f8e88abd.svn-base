@@ -1,0 +1,16 @@
+package com.xqxy.dr.modular.statistics.param;
+
+import com.xqxy.core.pojo.base.param.BaseParam;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@ApiModel(description = "统计 参数")
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class StatisticalParam extends BaseParam {
+
+    private int year;
+
+    private Long projectId;
+}

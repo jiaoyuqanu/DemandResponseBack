@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.DrOrgGoalMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.DrOrgGoal">
+        <id column="id" property="id" />
+        <result column="project_id" property="projectId" />
+        <result column="project_detail_id" property="projectDetailId" />
+        <result column="org_id" property="orgId" />
+        <result column="org_name" property="orgName" />
+        <result column="goal" property="goal" />
+        <result column="year" property="year" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, project_id, project_detail_id, org_id, org_name, goal, year
+    </sql>
+    <select id="groupProjectIdAndOrgNo" resultType="com.xqxy.dr.modular.project.entity.DrOrgGoal">
+        SELECT
+            goal.org_id orgId,
+            SUM(goal.goal) goal,
+            goal.project_id projectId
+        FROM
+            dr_org_goal goal
+        LEFT JOIN dr_project_detail projectDetail ON projectDetail.DETAIL_ID = goal.project_detail_id
+        where goal.project_detail_id = #{projectDetailId}
+        GROUP BY
+            goal.project_id,
+            goal.org_id
+    </select>
+
+
+</mapper>

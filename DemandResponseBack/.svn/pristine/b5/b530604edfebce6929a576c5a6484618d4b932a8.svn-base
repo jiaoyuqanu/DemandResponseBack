@@ -1,0 +1,737 @@
+package com.xqxy.dr.modular.strategy;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.thread.ExecutorBuilder;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.enums.CurrenUserInfoExceptionEnum;
+import com.xqxy.core.enums.YesOrNotEnum;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.baseline.entity.CustBaseLineDetail;
+import com.xqxy.dr.modular.baseline.mapper.BaseLineMapper;
+import com.xqxy.dr.modular.baseline.service.CustBaseLineDetailService;
+import com.xqxy.dr.modular.data.enums.CalculateStrategyEnum;
+import com.xqxy.dr.modular.dispatch.enums.DispatchException;
+import com.xqxy.dr.modular.event.entity.*;
+import com.xqxy.dr.modular.event.enums.*;
+import com.xqxy.dr.modular.event.mapper.PlanMapper;
+import com.xqxy.dr.modular.event.param.*;
+import com.xqxy.dr.modular.event.service.*;
+import com.xqxy.dr.modular.project.entity.ConsContractDetail;
+import com.xqxy.dr.modular.project.entity.ConsContractInfo;
+import com.xqxy.dr.modular.project.entity.CustContractInfo;
+import com.xqxy.dr.modular.project.enums.PlanExceptionEnum;
+import com.xqxy.dr.modular.project.service.ConsContractInfoService;
+import com.xqxy.dr.modular.project.service.CustContractInfoService;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.entity.Cust;
+import com.xqxy.sys.modular.cust.mapper.BlackNameMapper;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import com.xqxy.sys.modular.cust.service.CustService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
+
+
+//湖南策略（2021-06-28）
+@Component
+public class HunanFinalCalculateStrategy implements CalculateStrategy {
+
+    private static final Log log = Log.get();
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private PlanService planService;
+
+    @Resource
+    private PlanConsService planConsService;
+
+    @Resource
+    private PlanCustService planCustService;
+
+    @Resource
+    private PlanBaselineTaskService planBaselineTaskService;
+
+    @Resource
+    private ConsInvitationService consInvitationService;
+
+    @Resource
+    private CustInvitationService custInvitationService;
+
+    @Resource
+    private ConsContractInfoService consContractInfoService;
+
+    @Resource
+    private CustContractInfoService custContractInfoService;
+
+    @Resource
+    private BaseLineMapper baseLineMapper;
+
+    @Resource
+    private CustService custService;
+
+    @Resource
+    private ConsService consService;
+
+    @Resource
+    private CustBaseLineDetailService custBaseLineDetailService;
+
+    @Resource
+    private BlackNameMapper blackNameMapper;
+
+    @Resource
+    private PlanMapper planMapper;
+
+    @Value("${executor.corePoolSize}")
+    private int corePoolSize;
+
+    @Value("${publishTimeTopic}")
+    private String publishTimeTopic;
+
+    @Value("${executor.maxPoolSize}")
+    private int maxPoolSize;
+
+    @Value("${executor.workQueue}")
+    private int workQueue;
+
+    @Value("${spring.datasource.mysql.username}")
+    private String userName;
+
+    @Value("${spring.datasource.mysql.jdbc-url}")
+    private String dataurl;
+
+    @Value("${spring.datasource.mysql.password}")
+    private String datapassword;
+
+    @Value("${spring.datasource.mysql.driver-class-name}")
+    private String driver;
+
+    private final DateTimeFormatter simpleDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private final DateTimeFormatter simpleDateFormat2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    //策略类型
+    public String strategyType() {
+        return CalculateStrategyEnum.HUNAN_STRATEGY.getCode();
+    }
+
+    @Override
+    public void createPlan(PlanParam planParam) {
+        CurrenUserInfo currentUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        Event event = eventService.getById(planParam.getEventId());
+        if(null!=event) {
+            //仅保存状态可生成方案,且事件未开始
+            if(!"01".equals(event.getEventStatus())) {
+                throw new ServiceException(EventExceptionEnum.EVENT_SAVE_STATE);
+            }
+            Integer endHour = 0;
+            Integer endMinute = 0;
+            if (null != event.getStartTime()) {
+                endHour = Integer.parseInt(event.getStartTime().substring(0, 2));
+                endMinute = Integer.parseInt(event.getStartTime().substring(3));
+            }
+            LocalDate localDate = LocalDate.now();
+            LocalTime startTime = LocalTime.of(endHour, endMinute);
+            if (event.getRegulateDate().compareTo(localDate) == 0) {
+                if (LocalTime.now().compareTo(startTime) > 0) {
+                    throw new ServiceException(EventExceptionEnum.EVENT_BEGIN);
+                }
+            } else if (event.getRegulateDate().compareTo(localDate) < 0) {
+                throw new ServiceException(EventExceptionEnum.EVENT_BEGIN);
+            }
+        } else {
+            throw new ServiceException(EventExceptionEnum.EVENT_NOT_EXIST);
+        }
+        Long baselineId = null;
+        if(null!=planParam && null!=planParam.getBaselineCapId()) {
+            baselineId = planParam.getBaselineCapId();
+        } else {
+            if (null != event.getBaselinId()) {
+                baselineId = Long.valueOf(event.getBaselinId());
+            }
+        }
+        // 判断是否基线计算结束，未结束不允许生成方案
+        Boolean calEnd = planBaselineTaskService.endOfCalculation(baselineId);
+        if(calEnd) throw new ServiceException(EventExceptionEnum.BASELINE_NOT_CAL);
+        // 删除旧的方案,同时删除方案参与用户信息
+        planService.removePlanByEventId(planParam.getEventId());
+
+        // 插入一条记录到需求响应方案表中
+        Plan plan = new Plan();
+        BeanUtil.copyProperties(event,plan);
+        plan.setRegulateId(planParam.getEventId());
+        plan.setState(PlanStateEnum.SAVE.getCode());
+        plan.setCheckStatus(PlanCheckStatusEnum.UNSUBMITTED.getCode());
+        plan.setParticiCondition(event.getParticiCondition());
+        plan.setIncentiveStandard(event.getIncentiveStandard());
+        plan.setValidityJudgment(event.getValidityJudgment());
+        plan.setBaseLineCal(event.getBaseLineCal());
+        if (ObjectUtil.isNull(currentUserInfo)) {
+            log.info("用户信息:"+currentUserInfo);
+            throw new ServiceException(CurrenUserInfoExceptionEnum.CURRENT_USER_INFO_NOT_EXIST);
+        }
+        plan.setCreateOrg(currentUserInfo.getOrgId());
+
+        // 将该事件所属项目的所有参与用户，保存到方案参与用户表中。代理用户则需要将对应集成商保存到方案参与客户表中
+        List<ConsContractInfo> consContractList = null;
+        if(RangeTypeEnum.ADMINISTRATIVE_REGION.getCode().equals(event.getRangeType())) {
+            // 事件执行范围为行政区域时候
+            consContractList = consContractInfoService.listConsTractInfo(event);
+        }
+        if(RangeTypeEnum.ELECTRICIC_REGION.getCode().equals(event.getRangeType())) {
+            // 事件执行范围为供电单位编码的时候
+            consContractList = consContractInfoService.listConsTractInfoByOrg(event);
+        }
+        // 保存用户到方案参与用户和方案参与客户表中
+        if(CollectionUtil.isEmpty(consContractList)) {
+            throw new ServiceException(PlanExceptionEnum.NO_SIGNED_USER);
+        } else {
+            List<String> blackNames = blackNameMapper.getBlackNameConsIds();
+            if(null==blackNames) {
+                blackNames = new ArrayList<>();
+            }
+            for (int i = 0; i < consContractList.size(); i++) {
+                String consId = consContractList.get(i).getConsId();
+                if (blackNames.contains(consId)) {
+                    consContractList.remove(i);
+                    i--;
+                }
+            }
+            if(consContractList.size()==0) {
+                throw  new ServiceException(DispatchException.BLACK_RESOVLE_FAIL);
+            }
+        }
+        ExecutorService executor = ExecutorBuilder.create()
+                .setCorePoolSize(corePoolSize)
+                .setMaxPoolSize(maxPoolSize)
+                .setWorkQueue(new LinkedBlockingQueue<>(workQueue))
+                .build();
+        executor.execute(this.createPlanDetail(baselineId,plan,consContractList,event));
+        executor.shutdown();
+    }
+
+    public Runnable createPlanDetail(Long baselineId,Plan plan,List<ConsContractInfo> consContractList,Event event) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                List<Cons> consList = consService.list();
+                List<Cust> custList = custService.list();
+                if(null==consList || consList.size()==0) {
+                    throw new ServiceException(PlanExceptionEnum.NO_SIGNED_USER);
+                }
+                if(null==custList || custList.size()==0) {
+                    throw new ServiceException(PlanExceptionEnum.NO_SIGNED_CUST);
+                }
+                // 保存方案或者更新
+                plan.setBaselinId(baselineId);
+                planService.saveOrUpdate(plan);
+                // 查询方案参与用户的基线
+                List<ConsBaseline> consBaselineList = baseLineMapper.getConsBaseLineByBaseLineId(baselineId);
+                PreparedStatement preparedStatement = null;
+                PreparedStatement preparedStatement2 = null;
+                Connection conn = null;
+                Connection conn2 = null;
+                String sql = "INSERT into dr_plan_cons (CONS_ID,CONTRACT_CAP,PLAN_ID,deleted,join_user_type,baseline_cap_id,CREATE_TIME,CUST_ID) VALUES(?,?,?,?,?,?,?,?)";
+                String sql2 = "INSERT INTO dr_plan_cust (CUST_ID,integrator,CONTRACT_CAP,PLAN_ID,deleted,CREATE_TIME,baseline_cap_id) VALUES(?,?,?,?,?,?,?)";
+                List<ConsBaseline> existConsCurveBases = null;
+                try {
+                    String url = dataurl;
+                    String user = userName;
+                    String password = datapassword;
+                    //2）、加载驱动，不需要显示注册驱动
+                    Class.forName(driver);
+                    //获取数据库连接
+                    conn = DriverManager.getConnection(url, user, password);
+                    conn.setAutoCommit(false);
+                    preparedStatement = conn.prepareStatement(sql);
+                    int i = 0;
+                    int j = 0;
+                    for (ConsContractInfo consContractInfo : consContractList) {
+                        String consId = consContractInfo.getConsId();
+                        ConsContractDetail consContractDetail = consContractInfo.getConsContractDetail();
+                        preparedStatement.setString(1, consContractInfo.getConsId());
+                        preparedStatement.setBigDecimal(2, consContractDetail.getContractCap());
+                        preparedStatement.setLong(3, plan.getPlanId());
+                        preparedStatement.setString(4, YesOrNotEnum.N.getCode());
+                        if (null != consContractInfo.getParticType()) {
+                            preparedStatement.setString(5, consContractInfo.getParticType());
+                        } else {
+                            preparedStatement.setNull(5, Types.VARCHAR);
+                        }
+                        if (CollectionUtil.isNotEmpty(consBaselineList)) {
+                            existConsCurveBases = consBaselineList.stream().filter(con ->
+                                    consContractInfo.getConsId().equals(con.getConsId())).collect(Collectors.toList());
+                            if (null != existConsCurveBases && existConsCurveBases.size() > 0) {
+                                if (null != existConsCurveBases.get(0).getBaselineId()) {
+                                    preparedStatement.setLong(6, existConsCurveBases.get(0).getBaselineId());
+                                } else {
+                                    preparedStatement.setNull(6, Types.BIGINT);
+                                }
+                            } else {
+                                preparedStatement.setNull(6, Types.VARCHAR);
+                            }
+                        } else {
+                            preparedStatement.setNull(6, Types.VARCHAR);
+                        }
+                        preparedStatement.setString(7, dateFormat.format(new Date()));
+                        if (null != consContractInfo.getCustId()) {
+                            preparedStatement.setLong(8, consContractInfo.getCustId());
+                        } else {
+                            preparedStatement.setNull(8, Types.BIGINT);
+                        }
+                        preparedStatement.addBatch();
+                        if ((i + 1) % 1000 == 0 || i == consContractList.size() - 1) {
+                            //每1000条提交一次
+                            preparedStatement.executeBatch();
+                            //清空记录
+                            preparedStatement.clearBatch();
+                        }
+                        i++;
+                    }
+                    //先保存用户方案信息，再统计用户方案信息，保存到客户方案
+                    if(null!=conn){
+                        conn.commit();
+                    }
+                    //List<String> consIdList = consContractList.stream().map(ConsContractInfo::getConsId).collect(Collectors.toList());
+                    //List<CustContractInfo> custContractList = custContractInfoService.listCustTractInfo(event);
+                    List<PlanCons> planCons = planConsService.getCustPlan(plan.getPlanId());
+                    //根据基线库查找客户基线
+                    /*LambdaQueryWrapper<CustBaseLineDetail> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+                    lambdaQueryWrapper.eq(CustBaseLineDetail::getBaselineLibId,baselineId);
+                    List<CustBaseLineDetail> custBaseLineDetailList = custBaseLineDetailService.list(lambdaQueryWrapper);*/
+                    // 保存用户到方案参与用户和方案参与客户表中
+                    if(CollectionUtil.isEmpty(planCons)) {
+                        return ;
+                    }
+                    conn2 = DriverManager.getConnection(url, user, password);
+                    conn2.setAutoCommit(false);
+                    preparedStatement2 = conn2.prepareStatement(sql2);
+                    for (PlanCons custContractInfo : planCons) {
+                        /*List<CustBaseLineDetail> custBaseLineDetails1 = custBaseLineDetailList.stream().filter(baseLineDetail -> baseLineDetail.getCustId().
+                                equals(custContractInfo.getCustId())).collect(Collectors.toList());*/
+                        Long baseCapId = null;
+                        /*if(null!=custBaseLineDetails1 && custBaseLineDetails1.size()>0) {
+                             baseCapId = custBaseLineDetails1.get(0).getBaselineId();
+                        }*/
+                        if(null!=custContractInfo) {
+                            if(null!=custContractInfo.getCustId()) {
+                                preparedStatement2.setLong(1, custContractInfo.getCustId());
+                            } else {
+                                preparedStatement2.setNull(1,Types.BIGINT);
+                            }
+                            if(null!=custContractInfo.getJoinUserType()) {
+                                if("1".equals(custContractInfo.getJoinUserType())) {
+                                    preparedStatement2.setString(2, "0");
+                                } else {
+                                    preparedStatement2.setString(2, "1");
+                                }
+                            } else {
+                                preparedStatement2.setNull(2,Types.VARCHAR);
+                            }
+                            preparedStatement2.setBigDecimal(3, custContractInfo.getContractCap());
+                        }
+                        preparedStatement2.setLong(4,plan.getPlanId());
+                        preparedStatement2.setString(5,YesOrNotEnum.N.getCode());
+                        preparedStatement2.setString(6,dateFormat.format(new Date()));
+                        if(null!=baseCapId) {
+                            preparedStatement2.setLong(7, baseCapId);
+                        } else {
+                            preparedStatement2.setLong(7, Types.BIGINT);
+                        }
+                        preparedStatement2.addBatch();
+                        if((j+1)%1000 == 0 || j == planCons.size()-1) {
+                            //每1000条提交一次
+                            preparedStatement2.executeBatch();
+                            //清空记录
+                            preparedStatement2.clearBatch();
+                        }
+                        j++;
+
+                    }
+                    if(null!=conn2) {
+                        conn2.commit();
+                    }
+                    //更变事件状态为待执行
+                    event.setEventStatus("02");
+                    eventService.updateById(event);
+
+                    //保存信息到消息表
+                    Map<String,Object> map = new HashMap<>();
+                    map.put("topic",publishTimeTopic);
+                    map.put("message_key",plan.getPlanId());
+                    map.put("send_status","Y");
+                    map.put("consume_status","N");
+                    map.put("create_time",dateFormat.format(new Date()));
+                    Integer messageCount = planMapper.getOutBoxMessageCount(map);
+                    if(messageCount==0) {
+                        planMapper.saveOutBoxMessage(map);
+                        log.info("保存topic信息到消息表!");
+                    }
+                } catch (Exception e) {
+                    try {
+                        if(null!=conn){
+                            conn.rollback();
+                        }
+                        if(null!=conn2) {
+                            conn2.rollback();
+                        }
+                    } catch (SQLException sqlException) {
+                        sqlException.printStackTrace();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    if(null!=conn) {
+                        try {
+                            conn.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(null!=preparedStatement) {
+                        try {
+                            preparedStatement.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    if(null!=conn2) {
+                        try {
+                            conn2.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(null!=preparedStatement2) {
+                        try {
+                            preparedStatement2.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+            }
+        };
+        return runnable;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createFirstInvitationList(Long eventId, LocalDateTime deadlineTime,String replySource,Integer regulateMultiple,Integer endCondition) {
+        ExecutorService executor = ExecutorBuilder.create()
+                .setCorePoolSize(corePoolSize)
+                .setMaxPoolSize(maxPoolSize)
+                .setWorkQueue(new LinkedBlockingQueue<>(workQueue))
+                .build();
+        executor.execute(this.createFirstInvitationDetail(eventId, deadlineTime,replySource,regulateMultiple,endCondition));
+        executor.shutdown();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Runnable createFirstInvitationDetail(Long eventId, LocalDateTime deadlineTime,String replySource,Integer regulateMultiple,Integer endCondition) {
+        CurrenUserInfo currentUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                //判断数据库该事件用户和客户是否已生成过
+                LambdaQueryWrapper<ConsInvitation> consInvitationLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                consInvitationLambdaQueryWrapper.eq(ConsInvitation::getEventId,eventId);
+                int consCount = consInvitationService.count(consInvitationLambdaQueryWrapper);
+                LambdaQueryWrapper<CustInvitation> custInvitationLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                custInvitationLambdaQueryWrapper.eq(CustInvitation::getEventId,eventId);
+                int custCount = custInvitationService.count(custInvitationLambdaQueryWrapper);
+                Event event = eventService.getById(eventId);
+                //只有待执行和发布状态可以发布,且事件开始之前
+                if("06".equals(event.getEventStatus()) || "02".equals(event.getEventStatus())) {
+                    event.setEventStatus("06");
+                } else {
+                    throw new ServiceException(EventExceptionEnum.CANNOT_RELEASE);
+                }
+                //截止条件不是截止日期
+                if (!EndConditionEnum.DEADLINE_TIME.getCode().equals(endCondition)) {
+                    //前端传 n% 因此除100
+                    int i = regulateMultiple;
+                    BigDecimal num = new BigDecimal(NumberUtil.div(i,100));
+                    event.setRegulateMultiple(num);
+                }
+                event.setEndCondition(endCondition);
+                eventService.updateById(event);
+                // 将方案参与用户和方案参与客户表数据同步到用户邀约和客户邀约表中
+                Plan plan = planService.getByEventId(eventId);
+                if (ObjectUtil.isEmpty(plan)) throw new ServiceException(EventExceptionEnum.EVENT_PLAN_NOT_EXIST);
+                PlanConsParam planConsParam = new PlanConsParam();
+                planConsParam.setPlanId(plan.getPlanId());
+                List<PlanCons> planCons = planConsService.listNotDeleted(planConsParam);
+                if (CollectionUtil.isEmpty(planCons))
+                    throw new ServiceException(EventExceptionEnum.EVENT_CONS_NOT_EXIST);
+                PreparedStatement preparedStatement = null;
+                PreparedStatement preparedStatement2 = null;
+                Connection conn = null;
+                Connection conn2 = null;
+                try {
+                    String url = dataurl;
+                    String user = userName;
+                    String password = datapassword;
+                    //2）、加载驱动，不需要显示注册驱动
+                    Class.forName(driver);
+                    // 同步方案参与用户(如果是首次同步，保存，否则更新)
+                    if(consCount==0) {
+                        String sql = "INSERT into dr_cons_invitation (EVENT_ID,CONS_ID,baseline_cap_id,invitation_time,deadline_time,invitation_round,reply_source,CREATE_USER,CREATE_TIME,join_user_type,is_reply,invitation_cap)\n" +
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
+                        //获取数据库连接
+                        conn = DriverManager.getConnection(url, user, password);
+                        conn.setAutoCommit(false);
+                        preparedStatement = conn.prepareStatement(sql);
+                        int i = 0;
+                        for (PlanCons planCon : planCons) {
+                            preparedStatement.setLong(1, eventId);
+                            preparedStatement.setString(2, planCon.getConsId());
+                            if (null != planCon.getBaselineCapId()) {
+                                preparedStatement.setLong(3, planCon.getBaselineCapId());
+                            } else {
+                                preparedStatement.setNull(3, Types.BIGINT);
+                            }
+                            preparedStatement.setString(4, simpleDateFormat2.format(LocalDateTime.now()));
+                            if (null != deadlineTime) {
+                                preparedStatement.setString(5, simpleDateFormat2.format(deadlineTime));
+                            } else {
+                                preparedStatement.setNull(5, Types.VARCHAR);
+                            }
+                            preparedStatement.setInt(6, EventInvitationRoundEnum.FIRST_INVITATION_ROUND.getCode());
+                            if (null != replySource) {
+                                preparedStatement.setString(7, replySource);
+                            } else {
+                                preparedStatement.setNull(7, Types.VARCHAR);
+                            }
+                            if (null != currentUserInfo) {
+                                preparedStatement.setString(8, currentUserInfo.getId());
+                            } else {
+                                preparedStatement.setString(8, "-1");
+                            }
+                            preparedStatement.setString(9, dateFormat.format(new Date()));
+                            if (null != planCon.getJoinUserType()) {
+                                preparedStatement.setString(10, planCon.getJoinUserType());
+                            } else {
+                                preparedStatement.setNull(10, Types.BIGINT);
+                            }
+                            preparedStatement.setString(11, "0");
+                            preparedStatement.setBigDecimal(12, planCon.getContractCap());
+                            preparedStatement.addBatch();
+                            if ((i + 1) % 1000 == 0 || i == planCons.size() - 1) {
+                                //每1000条提交一次
+                                preparedStatement.executeBatch();
+                                //清空记录
+                                preparedStatement.clearBatch();
+                            }
+                            i++;
+                        }
+                    } else {
+                        LambdaQueryWrapper<ConsInvitation> consInvitationLambdaQueryWrapper2 = new LambdaQueryWrapper<>();
+                        consInvitationLambdaQueryWrapper2.eq(ConsInvitation::getEventId,eventId);
+                        List<ConsInvitation> consInvitationList = consInvitationService.list(consInvitationLambdaQueryWrapper2);
+                        String sql = "update dr_cons_invitation set deadline_time=?,update_time=? where invitation_id = ?";
+                        //获取数据库连接
+                        conn = DriverManager.getConnection(url, user, password);
+                        conn.setAutoCommit(false);
+                        preparedStatement = conn.prepareStatement(sql);
+                        int i = 0;
+                        for (PlanCons planCon : planCons) {
+                            if (null != deadlineTime) {
+                                preparedStatement.setString(1, simpleDateFormat2.format(deadlineTime));
+                            } else {
+                                preparedStatement.setNull(1, Types.VARCHAR);
+                            }
+                            preparedStatement.setString(2, simpleDateFormat2.format(LocalDateTime.now()));
+                            List<ConsInvitation> consInvitations = consInvitationList.stream().filter(consInvitation -> planCon.getConsId().equals(consInvitation.getConsId())
+                                    && consInvitation.getEventId().equals(eventId)
+                            ).collect(Collectors.toList());
+                            if(null!=consInvitations && consInvitations.size()>0) {
+                                preparedStatement.setLong(3, consInvitations.get(0).getInvitationId());
+                            } else {
+                                continue;
+                            }
+                            preparedStatement.addBatch();
+                            if ((i + 1) % 1000 == 0 || i == planCons.size() - 1) {
+                                //每1000条提交一次
+                                preparedStatement.executeBatch();
+                                //清空记录
+                                preparedStatement.clearBatch();
+                            }
+                            i++;
+                        }
+                    }
+
+                    // 同步方案参与客户(如果是首次同步新增，否则更新)
+                    if(custCount==0) {
+                        String sql2 = "INSERT into dr_cust_invitation (EVENT_ID,integrator,CUST_ID,invitation_time,deadline_time,invitation_round,reply_source,CREATE_USER,CREATE_TIME,is_reply,invitation_cap)\n" +
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?)";
+                        int j = 0;
+                        PlanCustParam planCustParam = new PlanCustParam();
+                        planCustParam.setPlanId(planConsParam.getPlanId());
+                        List<PlanCust> planCusts = planCustService.listNotDeleted(planCustParam);
+                        if (CollectionUtil.isEmpty(planCusts)) return;
+                        conn2 = DriverManager.getConnection(url, user, password);
+                        conn2.setAutoCommit(false);
+                        preparedStatement2 = conn2.prepareStatement(sql2);
+                        for (PlanCust planCust : planCusts) {
+                            preparedStatement2.setLong(1, eventId);
+                            if (null != planCust.getIntegrator()) {
+                                preparedStatement2.setString(2, planCust.getIntegrator());
+                            } else {
+                                preparedStatement2.setNull(2, Types.VARCHAR);
+                            }
+                            if (null != planCust.getCustId()) {
+                                preparedStatement2.setLong(3, planCust.getCustId());
+                            } else {
+                                preparedStatement2.setNull(3, Types.BIGINT);
+                            }
+                            preparedStatement2.setString(4, simpleDateFormat2.format(LocalDateTime.now()));
+                            if (null != deadlineTime) {
+                                preparedStatement2.setString(5, simpleDateFormat2.format(deadlineTime));
+                            } else {
+                                preparedStatement2.setNull(5, Types.VARCHAR);
+                            }
+                            preparedStatement2.setInt(6, EventInvitationRoundEnum.FIRST_INVITATION_ROUND.getCode());
+                            if (null != replySource) {
+                                preparedStatement2.setString(7, replySource);
+                            } else {
+                                preparedStatement2.setNull(7, Types.VARCHAR);
+                            }
+                            if (null != currentUserInfo) {
+                                preparedStatement2.setString(8, currentUserInfo.getId());
+                            } else {
+                                preparedStatement2.setString(8, "-1");
+                            }
+                            preparedStatement2.setString(9, dateFormat.format(new Date()));
+                            preparedStatement2.setString(10, "0");
+                            preparedStatement2.setBigDecimal(11, planCust.getContractCap());
+                            preparedStatement2.addBatch();
+                            if ((j + 1) % 1000 == 0 || j == planCusts.size() - 1) {
+                                //每1000条提交一次
+                                preparedStatement2.executeBatch();
+                                //清空记录
+                                preparedStatement2.clearBatch();
+                            }
+                            j++;
+                        }
+                    } else {
+                        LambdaQueryWrapper<CustInvitation> custInvitationLambdaQueryWrapper2 = new LambdaQueryWrapper<>();
+                        custInvitationLambdaQueryWrapper2.eq(CustInvitation::getEventId,eventId);
+                        List<CustInvitation> custInvitationList = custInvitationService.list(custInvitationLambdaQueryWrapper2);
+                        String sql2 = "update dr_cust_invitation set deadline_time=?,update_time=? where invitation_id=?";
+                        int j = 0;
+                        PlanCustParam planCustParam = new PlanCustParam();
+                        planCustParam.setPlanId(planConsParam.getPlanId());
+                        List<PlanCust> planCusts = planCustService.listNotDeleted(planCustParam);
+                        if (CollectionUtil.isEmpty(planCusts)) return;
+                        conn2 = DriverManager.getConnection(url, user, password);
+                        conn2.setAutoCommit(false);
+                        preparedStatement2 = conn2.prepareStatement(sql2);
+                        for (PlanCust planCust : planCusts) {
+                            if (null != deadlineTime) {
+                                preparedStatement2.setString(1, simpleDateFormat2.format(deadlineTime));
+                            } else {
+                                preparedStatement2.setNull(1, Types.VARCHAR);
+                            }
+                            preparedStatement2.setString(2, simpleDateFormat2.format(LocalDateTime.now()));
+                            List<CustInvitation> custInvitations = custInvitationList.stream().filter(custInvitation -> planCust.getCustId().equals(custInvitation.getCustId())
+                                    && custInvitation.getEventId().equals(eventId)
+                            ).collect(Collectors.toList());
+                            if(null!=custInvitations && custInvitations.size()>0) {
+                                preparedStatement2.setLong(3, custInvitations.get(0).getInvitationId());
+                            } else {
+                                continue;
+                            }
+                            preparedStatement2.addBatch();
+                            if ((j + 1) % 1000 == 0 || j == planCusts.size() - 1) {
+                                //每1000条提交一次
+                                preparedStatement2.executeBatch();
+                                //清空记录
+                                preparedStatement2.clearBatch();
+                            }
+                            j++;
+                        }
+                    }
+                    if(null!=conn) {
+                        conn.commit();
+                    }
+                    if(null!=conn2) {
+                        conn2.commit();
+                    }
+
+                } catch (Exception e) {
+                    try {
+                        if(null!=conn) {
+                            conn.rollback();
+                        }
+                        if(null!=conn2) {
+                            conn2.rollback();
+                        }
+                    }catch (SQLException sqlException) {
+                        sqlException.printStackTrace();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    if(null!=conn) {
+                        try {
+                            conn.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(null!=preparedStatement) {
+                        try {
+                            preparedStatement.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    if(null!=conn2) {
+                        try {
+                            conn2.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(null!=preparedStatement2) {
+                        try {
+                            preparedStatement2.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }
+            }
+        };
+        return runnable;
+    }
+}
+
+
+

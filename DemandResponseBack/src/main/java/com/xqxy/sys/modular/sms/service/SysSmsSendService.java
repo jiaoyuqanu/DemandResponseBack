@@ -1,0 +1,48 @@
+package com.xqxy.sys.modular.sms.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.sys.modular.sms.entity.SysSmsSend;
+import com.xqxy.sys.modular.sms.param.SmsSendParam;
+
+/**
+ * <p>
+ * 短信发送记录 服务类
+ * </p>
+ *
+ * @author Caoj
+ * @since 2021-10-21
+ */
+public interface SysSmsSendService extends IService<SysSmsSend> {
+
+    /**
+     * 生成短信 通过业务模板判断具体的业务对象，再根据业务标识来查找具体的业务对象中所发送的号码并生成短信内容
+     *
+     * @param businessRela 业务标识
+     * @param businessCode 短信模板代码
+     * @return java.lang.String
+     * @author Caoj updated on 12/29/2021 15:41
+     */
+    String generateSms(String businessRela, String businessCode, Integer userType, String content);
+
+    String generateSms(String businessRela, String businessCode);
+
+    /**
+     * 短信下发
+     *
+     * @param smsSendParam 短信发送参数，具体用到的businessRela业务标识和businessCode模板类型
+     * @author Caoj
+     * @since 10/28/2021 10:26
+     */
+    void issueSms(SmsSendParam smsSendParam);
+
+    /**
+     * 通过业务id和模板类型查询短信
+     *
+     * @param smsSendParam 短信发送参数，具体使用的businessRela业务标识和businessCode模板类型
+     * @return java.util.List<com.xqxy.sys.modular.sms.entity.SysSmsSend>
+     * @author Caoj
+     * @since 11/11/2021 19:20
+     */
+    Page<SysSmsSend> getSmsByBusiness(SmsSendParam smsSendParam);
+}

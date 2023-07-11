@@ -1,0 +1,240 @@
+package com.xqxy.dr.modular.gwapp.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.xqxy.core.client.SystemClient;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.event.enums.CheckStatusEnum;
+import com.xqxy.dr.modular.gwapp.entity.GwappCons;
+import com.xqxy.dr.modular.gwapp.entity.GwappCust;
+import com.xqxy.dr.modular.gwapp.mapper.GwappCustMapper;
+import com.xqxy.dr.modular.gwapp.param.GwappCustAuditParam;
+import com.xqxy.dr.modular.gwapp.param.GwappCustPageQuery;
+import com.xqxy.dr.modular.gwapp.param.GwappRegistry;
+import com.xqxy.dr.modular.gwapp.service.IGwappConsService;
+import com.xqxy.dr.modular.gwapp.service.IGwappCustService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.dr.modular.gwapp.vo.GwappCustInfoVo;
+import com.xqxy.dr.modular.gwapp.vo.GwappCustPageVo;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.entity.Cust;
+import com.xqxy.sys.modular.cust.entity.CustCertifyFile;
+import com.xqxy.sys.modular.cust.enums.CustStatusEnum;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import com.xqxy.sys.modular.cust.service.CustCertifyFileService;
+import com.xqxy.sys.modular.cust.service.CustService;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
+import org.plutext.jaxb.svg11.G;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 客户(对应注册用户) 服务实现类
+ * </p>
+ *
+ * @author Yechs
+ * @since 2022-05-20
+ */
+@Log4j2
+@Service
+public class GwappCustServiceImpl extends ServiceImpl<GwappCustMapper, GwappCust> implements IGwappCustService {
+
+    @Resource
+    private CustCertifyFileService custCertifyFileService;
+    @Resource
+    private IGwappConsService iGwappConsService;
+    @Resource
+    private CustService custService;
+    @Resource
+    private ConsService consService;
+
+    @Override
+    public Page<GwappCustPageVo> queryPage(GwappCustPageQuery gwappCustPageQuery) {
+        LambdaQueryWrapper<GwappCust> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.like(StringUtils.isNotEmpty(gwappCustPageQuery.getLegalName()), GwappCust::getLegalName, gwappCustPageQuery.getLegalName());
+        lambdaQueryWrapper.like(StringUtils.isNotEmpty(gwappCustPageQuery.getLegalPhone()), GwappCust::getTel, gwappCustPageQuery.getLegalPhone());
+        lambdaQueryWrapper.eq(Objects.nonNull(gwappCustPageQuery.getCheckStatus()), GwappCust::getCheckStatus, gwappCustPageQuery.getCheckStatus());
+        lambdaQueryWrapper.gt(Objects.nonNull(gwappCustPageQuery.getApplyStartTime()), GwappCust::getCreateTime, gwappCustPageQuery.getApplyStartTime());
+        lambdaQueryWrapper.lt(Objects.nonNull(gwappCustPageQuery.getApplyEndTime()), GwappCust::getCreateTime, gwappCustPageQuery.getApplyEndTime());
+        lambdaQueryWrapper.orderByDesc(BaseEntity::getCreateTime);
+        Page page = this.page(gwappCustPageQuery.getPage(), lambdaQueryWrapper);
+        List<GwappCustPageVo> gwappCustPageVos = ((List<GwappCust>) page.getRecords()).stream().map(gwappCust -> {
+            GwappCustPageVo gwappCustPageVo = new GwappCustPageVo();
+            BeanUtil.copyProperties(gwappCust, gwappCustPageVo);
+            return gwappCustPageVo;
+        }).collect(Collectors.toList());
+        page.setRecords(gwappCustPageVos);
+        return page;
+    }
+
+    @Override
+    public GwappCustInfoVo getGwAppCustInfo(Long id) {
+        Assert.notNull(id, "custId不能为空");
+        GwappCust cust = this.getById(id);
+        GwappCustInfoVo gwappCustInfoVo = BeanUtil.copyProperties(cust, GwappCustInfoVo.class);
+        gwappCustInfoVo.setFileList(custCertifyFileService.getByCustId(id));
+        return gwappCustInfoVo;
+    }
+
+    @Resource
+    private SystemClient systemClient;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void auditGwappCust(Long custId, GwappCustAuditParam gwappCustAuditParam) {
+        Assert.notNull(custId, "custId不能为空");
+        Assert.notNull(gwappCustAuditParam.getCheckStatus(), "审核状态不能为空");
+        GwappCust gwappCust = this.getById(custId);
+        Assert.notNull(gwappCust, "用户不存在");
+        Assert.isTrue(!StringUtils.equalsAny(gwappCust.getCheckStatus(), "3", "4"), "该用户已审核过了");
+        gwappCust.setApprovalUser(Long.valueOf(SecurityUtils.getCurrentUserInfoUTF8().getId()));
+        gwappCust.setApprovalComments(gwappCustAuditParam.getApprovalComments());
+        switch (gwappCustAuditParam.getCheckStatus()) {
+            case 0:
+                gwappCust.setCheckStatus("3");
+                break;
+            case 1:
+                gwappCust.setCheckStatus("4");
+                break;
+            default:
+                throw new ServiceException(2, "不支持的审核状态");
+        }
+        if (Objects.equals(gwappCust.getCheckStatus(), "3")) {
+            Gson gson = new Gson();
+            Cust cust = gson.fromJson(gson.toJson(gwappCust), Cust.class);
+
+            JSONObject userInfo = systemClient.getUserInfo(gwappCust.getTel());
+            log.info("审核用户获取用户信息=> {}", userInfo.toJSONString());
+            if (userInfo != null && userInfo.getJSONObject("data") != null && userInfo.getJSONObject("data").getLong("id") != null) {
+                Long userId = userInfo.getJSONObject("data").getLong("id");
+                cust.setId(userId);
+            } else {
+                JSONObject userInfoJS = new JSONObject();
+                userInfoJS.put("mobile", cust.getTel());
+                userInfoJS.put("name", cust.getLegalName());
+                userInfoJS.put("username", cust.getLegalName());
+                userInfoJS.put("orgId", "io001");
+                userInfoJS.put("roleId", "reg_init_role");
+                userInfoJS.put("status", 1);
+                userInfoJS.put("deptId", "id001");
+                userInfoJS.put("isLeader", 0);
+                JSONObject jsonObject = systemClient.addUser(userInfoJS);
+                log.info("审核用户注册用户信息=>{}, resp=> {}", userInfoJS.toJSONString(), jsonObject.toJSONString());
+                if (!Objects.equals(jsonObject.getString("code"), "000000")) {
+                    throw new ServiceException(5, "保存用户失败");
+                }
+                userInfo = systemClient.getUserInfo(gwappCust.getTel());
+                log.info("审核用户获取用户信息=> {}", userInfo.toJSONString());
+                if (userInfo != null && userInfo.getJSONObject("data") != null && userInfo.getJSONObject("data").getLong("id") != null) {
+                    Long userId = userInfo.getJSONObject("data").getLong("id");
+                    cust.setId(userId);
+                } else {
+                    throw new ServiceException(6, "保存用户失败");
+                }
+            }
+
+            List<Cons> consList = gson.fromJson(gson.toJson(iGwappConsService.getConsByCustId(custId).stream().map(item -> {
+                item.setCustId(cust.getId());
+                return item;
+            }).collect(Collectors.toList())), new TypeToken<ArrayList<Cons>>() {
+            }.getType());
+            if (ObjectUtil.isNotEmpty(consList)) {
+                if (ObjectUtil.isNotEmpty(consList.get(0).getOrgNo())) {
+                    cust.setOrgNo(consList.get(0).getOrgNo());
+                }
+                if (!consService.saveOrUpdateBatch(consList)) {
+                    throw new ServiceException(4, "保存电力用户失败");
+                }
+            }
+            if (!custService.saveOrUpdate(cust)) {
+                throw new ServiceException(3, "保存用户失败");
+            }
+            this.updateById(gwappCust);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void gwappRegistry(GwappRegistry gwappRegistry) {
+        String tel = gwappRegistry.getTel();
+        Assert.notNull(tel, "电话号码不能为空");
+        LambdaQueryWrapper<Cust> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Cust::getTel, tel);
+        Assert.isTrue(custService.count(lambdaQueryWrapper) == 0, "您已经在平台注册过了, 无需注册");
+
+        LambdaQueryWrapper<GwappCust> gwappCustLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        gwappCustLambdaQueryWrapper.eq(GwappCust::getTel, tel);
+        GwappCust gwappCust2 = this.getOne(gwappCustLambdaQueryWrapper);
+        if (gwappCust2 != null) {
+            gwappRegistry.setId(gwappCust2.getId());
+        }
+
+        GwappCust gwappCust = new GwappCust();
+        BeanUtils.copyProperties(gwappRegistry, gwappCust);
+        if (gwappRegistry.getId() != null) {
+            GwappCust existGwCust = this.getById(gwappRegistry.getId());
+            Assert.notNull(existGwCust, "用户id输入错误");
+            gwappCust.setId(gwappRegistry.getId());
+        }
+        gwappCust.setCheckStatus(CheckStatusEnum.UNDER_REVIEW.getCode());
+        gwappCust.setState(CustStatusEnum.APPROVING.getCode());
+        if (ObjectUtil.isNotEmpty(gwappRegistry.getConsList())) {
+            gwappCust.setOrgNo(gwappRegistry.getConsList().get(0).getOrgNo());
+        }
+        if (!this.saveOrUpdate(gwappCust)) {
+            throw new ServiceException(2, "保存失败");
+        }
+
+        GwappCust finalGwappCust = gwappCust;
+        gwappRegistry.getConsList().forEach(item -> item.setCustId(finalGwappCust.getId()));
+        gwappRegistry.getFileList().forEach(item -> item.setCustId(finalGwappCust.getId()));
+        LambdaQueryWrapper<CustCertifyFile> custCertifyFileLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        custCertifyFileLambdaQueryWrapper.eq(CustCertifyFile::getCustId, gwappCust.getId());
+        custCertifyFileService.remove(custCertifyFileLambdaQueryWrapper);
+        if (!CollectionUtils.isEmpty(gwappRegistry.getConsList())) {
+            iGwappConsService.remove(new LambdaQueryWrapper<GwappCons>().eq(GwappCons::getCustId, gwappCust.getId()));
+            gwappRegistry.getConsList().forEach(item -> iGwappConsService.saveOrUpdate(item));
+        }
+        if (!CollectionUtils.isEmpty(gwappRegistry.getFileList())) {
+            custCertifyFileService.remove(new LambdaQueryWrapper<CustCertifyFile>().eq(CustCertifyFile::getCustId, gwappCust.getId()));
+            custCertifyFileService.saveOrUpdateBatch(gwappRegistry.getFileList());
+        }
+
+    }
+
+    @Override
+    public GwappCustInfoVo getInfoByTel(String tel) {
+        Assert.notNull(tel, "手机号不能为空");
+        LambdaQueryWrapper<GwappCust> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(GwappCust::getTel, tel);
+        lambdaQueryWrapper.orderByDesc(BaseEntity::getCreateTime);
+        lambdaQueryWrapper.last("limit 1");
+        GwappCust gwappCust = getBaseMapper().selectOne(lambdaQueryWrapper);
+        if (gwappCust == null) {
+            throw new ServiceException(2, "请先注册");
+        }
+        GwappCustInfoVo gwappCustInfoVo = new GwappCustInfoVo();
+        BeanUtils.copyProperties(gwappCust, gwappCustInfoVo);
+        gwappCustInfoVo.setFileList(custCertifyFileService.getByCustId(gwappCust.getId()));
+        return gwappCustInfoVo;
+    }
+}

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.adjustable.mapper.DrDeviceAdjustablePotentialMapper">
+
+
+    <select id="groupDeviceAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupCityDeviceAdjustVO">
+        SELECT
+            base.CITY_ELE_CODE cityCode,
+            base.CITY_ELE_NAME cityName,
+            base.PROVINCE_ELE_CODE provinceCode,
+            base.PROVINCE_ELE_NAME provinceName,
+            base.`YEAR` YEAR,
+            test.RESPONSE_POWER responsePower,
+            sum(base.DEVICE_NUM) countDevice
+        FROM
+            dr_device_adjustable_base base
+            LEFT JOIN dr_device_adjustable_potential adjustable ON adjustable.DEVICE_ID = base.DEVICE_ID
+            LEFT JOIN (
+                SELECT
+                    a.id,
+                    MAX(a.RESPONSE_POWER) RESPONSE_POWER
+                FROM
+                    dr_device_adjustable_base b
+                LEFT JOIN dr_device_adjustable_potential a ON a.DEVICE_ID = b.DEVICE_ID
+                GROUP BY
+                    b.CITY_ELE_CODE
+            ) test ON test.id = adjustable.id
+        <where>
+            <if test="drDeviceAdjustablePotentialDTO.year != null and drDeviceAdjustablePotentialDTO.year != '' ">
+                AND base.`YEAR` = #{drDeviceAdjustablePotentialDTO.year}
+            </if>
+            <if test="drDeviceAdjustablePotentialDTO.cityCode != null and drDeviceAdjustablePotentialDTO.cityCode != '' ">
+                AND base.CITY_ELE_CODE = #{drDeviceAdjustablePotentialDTO.cityCode}
+            </if>
+        </where>
+        GROUP BY
+            base.CITY_ELE_CODE
+    </select>
+
+    <select id="groupDeviceTypeAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupDeviceTypeAdjustVO">
+        SELECT
+            test.id,
+            test.deviceTypeName,
+            test.deviceName,
+            test.deviceRiseTime,
+            test.responseType,
+            sum(test.countDevice) countDevice,
+            SUM(test.desPower) desPower,
+            SUM(test.risPower) risPower
+        FROM
+            (
+                SELECT
+                    base.id,
+                    base.device_type_name deviceTypeName,
+                    base.DEVICE_NAME deviceName,
+                    base.DEVICE_RISE_TIME deviceRiseTime,
+                    adjustable.RESPONSE_TYPE responseType,
+                    sum(base.DEVICE_NUM) countDevice,
+                    MAX(adjustable.RESPONSE_POWER) desPower,
+                    "" risPower
+                FROM
+                    dr_device_adjustable_base base
+                LEFT JOIN dr_device_adjustable_potential adjustable ON adjustable.DEVICE_ID = base.DEVICE_ID
+                WHERE
+                    base.`YEAR` = #{drDeviceAdjustablePotentialDTO.year}
+                AND base.CITY_ELE_CODE = #{drDeviceAdjustablePotentialDTO.cityCode}
+                AND adjustable.RESPONSE_TYPE = 1
+                GROUP BY
+                    base.id
+                UNION
+                    SELECT
+                        base.id,
+                        base.device_type_name deviceTypeName,
+                        base.DEVICE_NAME deviceName,
+                        base.DEVICE_RISE_TIME deviceRiseTime,
+                        adjustable.RESPONSE_TYPE responseType,
+                        sum(base.DEVICE_NUM) countDevice,
+                        "" desPower,
+                        MAX(adjustable.RESPONSE_POWER) risPower
+                    FROM
+                        dr_device_adjustable_base base
+                    LEFT JOIN dr_device_adjustable_potential adjustable ON adjustable.DEVICE_ID = base.DEVICE_ID
+                    WHERE
+                       base.`YEAR` = #{drDeviceAdjustablePotentialDTO.year}
+                    AND base.CITY_ELE_CODE = #{drDeviceAdjustablePotentialDTO.cityCode}
+                    AND adjustable.RESPONSE_TYPE = 2
+                    GROUP BY
+                        base.id
+            ) test
+            GROUP BY
+             test.id
+    </select>
+    <select id="pageDeviceAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.DrDeviceAdjustablePotentialVO">
+            SELECT
+                potential.id,
+                potential.DEVICE_ID deviceId,
+                potential.RESPONSE_PERIOD responsePeriod,
+                potential.RESPONSE_POWER responsePower,
+                potential.RESPONSE_TYPE responseType,
+                potential.TIME_TYPE timeType,
+                potential.START_TIME startTime,
+                potential.END_TIME endTime,
+                potential.DEVICE_NAME deviceName,
+                base.CONS_ID consId,
+                base.DEVICE_TYPE_NAME devicTypeName,
+                base.DEVICE_TYPE_CODE deviceTypeCode
+            FROM
+                dr_device_adjustable_potential potential
+            LEFT JOIN dr_device_adjustable_base base ON potential.device_id = base.device_id
+            <where>
+                <if test="drDeviceAdjustablePotentialDTO.orgIds != null">
+                    IFNULL(base.CITY_ELE_CODE, base.PROVINCE_ELE_CODE) IN
+                    <foreach collection="drDeviceAdjustablePotentialDTO.orgIds" item="orgId" separator="," open="(" close=")">
+                        #{orgId}
+                    </foreach>
+                </if>
+                <if test="drDeviceAdjustablePotentialDTO.consId != null and drDeviceAdjustablePotentialDTO.consId != '' ">
+                    and base.CONS_ID like concat(concat("%",#{drDeviceAdjustablePotentialDTO.consId}),"%")
+                </if>
+                <if test="drDeviceAdjustablePotentialDTO.deviceTypeCode != null and drDeviceAdjustablePotentialDTO.deviceTypeCode != '' ">
+                    and base.DEVICE_TYPE_CODE = #{drDeviceAdjustablePotentialDTO.deviceTypeCode}
+                </if>
+            </where>
+    </select>
+    <select id="exportDeviceAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.DrDeviceAdjustablePotentialVO">
+        SELECT
+            potential.id,
+            potential.DEVICE_ID deviceId,
+            potential.RESPONSE_PERIOD responsePeriod,
+            potential.RESPONSE_POWER responsePower,
+            potential.RESPONSE_TYPE responseType,
+            potential.TIME_TYPE timeType,
+            potential.START_TIME startTime,
+            potential.END_TIME endTime,
+            base.DEVICE_NAME deviceName,
+            base.DEVICE_TYPE_NAME devicTypeName,
+            base.DEVICE_TYPE_CODE deviceTypeCode
+        FROM
+            dr_device_adjustable_potential potential
+        LEFT JOIN dr_device_adjustable_base base ON potential.device_id = base.device_id
+        <where>
+            <if test="deviceName != null and deviceName != '' ">
+                and base.DEVICE_NAME like concat(concat("%",#{deviceName}),"%")
+            </if>
+            <if test="deviceTypeCode != null and deviceTypeCode != '' ">
+                and base.DEVICE_TYPE_CODE = #{deviceTypeCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="exportGroupDeviceAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupCityDeviceAdjustVO">
+        SELECT
+            base.CITY_ELE_CODE cityCode,
+            base.CITY_ELE_NAME cityName,
+            base.PROVINCE_ELE_CODE provinceCode,
+            base.PROVINCE_ELE_NAME provinceName,
+            base.`YEAR` YEAR,
+            test.RESPONSE_POWER responsePower,
+            sum(base.DEVICE_NUM) countDevice
+        FROM
+            dr_device_adjustable_base base
+        LEFT JOIN dr_device_adjustable_potential adjustable ON adjustable.DEVICE_ID = base.DEVICE_ID
+        LEFT JOIN (
+            SELECT
+            a.id,
+            MAX(a.RESPONSE_POWER) RESPONSE_POWER
+            FROM
+            dr_device_adjustable_base b
+            LEFT JOIN dr_device_adjustable_potential a ON a.DEVICE_ID = b.DEVICE_ID
+            GROUP BY
+            b.CITY_ELE_CODE
+        ) test ON test.id = adjustable.id
+        <where>
+            <if test="year != null and year != '' ">
+                AND base.`YEAR` = #{year}
+            </if>
+            <if test="cityCode != null and cityCode != '' ">
+                AND base.CITY_ELE_CODE = #{cityCode}
+            </if>
+        </where>
+        GROUP BY
+        base.CITY_ELE_CODE
+    </select>
+    <select id="exportGroupDeviceTypeAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupDeviceTypeAdjustVO">
+        SELECT
+            test.id,
+            test.deviceTypeName,
+            test.deviceName,
+            test.deviceRiseTime,
+            test.responseType,
+            sum(test.countDevice) countDevice,
+            SUM(test.desPower) desPower,
+            SUM(test.risPower) risPower
+        FROM
+            (
+                SELECT
+                    base.id,
+                    base.device_type_name deviceTypeName,
+                    base.DEVICE_NAME deviceName,
+                    base.DEVICE_RISE_TIME deviceRiseTime,
+                    adjustable.RESPONSE_TYPE responseType,
+                    COUNT(base.id) countDevice,
+                    MAX(adjustable.RESPONSE_POWER) desPower,
+                    "" risPower
+                FROM
+                    dr_device_adjustable_potential adjustable
+                left JOIN dr_device_adjustable_base base on adjustable.DEVICE_ID = base.DEVICE_ID
+                WHERE
+                    base.`YEAR` = #{year}
+                AND base.CITY_ELE_CODE = #{cityCode}
+                AND adjustable.RESPONSE_TYPE = 1
+                GROUP BY
+                    base.id
+                UNION
+                    SELECT
+                        base.id,
+                        base.device_type_name deviceTypeName,
+                        base.DEVICE_NAME deviceName,
+                        base.DEVICE_RISE_TIME deviceRiseTime,
+                        adjustable.RESPONSE_TYPE responseType,
+                        COUNT(base.id) countDevice,
+                        "" desPower,
+                        MAX(adjustable.RESPONSE_POWER) risPower
+                    FROM
+                        dr_device_adjustable_potential adjustable
+                    left JOIN dr_device_adjustable_base base on adjustable.DEVICE_ID = base.DEVICE_ID
+                    WHERE
+                       base.`YEAR` = #{year}
+                    AND base.CITY_ELE_CODE = #{cityCode}
+                    AND adjustable.RESPONSE_TYPE = 2
+                    GROUP BY
+                        base.id
+            ) test
+            GROUP BY
+             test.id
+    </select>
+</mapper>

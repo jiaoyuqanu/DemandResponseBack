@@ -1,0 +1,259 @@
+package com.xqxy.dr.modular.event.service;
+
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.dr.modular.event.entity.*;
+import com.xqxy.dr.modular.event.param.*;
+import com.xqxy.dr.modular.event.result.*;
+import org.apache.ibatis.annotations.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * <p>
+ * 方案参与用户 服务类
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+public interface PlanConsService extends IService<PlanCons> {
+
+    /**
+     * @description: 方案编制用户分页查询
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:15
+     */
+    Page<PlanCons> pageNotDeleted(PlanConsParam planConsParam);
+
+    /**
+     * @description: 方案编制集成商分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:15
+     */
+    Page<PlanCust> pageCustNotDeleted(PlanCustParam planCustParam);
+
+
+   /**
+    * @description: 手动剔除方案编制用户
+    * @param: 
+    * @return: 
+    * @author: PengChuqing
+    * @date: 2021/10/18 16:56
+    */
+    void eliminateManual(List<String> consIdList,Long eventId,String deleteRule);
+
+    /**
+     * @description: 通过用户id集合查询用户列表
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/18 17:08
+     */
+    List<PlanCons> listByConsIds(List<String> consIdList,Long eventId);
+
+    /**
+     * @description: 用户方案列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 15:39
+     */
+ List<PlanCons> list(PlanConsParam planConsParam);
+
+
+    /**
+     * @description: 查询基线负荷为空的方案用户
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/18 19:48
+     */
+    List<PlanCons> listWithEmptyBaseline(Long planId);
+
+    /**
+     * @description: 查询基线负荷小于某个容量的方案用户
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 20:01
+     */
+    List<PlanCons> listWithCapLessThan(Long planId, BigDecimal ten);
+
+    /**
+     * @description: 平均基线小于可响应容量列表
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/18 20:17
+     */
+    List<PlanCons> listLessThanDemandCap(Long planId);
+
+    /**
+     * @description: 通过省码查看当前项目的列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/19 10:36
+     */
+    List<PlanCons> listByProvinceCode(Long planId,String regulateRange);
+
+    /**
+     * @description: 通过市码查看查看方案参与用户
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/19 10:36
+     */
+    List<PlanCons> listByCityCode(Long planId,String regulateRange);
+
+    /**
+     * @description: 通过区码查看查看方案参与用户
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/19 10:36
+     */
+    List<PlanCons> listByCountyCode(Long planId,String regulateRange);
+
+    /**
+     * @description: 通过供电单位编码查看方案参与用户
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/19 11:06
+     */
+    List<PlanCons> listByOrgNo(Long planId, String regulateRange);
+
+    List<PlanCons> listByOrgNo(Long planId, List<String> regulateRangeList);
+
+    /**
+     * @description: 方案编制用户列表
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/20 15:26
+     */
+    List<PlanCons> listNotDeleted(PlanConsParam planConsParam);
+
+    /**
+     * @description: 事件的反馈容量之和
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:44
+     */
+    BigDecimal getSumCapByEventId(Long eventId);
+
+    /**
+     * @description: 执行监测-用户监测-分页
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/27 10:06
+     */
+    Page<PlanCons> pageConsMonitor(PlanConsParam planConsParam);
+
+    /**
+     * @description: 
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/27 14:18
+     */
+    ConsMonitorCurve curveOfBaseAndTarget(PlanConsParam planConsParam);
+
+    /**
+     * @description: 通过方案id和consId获取用户邀约信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 16:18
+     */
+    PlanCons getByConsIdAndPlanId(Long planId, String consId);
+
+    List<PlanCons> listByGovCode(Long planId, List<String> provinceList, List<String> cityList, List<String> countyList);
+
+    Page<PlanCons> pageByDeleteRule(DeleteRuleParam deleteRuleParam);
+
+    Page<PlanCons> pageConfirmed(DeleteRuleParam deleteRuleParam);
+
+   Page<EventConsOrCustResult> queryExecuteCust(ExecutePlanConsParam planConsParam);
+
+   Page<EventConsOrCustResult> queryExecuteCons(ExecutePlanConsParam planConsParam);
+
+   ExecutePlanTotal queryExecutePlanTotal(ExecutePlanConsParam planConsParam);
+
+   String executePlan(ExecutePlanConsParam planConsParam);
+
+    Page<PlanCons> consDeleteList(DeleteConsParam deleteRuleParam);
+
+    Page<PlanCons> custDeleteList(DeleteCustParam deleteRuleParam);
+
+    Page<PlanCons> getConsExecuteList(DeleteConsParam deleteRuleParam);
+
+    Page<PlanCust> getCustExecuteList(DeleteCustParam deleteRuleParam);
+
+    Page<ConsMessage> getConsMessageList(ConsMessageParam deleteRuleParam);
+
+    Page<CustMessage> getCustMessageList(CustMessageParam deleteRuleParam);
+
+    List<ConsExecuteStatistic> getExecuteStatisticCitys(PlanParam planParam);
+
+    ConsExecuteStatistic getExecuteStatistic(PlanParam planParam);
+
+    /**
+     * 用户执行
+     * @param planParam
+     */
+    void deleteExecuteCons(PlanParam planParam);
+
+    /**
+     * 集成商执行
+     * @param planParam
+     */
+    void deleteExecuteCust(PlanParam planParam);
+
+    /**
+     * 取消集成商执行
+     * @param planParam
+     */
+    void cancelDeleteExecuteCons(PlanParam planParam);
+
+    /**
+     * 取消用户执行
+     * @param planParam
+     */
+    void cancelDeleteExecuteCust(PlanParam planParam);
+
+    Page<EventUserConsPlanListResult> pageUserConsMonitor(EventUserConsPlanListParam eventUserConsPlanListParam);
+
+    /**
+     * @description: 电力用户-执行监测-用户执行曲线
+     * @param:
+     * @return:
+     * @author: 李奇瑞 修改
+     * @date: 2022.06.30
+     */
+    EventUserConsLineResult getUserConsLine(EventUserConsLineParam eventUserConsLineParam);
+
+    /**
+     * @description: 负荷聚合商-执行监测-用户执行曲线
+     * @param:
+     * @return:
+     * @author: 李奇瑞 修改
+     * @date: 2022.06.30
+     */
+    EventUserCustLineResult getUserCustLine(EventUserCustLineParam eventUserCustLineParam);
+
+    List<PlanCons> getPlanNoDe(List<Long> eventIds);
+
+    List<PlanCons> getCustPlan (long planId);
+}

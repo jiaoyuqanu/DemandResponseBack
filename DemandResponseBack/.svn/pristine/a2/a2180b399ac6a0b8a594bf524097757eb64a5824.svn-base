@@ -1,0 +1,37 @@
+package com.xqxy.dr.modular.newloadmanagement.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.dr.modular.newloadmanagement.entity.*;
+import com.xqxy.dr.modular.newloadmanagement.param.*;
+import com.xqxy.dr.modular.newloadmanagement.vo.*;
+
+import java.util.List;
+import java.util.Map;
+
+public interface DemandService {
+    List<Drcons> userBaseProfile(String createTime);
+
+    Map<String, Object> adjustablePotential(AdjustablePotentialParam adjustablePotential);
+
+    void orderInformation(DemandParam demandParam);
+
+    String userRecord(List<UserRecordParam> list);
+
+    List<Drevent> outUserList(String regulateId);
+
+    Drevent planExecutionEffect(String regulateId);
+
+    List<PlanCurve> planExecutionCurve(String regulateId);
+
+    List<DrConsCurve> userExecutionCurve(UserExecutionCurveParam userExecutionCurve);
+
+    List<UserLastExecInfoVo> userLastExecInfo(UserLastExecInfoParam userLastExecInfoParam);
+
+    Page<UserConsProfileVo> userConsProfile(UserConsProfileParam userConsProfileParam);
+
+    RegionContractInfoVo getRegionContractInfo(RegionContractInfoParam regionContractInfoParam);
+
+    DemandEvaluationVo getDemandEvaluation(DemandEvaluationParam demandEvaluationParam);
+
+    OrgDemand64PointVo getOrgDemand64Point(OrgDemand64PointParam orgDemand64PointParam);
+}

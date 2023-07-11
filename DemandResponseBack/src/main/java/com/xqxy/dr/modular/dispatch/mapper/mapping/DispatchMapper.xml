@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.dispatch.mapper.DispatchMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.dispatch.entity.Dispatch">
+        <id column="REGULATE_ID" property="regulateId" />
+        <result column="REGULATE_NO" property="regulateNo" />
+        <result column="project_id" property="projectId" />
+		<result column="RESPONSE_TYPE" property="responseType" />
+		<result column="TIME_TYPE" property="periodDetail" />
+		<result column="RANGE_TYPE" property="rangeType" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="REGULATE_CAP" property="regulateCap" />
+		<result column="REGULATE_DATE" property="regulateDateStr" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+    </resultMap>
+
+    <select id="getDispatchPageList" parameterType="String" resultType="com.xqxy.dr.modular.dispatch.entity.Dispatch">
+       SELECT
+	( @i := @i + 1 ) AS sort,
+	a.*
+FROM
+	(
+	SELECT
+		de.REGULATE_ID AS regulateId,
+		de.TIME_TYPE AS periodDetail,
+		de.ADVANCE_NOTICE_TIME AS advanceNoticeTime,
+		pr.project_name AS projectName,
+		CONCAT( de.REGULATE_DATE, '-', de.START_TIME ) AS regulateDateStr,
+		de.`status` AS STATUS,
+		de.CREATE_USER_NAME as createUserName,
+		de.RESPONSE_TYPE AS responseType
+	FROM
+		dr_demand de
+		LEFT JOIN dr_project pr ON de.project_id = pr.project_id
+    <where>
+        <if test="year != null and year != ''">
+			de.REGULATE_DATE like concat('%',#{year},'%')
+        </if>
+    </where>
+	ORDER BY
+		de.REGULATE_DATE desc,
+		pr.project_name
+
+		) a,(
+	SELECT
+	@i := 0
+	) AS i
+    </select>
+
+	<select id="getDispatchResPageList" parameterType="String" resultType="com.xqxy.dr.modular.dispatch.entity.Dispatch">
+		SELECT
+		( @i := @i + 1 ) AS sort,
+		a.*
+		FROM
+		(
+		SELECT
+		de.REGULATE_ID AS regulateId,
+		eve.EVENT_NO AS eventId,
+		de.TIME_TYPE AS periodDetail,
+		de.REGULATE_CAP AS regulateCap,
+		de.ADVANCE_NOTICE_TIME AS advanceNoticeTime,
+		pr.project_name AS projectName,
+		CONCAT( de.REGULATE_DATE, '-', de.START_TIME ) AS regulateDateStr,
+		de.`status` AS STATUS,
+		de.CREATE_USER_NAME as createUserName,
+		de.RESPONSE_TYPE AS responseType
+		FROM
+		dr_demand de
+		LEFT JOIN dr_project pr ON de.project_id = pr.project_id
+		LEFT JOIN dr_event eve on de.REGULATE_ID = eve.REGULATE_ID
+		<where>
+			de.status in ("02","03")
+			<if test="year != null and year != ''">
+				and de.REGULATE_DATE like concat('%',#{year},'%')
+			</if>
+		</where>
+		ORDER BY
+		de.REGULATE_DATE desc,
+		pr.project_name
+
+		) a,(
+		SELECT
+		@i := 0
+		) AS i
+	</select>
+
+	<select id="getCount"  parameterType="com.xqxy.dr.modular.dispatch.param.DispatchParam" resultType="INTEGER">
+	select count(*) from
+		dr_demand de
+		LEFT JOIN dr_project pr ON de.project_id = pr.project_id
+		<where>
+			<if test="year != null and year != ''">
+				de.REGULATE_DATE like concat('%',#{year},'%')
+			</if>
+		</where>
+	</select>
+
+	<select id="getDispatchById" parameterType="com.xqxy.dr.modular.dispatch.param.DispatchParam" resultType="com.xqxy.dr.modular.dispatch.entity.Dispatch">
+		SELECT
+		( @i := @i + 1 ) AS sort,
+		a.*
+		FROM
+		(
+		SELECT
+		de.REGULATE_ID AS regulateId,
+		de.CREATE_USER AS createUser,
+		de.REGULATE_DATE AS regulateDate,
+		de.ADVANCE_NOTICE_TIME AS advanceNoticeTime,
+		de.CREATE_TIME AS createTime,
+		de.START_TIME AS startTime,
+		de.END_TIME AS endTime,
+		de.RANGE_TYPE AS rangeType,
+		de.REGULATE_CAP/10000 as regulateCap,
+		de.REGULATE_RANGE as regulateRange,
+		de.RESPONSE_TYPE as responseType,
+		de.project_id as projectId,
+		de.status as status,
+		de.CREATE_USER_NAME as createUserName,
+		de.TIME_TYPE as periodDetail
+		FROM
+		dr_demand de
+		<where>
+			<if test="regulateId != null">
+				de.REGULATE_ID =#{regulateId}
+			</if>
+		</where>
+		ORDER BY
+		de.CREATE_TIME desc
+		) a,(
+		SELECT
+		@i := 0
+		) AS i
+	</select>
+
+</mapper>

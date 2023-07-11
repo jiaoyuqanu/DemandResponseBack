@@ -1,0 +1,153 @@
+package com.xqxy.sys.modular.sms.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.annotion.NeedSetValueField;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.sys.modular.sms.entity.SmsSendTemplate;
+import com.xqxy.sys.modular.sms.enums.SmsSendTemplateException;
+import com.xqxy.sys.modular.sms.enums.SmsTemplateException;
+import com.xqxy.sys.modular.sms.enums.SmsTemplateExecEnum;
+import com.xqxy.sys.modular.sms.enums.SmsTemplateValidEnum;
+import com.xqxy.sys.modular.sms.mapper.SmsSendTemplateMapper;
+import com.xqxy.sys.modular.sms.param.SmsSendTemplateParam;
+import com.xqxy.sys.modular.sms.service.SmsSendTemplateService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+
+/**
+ * <p>
+ * 短信发送模板 服务实现类
+ * </p>
+ *
+ * @author xiao jun
+ * @since 2021-03-11
+ */
+@Service
+public class SmsSendTemplateServiceImpl extends ServiceImpl<SmsSendTemplateMapper, SmsSendTemplate> implements SmsSendTemplateService {
+
+    @Override
+    @NeedSetValueField
+    public Page<SmsSendTemplate> page(SmsSendTemplateParam templateParam) {
+        LambdaQueryWrapper<SmsSendTemplate> queryWrapper = Wrappers.lambdaQuery();
+        if (ObjectUtil.isNotNull(templateParam)) {
+            // 根据模板编号模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getTemplateId())) {
+                queryWrapper.like(SmsSendTemplate::getTemplateId, templateParam.getTemplateId());
+            }
+
+            // 根据模板名称模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getTemplateName())) {
+                queryWrapper.like(SmsSendTemplate::getTemplateName, templateParam.getTemplateName());
+            }
+            // 根据执行类型模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getIsExec())) {
+                queryWrapper.eq(SmsSendTemplate::getIsExec, templateParam.getIsExec());
+            }
+            queryWrapper.orderByDesc(SmsSendTemplate::getCreateTime);
+        }
+        //根据排序升序排列，序号越小越在前
+        return page(new Page<>(templateParam.getCurrent(), templateParam.getSize()), queryWrapper);
+    }
+
+    @Override
+    @NeedSetValueField
+    public List<SmsSendTemplate> list(SmsSendTemplateParam templateParam) {
+        LambdaQueryWrapper<SmsSendTemplate> queryWrapper = Wrappers.lambdaQuery();
+        if (ObjectUtil.isNotNull(templateParam)) {
+            // 根据模板编号模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getTemplateId())) {
+                queryWrapper.like(SmsSendTemplate::getTemplateId, templateParam.getTemplateId());
+            }
+
+            // 根据模板名称模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getTemplateName())) {
+                queryWrapper.like(SmsSendTemplate::getTemplateName, templateParam.getTemplateName());
+            }
+            // 根据执行类型模糊查询
+            if (ObjectUtil.isNotEmpty(templateParam.getIsExec())) {
+                queryWrapper.eq(SmsSendTemplate::getIsExec, templateParam.getIsExec());
+            }
+            queryWrapper.ge(ObjectUtil.isNotEmpty(templateParam.getMinTemplateType()), SmsSendTemplate::getTemplateType, templateParam.getMinTemplateType());
+            queryWrapper.lt(ObjectUtil.isNotEmpty(templateParam.getMaxTemplateType()), SmsSendTemplate::getTemplateType, templateParam.getMaxTemplateType());
+            queryWrapper.orderByAsc(SmsSendTemplate::getTemplateType);
+        }
+        //根据排序升序排列，序号越小越在前
+        return list(queryWrapper);
+    }
+
+    @Override
+    public Long add(SmsSendTemplateParam templateParam) {
+        SmsSendTemplate smsSendTemplate = new SmsSendTemplate();
+        BeanUtil.copyProperties(templateParam, smsSendTemplate);
+        this.save(smsSendTemplate);
+        return smsSendTemplate.getTemplateId();
+    }
+
+    @Override
+    public void delete(SmsSendTemplateParam templateParam) {
+        remove(Wrappers.<SmsSendTemplate>lambdaQuery()
+                .eq(SmsSendTemplate::getTemplateId, templateParam.getTemplateId()));
+    }
+
+    @Override
+    public void edit(SmsSendTemplateParam templateParam) {
+        SmsSendTemplate smsSendTemplate = this.querySmsSendTemplate(templateParam);
+        BeanUtil.copyProperties(templateParam, smsSendTemplate);
+        this.updateById(smsSendTemplate);
+    }
+
+    @Override
+    public SmsSendTemplate detail(SmsSendTemplateParam templateParam) {
+        return this.querySmsSendTemplate(templateParam);
+    }
+
+    @Override
+    public SmsSendTemplate getTemplateByType(SmsSendTemplateParam templateParam) {
+        List<SmsSendTemplate> list = list(Wrappers.<SmsSendTemplate>lambdaQuery()
+                .eq(SmsSendTemplate::getTemplateType, templateParam.getTemplateType())
+                .eq(SmsSendTemplate::getIsValid, SmsTemplateValidEnum.IS_VALID.getCode())
+                .eq(SmsSendTemplate::getIsExec, SmsTemplateExecEnum.IS_EXEC.getCode()));
+        if (CollectionUtils.isEmpty(list)) {
+            throw new ServiceException(SmsSendTemplateException.TEMPLATE_NOT_EXIST);
+        } else if (list.size() > 1) {
+            throw new ServiceException(Integer.parseInt(ResponseData.SUCCESSFUL_CODE), "查询到多条短信模板");
+        }
+        return list.get(0);
+    }
+
+    @Override
+    public SmsSendTemplate getTemplateByType(String templateType) {
+        SmsSendTemplate smsTemplate = getOne(Wrappers.<SmsSendTemplate>lambdaQuery()
+                .eq(SmsSendTemplate::getTemplateType, templateType)
+                .eq(SmsSendTemplate::getIsValid, SmsTemplateValidEnum.IS_VALID.getCode())
+                .eq(SmsSendTemplate::getIsExec, SmsTemplateExecEnum.IS_EXEC.getCode())
+                .orderByAsc(SmsSendTemplate::getCreateTime)
+                .last("LIMIT 1"));
+        if (ObjectUtil.isNull(smsTemplate)) {
+            throw new ServiceException(SmsTemplateException.TEMPLATE_NOT_EXIST);
+        }
+        return smsTemplate;
+    }
+
+    /**
+     * 根据模板id查询短信模板
+     *
+     * @param templateParam
+     * @return
+     */
+    private SmsSendTemplate querySmsSendTemplate(SmsSendTemplateParam templateParam) {
+        SmsSendTemplate smsSendTemplate = this.getById(templateParam.getTemplateId());
+        if (ObjectUtil.isNull(smsSendTemplate)) {
+            throw new ServiceException(SmsSendTemplateException.TEMPLATE_NOT_EXIST);
+        }
+        return smsSendTemplate;
+    }
+}

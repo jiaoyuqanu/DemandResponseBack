@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.SubsidyAppealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        <id column="id" property="id" />
+        <result column="subsidy_id" property="subsidyId" />
+        <result column="appeal_reason" property="appealReason" />
+        <result column="remark" property="remark" />
+        <result column="status" property="status" />
+        <result column="file_ids" property="fileIds" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, subsidy_id, appeal_reason, remark, status, file_ids, create_time, create_user, update_time, update_user
+    </sql>
+
+    <select id="getDetail" parameterType="LONG" resultType="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        SELECT
+        a.id as id,
+        a.evaluation_id as evaluationId,
+        a.appeal_reason as appealReason,
+        a.remark as remark,
+        a.status as status,
+        a.file_ids as fileIds,
+        b.is_effective as isEffective,
+        c.id as consId,
+        c.cons_name as consName,
+        c.first_contact_info as phone,
+        d.EVENT_NO as eventNo,
+        d.EVENT_NAME as eventName
+    FROM
+        dr_subsidy_appeal a
+        LEFT JOIN dr_cons_evaluation b ON a.evaluation_id = b.evaluation_id
+        LEFT JOIN dr_cons c on c.id = b.cons_id
+        LEFT JOIN dr_event d on d.event_id = b.event_id
+        where a.id=#{id}
+    </select>
+
+</mapper>

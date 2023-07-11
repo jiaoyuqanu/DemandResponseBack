@@ -1,0 +1,735 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.data.mapper.ConsCurveMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.data.entity.ConsCurve">
+        <id column="data_id" property="dataId" />
+        <result column="cons_id" property="consId" />
+        <result column="data_date" property="dataDate" />
+        <result column="data_point_flag" property="dataPointFlag" />
+        <result column="p1" property="p1" />
+        <result column="p2" property="p2" />
+        <result column="p3" property="p3" />
+        <result column="p4" property="p4" />
+        <result column="p5" property="p5" />
+        <result column="p6" property="p6" />
+        <result column="p7" property="p7" />
+        <result column="p8" property="p8" />
+        <result column="p9" property="p9" />
+        <result column="p10" property="p10" />
+        <result column="p11" property="p11" />
+        <result column="p12" property="p12" />
+        <result column="p13" property="p13" />
+        <result column="p14" property="p14" />
+        <result column="p15" property="p15" />
+        <result column="p16" property="p16" />
+        <result column="p17" property="p17" />
+        <result column="p18" property="p18" />
+        <result column="p19" property="p19" />
+        <result column="p20" property="p20" />
+        <result column="p21" property="p21" />
+        <result column="p22" property="p22" />
+        <result column="p23" property="p23" />
+        <result column="p24" property="p24" />
+        <result column="p25" property="p25" />
+        <result column="p26" property="p26" />
+        <result column="p27" property="p27" />
+        <result column="p28" property="p28" />
+        <result column="p29" property="p29" />
+        <result column="p30" property="p30" />
+        <result column="p31" property="p31" />
+        <result column="p32" property="p32" />
+        <result column="p33" property="p33" />
+        <result column="p34" property="p34" />
+        <result column="p35" property="p35" />
+        <result column="p36" property="p36" />
+        <result column="p37" property="p37" />
+        <result column="p38" property="p38" />
+        <result column="p39" property="p39" />
+        <result column="p40" property="p40" />
+        <result column="p41" property="p41" />
+        <result column="p42" property="p42" />
+        <result column="p43" property="p43" />
+        <result column="p44" property="p44" />
+        <result column="p45" property="p45" />
+        <result column="p46" property="p46" />
+        <result column="p47" property="p47" />
+        <result column="p48" property="p48" />
+        <result column="p49" property="p49" />
+        <result column="p50" property="p50" />
+        <result column="p51" property="p51" />
+        <result column="p52" property="p52" />
+        <result column="p53" property="p53" />
+        <result column="p54" property="p54" />
+        <result column="p55" property="p55" />
+        <result column="p56" property="p56" />
+        <result column="p57" property="p57" />
+        <result column="p58" property="p58" />
+        <result column="p59" property="p59" />
+        <result column="p60" property="p60" />
+        <result column="p61" property="p61" />
+        <result column="p62" property="p62" />
+        <result column="p63" property="p63" />
+        <result column="p64" property="p64" />
+        <result column="p65" property="p65" />
+        <result column="p66" property="p66" />
+        <result column="p67" property="p67" />
+        <result column="p68" property="p68" />
+        <result column="p69" property="p69" />
+        <result column="p70" property="p70" />
+        <result column="p71" property="p71" />
+        <result column="p72" property="p72" />
+        <result column="p73" property="p73" />
+        <result column="p74" property="p74" />
+        <result column="p75" property="p75" />
+        <result column="p76" property="p76" />
+        <result column="p77" property="p77" />
+        <result column="p78" property="p78" />
+        <result column="p79" property="p79" />
+        <result column="p80" property="p80" />
+        <result column="p81" property="p81" />
+        <result column="p82" property="p82" />
+        <result column="p83" property="p83" />
+        <result column="p84" property="p84" />
+        <result column="p85" property="p85" />
+        <result column="p86" property="p86" />
+        <result column="p87" property="p87" />
+        <result column="p88" property="p88" />
+        <result column="p89" property="p89" />
+        <result column="p90" property="p90" />
+        <result column="p91" property="p91" />
+        <result column="p92" property="p92" />
+        <result column="p93" property="p93" />
+        <result column="p94" property="p94" />
+        <result column="p95" property="p95" />
+        <result column="p96" property="p96" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        data_id, cons_id, data_date, data_point_flag, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39, p40, p41, p42, p43, p44, p45, p46, p47, p48, p49, p50, p51, p52, p53, p54, p55, p56, p57, p58, p59, p60, p61, p62, p63, p64, p65, p66, p67, p68, p69, p70, p71, p72, p73, p74, p75, p76, p77, p78, p79, p80, p81, p82, p83, p84, p85, p86, p87, p88, p89, p90, p91, p92, p93, p94, p95, p96
+    </sql>
+
+
+    <!--历史数据服务 根据电力营销户号查询指定日期的负荷数-->
+    <select id="queryConsCurveHistory" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no = #{consNo}
+        <if test="dataDate != null">
+            AND cr.data_date = #{dataDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+    <!--历史数据服务 根据电力营销户号查询指定日期范围内的负荷数据 单个用户-->
+    <select id="queryConsCurveHistoryDateScope" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no = #{consNo}
+        <if test="startDate != null and endDate != null">
+            AND cr.data_date BETWEEN #{startDate} AND #{endDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+    <!--查询实时数据负荷 一个用户-->
+    <select id = "queryConsCurveRealLoad" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no = #{consNo}
+        <if test="dataDate != null">
+            AND cr.data_date = #{dataDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+
+    <!--查询实时数据负荷  多个用户-->
+    <select id = "queryConsCurveRealLoadList" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no IN
+        <foreach collection="consNoList" index="index" item="consNo" open="(" separator=","
+                 close=")">
+            #{consNo}
+        </foreach>
+        <if test="dataDate != null">
+            AND cr.data_date = #{dataDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+    <!--查询实时数据负荷ConsEnergyCurve  一个用户-->
+    <select id="queryConsEnergyCurveRealLoad" resultType="com.xqxy.dr.modular.data.entity.ConsEnergyCurve">
+        SELECT
+        sj.cons_no as consNo,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as e1, sum(cr.p2) as e2, sum(cr.p3) as e3, sum(cr.p4) as e4, sum(cr.p5) as e5, sum(cr.p6) as e6, sum(cr.p7) as e7, sum(cr.p8) as e8,
+        sum(cr.p9) as e9, sum(cr.p10) as e10, sum(cr.p11) as e11, sum(cr.p12) as e12, sum(cr.p13) as e13, sum(cr.p14) as e14, sum(cr.p15) as e15, sum(cr.p16) as e16,
+        sum(cr.p17) as e17, sum(cr.p18) as e18, sum(cr.p19) as e19, sum(cr.p20) as e20, sum(cr.p21) as e21, sum(cr.p22) as e22, sum(cr.p23) as e23, sum(cr.p24) as e24,
+        sum(cr.p25) as e25, sum(cr.p26) as e26, sum(cr.p27) as e27, sum(cr.p28) as e28, sum(cr.p29) as e29, sum(cr.p30) as e30, sum(cr.p31) as e31, sum(cr.p32) as e32,
+        sum(cr.p33) as e33, sum(cr.p34) as e34, sum(cr.p35) as e35, sum(cr.p36) as e36, sum(cr.p37) as e37, sum(cr.p38) as e38, sum(cr.p39) as e39, sum(cr.p40) as e40,
+        sum(cr.p41) as e41, sum(cr.p42) as e42, sum(cr.p43) as e43, sum(cr.p44) as e44, sum(cr.p45) as e45, sum(cr.p46) as e46, sum(cr.p47) as e47, sum(cr.p48) as e48,
+        sum(cr.p49) as e49, sum(cr.p50) as e50, sum(cr.p51) as e51, sum(cr.p52) as e52, sum(cr.p53) as e53, sum(cr.p54) as e54, sum(cr.p55) as e55, sum(cr.p56) as e56,
+        sum(cr.p57) as e57, sum(cr.p58) as e58, sum(cr.p59) as e59, sum(cr.p60) as e60, sum(cr.p61) as e61, sum(cr.p62) as e62, sum(cr.p63) as e63, sum(cr.p64) as e64,
+        sum(cr.p65) as e65, sum(cr.p66) as e66, sum(cr.p67) as e67, sum(cr.p68) as e68, sum(cr.p69) as e69, sum(cr.p70) as e70, sum(cr.p71) as e71, sum(cr.p72) as e72,
+        sum(cr.p73) as e73, sum(cr.p74) as e74, sum(cr.p75) as e75, sum(cr.p76) as e76, sum(cr.p77) as e77, sum(cr.p78) as e78, sum(cr.p79) as e79, sum(cr.p80) as e80,
+        sum(cr.p81) as e81, sum(cr.p82) as e82, sum(cr.p83) as e83, sum(cr.p84) as e84, sum(cr.p85) as e85, sum(cr.p86) as e86, sum(cr.p87) as e87, sum(cr.p88) as e88,
+        sum(cr.p89) as e89, sum(cr.p90) as e90, sum(cr.p91) as e91, sum(cr.p92) as e92, sum(cr.p93) as e93, sum(cr.p94) as e94, sum(cr.p95) as e95, sum(cr.p96) as e96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no = #{consNo}
+        <if test="dataDate != null">
+            AND cr.data_date = #{dataDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+    <!--历史数据服务，多户号查询 多日期-->
+    <select id = "queryHistoryCurveDateList" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no IN
+        <foreach collection="consNoList" index="index" item="consNo" open="(" separator=","
+                 close=")">
+            #{consNo}
+        </foreach>
+        and cr.data_date in
+        <foreach collection="dataDateList" index="index" item="dataDate" open="(" separator=","
+                 close=")">
+            #{dataDate}
+        </foreach>
+        GROUP BY sj.cons_no
+    </select>
+
+    <!--历史数据服务，多户号查询-->
+    <select id = "queryHistoryCurvePage" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sj.cons_no as consId,
+        cr.data_date as dataDate,
+        cr.data_point_flag as dataPointFlag,
+        sum(cr.p1) as p1, sum(cr.p2) as p2, sum(cr.p3) as p3, sum(cr.p4) as p4, sum(cr.p5) as p5, sum(cr.p6) as p6, sum(cr.p7) as p7, sum(cr.p8) as p8,
+        sum(cr.p9) as p9, sum(cr.p10) as p10, sum(cr.p11) as p11, sum(cr.p12) as p12, sum(cr.p13) as p13, sum(cr.p14) as p14, sum(cr.p15) as p15, sum(cr.p16) as p16,
+        sum(cr.p17) as p17, sum(cr.p18) as p18, sum(cr.p19) as p19, sum(cr.p20) as p20, sum(cr.p21) as p21, sum(cr.p22) as p22, sum(cr.p23) as p23, sum(cr.p24) as p24,
+        sum(cr.p25) as p25, sum(cr.p26) as p26, sum(cr.p27) as p27, sum(cr.p28) as p28, sum(cr.p29) as p29, sum(cr.p30) as p30, sum(cr.p31) as p31, sum(cr.p32) as p32,
+        sum(cr.p33) as p33, sum(cr.p34) as p34, sum(cr.p35) as p35, sum(cr.p36) as p36, sum(cr.p37) as p37, sum(cr.p38) as p38, sum(cr.p39) as p39, sum(cr.p40) as p40,
+        sum(cr.p41) as p41, sum(cr.p42) as p42, sum(cr.p43) as p43, sum(cr.p44) as p44, sum(cr.p45) as p45, sum(cr.p46) as p46, sum(cr.p47) as p47, sum(cr.p48) as p48,
+        sum(cr.p49) as p49, sum(cr.p50) as p50, sum(cr.p51) as p51, sum(cr.p52) as p52, sum(cr.p53) as p53, sum(cr.p54) as p54, sum(cr.p55) as p55, sum(cr.p56) as p56,
+        sum(cr.p57) as p57, sum(cr.p58) as p58, sum(cr.p59) as p59, sum(cr.p60) as p60, sum(cr.p61) as p61, sum(cr.p62) as p62, sum(cr.p63) as p63, sum(cr.p64) as p64,
+        sum(cr.p65) as p65, sum(cr.p66) as p66, sum(cr.p67) as p67, sum(cr.p68) as p68, sum(cr.p69) as p69, sum(cr.p70) as p70, sum(cr.p71) as p71, sum(cr.p72) as p72,
+        sum(cr.p73) as p73, sum(cr.p74) as p74, sum(cr.p75) as p75, sum(cr.p76) as p76, sum(cr.p77) as p77, sum(cr.p78) as p78, sum(cr.p79) as p79, sum(cr.p80) as p80,
+        sum(cr.p81) as p81, sum(cr.p82) as p82, sum(cr.p83) as p83, sum(cr.p84) as p84, sum(cr.p85) as p85, sum(cr.p86) as p86, sum(cr.p87) as p87, sum(cr.p88) as p88,
+        sum(cr.p89) as p89, sum(cr.p90) as p90, sum(cr.p91) as p91, sum(cr.p92) as p92, sum(cr.p93) as p93, sum(cr.p94) as p94, sum(cr.p95) as p95, sum(cr.p96) as p96
+        FROM my_alzt.ads_mrt_sjpt_power_curve_real cr
+        LEFT JOIN my_alzt.ads_mrt_sjpt_zbcons sj ON sj.meter_id = cr.meter_id
+        WHERE sj.cons_no IN
+        <foreach collection="consNoList" index="index" item="consNo" open="(" separator=","
+                 close=")">
+            #{consNo}
+        </foreach>
+        <if test="dataDate != null and dataDate != ''">
+            AND cr.data_date = #{dataDate}
+        </if>
+        GROUP BY sj.cons_no
+    </select>
+
+    <select id="getCurveByConsIdListAndDate" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        sum(p1) p1,
+        sum(p2) p2,
+        sum(p3) p3,
+        sum(p4) p4,
+        sum(p5) p5,
+        sum(p6) p6,
+        sum(p7) p7,
+        sum(p8) p8,
+        sum(p9) p9,
+        sum(p10) p10,
+        sum(p11) p11,
+        sum(p12) p12,
+        sum(p13) p13,
+        sum(p14) p14,
+        sum(p15) p15,
+        sum(p16) p16,
+        sum(p17) p17,
+        sum(p18) p18,
+        sum(p19) p19,
+        sum(p20) p20,
+        sum(p21) p21,
+        sum(p22) p22,
+        sum(p23) p23,
+        sum(p24) p24,
+        sum(p25) p25,
+        sum(p26) p26,
+        sum(p27) p27,
+        sum(p28) p28,
+        sum(p29) p29,
+        sum(p30) p30,
+        sum(p31) p31,
+        sum(p32) p32,
+        sum(p33) p33,
+        sum(p34) p34,
+        sum(p35) p35,
+        sum(p36) p36,
+        sum(p37) p37,
+        sum(p38) p38,
+        sum(p39) p39,
+        sum(p40) p40,
+        sum(p41) p41,
+        sum(p42) p42,
+        sum(p43) p43,
+        sum(p44) p44,
+        sum(p45) p45,
+        sum(p46) p46,
+        sum(p47) p47,
+        sum(p48) p48,
+        sum(p49) p49,
+        sum(p50) p50,
+        sum(p51) p51,
+        sum(p52) p52,
+        sum(p53) p53,
+        sum(p54) p54,
+        sum(p55) p55,
+        sum(p56) p56,
+        sum(p57) p57,
+        sum(p58) p58,
+        sum(p59) p59,
+        sum(p60) p60,
+        sum(p61) p61,
+        sum(p62) p62,
+        sum(p63) p63,
+        sum(p64) p64,
+        sum(p65) p65,
+        sum(p66) p66,
+        sum(p67) p67,
+        sum(p68) p68,
+        sum(p69) p69,
+        sum(p70) p70,
+        sum(p71) p71,
+        sum(p72) p72,
+        sum(p73) p73,
+        sum(p74) p74,
+        sum(p75) p75,
+        sum(p76) p76,
+        sum(p77) p77,
+        sum(p78) p78,
+        sum(p79) p79,
+        sum(p80) p80,
+        sum(p81) p81,
+        sum(p82) p82,
+        sum(p83) p83,
+        sum(p84) p84,
+        sum(p85) p85,
+        sum(p86) p86,
+        sum(p87) p87,
+        sum(p88) p88,
+        sum(p89) p89,
+        sum(p90) p90,
+        sum(p91) p91,
+        sum(p92) p92,
+        sum(p93) p93,
+        sum(p94) p94,
+        sum(p95) p95,
+        sum(p96) p96
+        FROM
+        dr_cons_curve
+        <where>
+            <if test="condIdList != null">
+                and cons_id in
+                <foreach collection="condIdList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="date != null">
+                and data_date = #{date}
+            </if>
+        </where>
+    </select>
+
+    <select id="getCurveByConsIdListAndDate2" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT  * FROM dr_cons_curve
+            <where>
+                <if test="condIdList != null">
+                    and cons_id in
+                    <foreach collection="condIdList" open="(" item="id" separator="," close=")">
+                        #{id}
+                    </foreach>
+                </if>
+                <if test="date != null">
+                    and data_date = #{date}
+                </if>
+            </where>
+    </select>
+
+    <select id="getCurveByConsIdListAndDate3" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT  * FROM dr_cons_curve_today
+        <where>
+            <if test="condIdList != null">
+                and cons_id in
+                <foreach collection="condIdList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="date != null">
+                and data_date = #{date}
+            </if>
+        </where>
+    </select>
+
+    <select id="getCurveAllByDate" resultType="com.xqxy.dr.modular.data.entity.ConsCurve">
+        SELECT
+        cons_id consId,
+        sum(p1)/#{size} p1,
+        sum(p2)/#{size} p2,
+        sum(p3)/#{size} p3,
+        sum(p4)/#{size} p4,
+        sum(p5)/#{size} p5,
+        sum(p6)/#{size} p6,
+        sum(p7)/#{size} p7,
+        sum(p8)/#{size} p8,
+        sum(p9)/#{size} p9,
+        sum(p10)/#{size} p10,
+        sum(p11)/#{size} p11,
+        sum(p12)/#{size} p12,
+        sum(p13)/#{size} p13,
+        sum(p14)/#{size} p14,
+        sum(p15)/#{size} p15,
+        sum(p16)/#{size} p16,
+        sum(p17)/#{size} p17,
+        sum(p18)/#{size} p18,
+        sum(p19)/#{size} p19,
+        sum(p20)/#{size} p20,
+        sum(p21)/#{size} p21,
+        sum(p22)/#{size} p22,
+        sum(p23)/#{size} p23,
+        sum(p24)/#{size} p24,
+        sum(p25)/#{size} p25,
+        sum(p26)/#{size} p26,
+        sum(p27)/#{size} p27,
+        sum(p28)/#{size} p28,
+        sum(p29)/#{size} p29,
+        sum(p30)/#{size} p30,
+        sum(p31)/#{size} p31,
+        sum(p32)/#{size} p32,
+        sum(p33)/#{size} p33,
+        sum(p34)/#{size} p34,
+        sum(p35)/#{size} p35,
+        sum(p36)/#{size} p36,
+        sum(p37)/#{size} p37,
+        sum(p38)/#{size} p38,
+        sum(p39)/#{size} p39,
+        sum(p40)/#{size} p40,
+        sum(p41)/#{size} p41,
+        sum(p42)/#{size} p42,
+        sum(p43)/#{size} p43,
+        sum(p44)/#{size} p44,
+        sum(p45)/#{size} p45,
+        sum(p46)/#{size} p46,
+        sum(p47)/#{size} p47,
+        sum(p48)/#{size} p48,
+        sum(p49)/#{size} p49,
+        sum(p50)/#{size} p50,
+        sum(p51)/#{size} p51,
+        sum(p52)/#{size} p52,
+        sum(p53)/#{size} p53,
+        sum(p54)/#{size} p54,
+        sum(p55)/#{size} p55,
+        sum(p56)/#{size} p56,
+        sum(p57)/#{size} p57,
+        sum(p58)/#{size} p58,
+        sum(p59)/#{size} p59,
+        sum(p60)/#{size} p60,
+        sum(p61)/#{size} p61,
+        sum(p62)/#{size} p62,
+        sum(p63)/#{size} p63,
+        sum(p64)/#{size} p64,
+        sum(p65)/#{size} p65,
+        sum(p66)/#{size} p66,
+        sum(p67)/#{size} p67,
+        sum(p68)/#{size} p68,
+        sum(p69)/#{size} p69,
+        sum(p70)/#{size} p70,
+        sum(p71)/#{size} p71,
+        sum(p72)/#{size} p72,
+        sum(p73)/#{size} p73,
+        sum(p74)/#{size} p74,
+        sum(p75)/#{size} p75,
+        sum(p76)/#{size} p76,
+        sum(p77)/#{size} p77,
+        sum(p78)/#{size} p78,
+        sum(p79)/#{size} p79,
+        sum(p80)/#{size} p80,
+        sum(p81)/#{size} p81,
+        sum(p82)/#{size} p82,
+        sum(p83)/#{size} p83,
+        sum(p84)/#{size} p84,
+        sum(p85)/#{size} p85,
+        sum(p86)/#{size} p86,
+        sum(p87)/#{size} p87,
+        sum(p88)/#{size} p88,
+        sum(p89)/#{size} p89,
+        sum(p90)/#{size} p90,
+        sum(p91)/#{size} p91,
+        sum(p92)/#{size} p92,
+        sum(p93)/#{size} p93,
+        sum(p94)/#{size} p94,
+        sum(p95)/#{size} p95,
+        sum(p96)/#{size} p96
+        FROM
+        dr_cons_curve
+        <where>
+            <if test="simpList != null">
+                and data_date in
+                <foreach collection="simpList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        group by cons_id
+    </select>
+    <select id="getOrgNoCurve" resultType="com.xqxy.dr.modular.data.OrgNoCurve">
+        SELECT
+            c.ORG_NO,
+            sum(p1) p1,
+            sum(p2) p2,
+            sum(p3) p3,
+            sum(p4) p4,
+            sum(p5) p5,
+            sum(p6) p6,
+            sum(p7) p7,
+            sum(p8) p8,
+            sum(p9) p9,
+            sum(p10) p10,
+            sum(p11) p11,
+            sum(p12) p12,
+            sum(p13) p13,
+            sum(p14) p14,
+            sum(p15) p15,
+            sum(p16) p16,
+            sum(p17) p17,
+            sum(p18) p18,
+            sum(p19) p19,
+            sum(p20) p20,
+            sum(p21) p21,
+            sum(p22) p22,
+            sum(p23) p23,
+            sum(p24) p24,
+            sum(p25) p25,
+            sum(p26) p26,
+            sum(p27) p27,
+            sum(p28) p28,
+            sum(p29) p29,
+            sum(p30) p30,
+            sum(p31) p31,
+            sum(p32) p32,
+            sum(p33) p33,
+            sum(p34) p34,
+            sum(p35) p35,
+            sum(p36) p36,
+            sum(p37) p37,
+            sum(p38) p38,
+            sum(p39) p39,
+            sum(p40) p40,
+            sum(p41) p41,
+            sum(p42) p42,
+            sum(p43) p43,
+            sum(p44) p44,
+            sum(p45) p45,
+            sum(p46) p46,
+            sum(p47) p47,
+            sum(p48) p48,
+            sum(p49) p49,
+            sum(p50) p50,
+            sum(p51) p51,
+            sum(p52) p52,
+            sum(p53) p53,
+            sum(p54) p54,
+            sum(p55) p55,
+            sum(p56) p56,
+            sum(p57) p57,
+            sum(p58) p58,
+            sum(p59) p59,
+            sum(p60) p60,
+            sum(p61) p61,
+            sum(p62) p62,
+            sum(p63) p63,
+            sum(p64) p64,
+            sum(p65) p65,
+            sum(p66) p66,
+            sum(p67) p67,
+            sum(p68) p68,
+            sum(p69) p69,
+            sum(p70) p70,
+            sum(p71) p71,
+            sum(p72) p72,
+            sum(p73) p73,
+            sum(p74) p74,
+            sum(p75) p75,
+            sum(p76) p76,
+            sum(p77) p77,
+            sum(p78) p78,
+            sum(p79) p79,
+            sum(p80) p80,
+            sum(p81) p81,
+            sum(p82) p82,
+            sum(p83) p83,
+            sum(p84) p84,
+            sum(p85) p85,
+            sum(p86) p86,
+            sum(p87) p87,
+            sum(p88) p88,
+            sum(p89) p89,
+            sum(p90) p90,
+            sum(p91) p91,
+            sum(p92) p92,
+            sum(p93) p93,
+            sum(p94) p94,
+            sum(p95) p95,
+            sum(p96) p96
+        FROM
+            <if test="isToday">
+                dr_cons_curve_today
+            </if>
+            <if test="!isToday">
+                dr_cons_curve
+            </if>
+                cc
+                INNER JOIN dr_cons c ON c.ID = cc.cons_id
+            <if test="isDoubleHigh">
+                INNER JOIN sc_loadctl.t_elec_comp ec on ec.CONS_NO = c.ID
+            </if>
+        WHERE
+        <if test="!isToday">
+            cc.data_date BETWEEN #{start} AND #{end}
+        </if>
+        <if test="isToday">
+            cc.data_date = #{date}
+        </if>
+        <if test="isDoubleHigh">
+          and ec.IS_DOUBLE_HIGH = 1
+        </if>
+        GROUP BY c.ORG_NO
+    </select>
+
+    <select id="getCurveAllAmendByDate" resultType="com.xqxy.dr.modular.event.entity.EventPowerSample">
+        select * from dr_event_power_sample_all
+        <where>
+            baseline_id = #{baselinId}
+            <if test="simpList != null and simpList.size>0">
+                 and data_date in
+                <foreach collection="simpList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="cons != null and cons.size>0">
+                and cons_id in
+                <foreach collection="cons" open="(" item="con" separator="," close=")">
+                    #{con}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getCurveAmendByDate" resultType="com.xqxy.dr.modular.event.entity.EventPowerSample">
+        select * from dr_event_power_sample
+        <where>
+            baseline_id = #{baselinId}
+            <if test="simpList != null and simpList.size>0">
+                and data_date in
+                <foreach collection="simpList" open="(" item="id" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="cons != null and cons.size>0">
+                and cons_id in
+                <foreach collection="cons" open="(" item="con" separator="," close=")">
+                    #{con}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

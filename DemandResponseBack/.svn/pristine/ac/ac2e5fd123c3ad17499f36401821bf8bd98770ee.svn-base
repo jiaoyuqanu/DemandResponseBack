@@ -1,0 +1,113 @@
+package com.xqxy.dr.modular.event.utils;
+
+import com.alibaba.fastjson.JSONArray;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class OrgUtils {
+
+    private String codeCity;
+
+    private String codeCountry;
+
+    private String placeCountry;
+
+    private Map<String,Object> resultsMap = new HashMap<>();
+
+
+    public List<String> getData(JSONArray jsonArray, String code, List<String> listPart) {
+        //获取最后一级编码的子集
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("parentId").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            for(int i=0;i<child.size();i++) {
+                Map<String,Object> jsonObject = (Map<String,Object>) child.get(i);
+                listPart.add((String) jsonObject.get("id"));
+                //递归获取下一级子集
+                getData(jsonArray,(String) jsonObject.get("id"),listPart);
+            }
+        }
+        listPart.add(code);
+        return listPart;
+    }
+
+    public List<String> getData2(JSONArray jsonArray, String code, List<String> listPart) {
+        //获根据子集获取父级编码
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            Map<String,Object> jsonObject = (Map<String,Object>) child.get(0);
+            String parentId = (String) jsonObject.get("parentId");
+            String orgTitle = (String) jsonObject.get("orgTitle");
+            if(!"1".equals(orgTitle) && !"2".equals(orgTitle)) {
+                listPart.add(parentId);
+                getData2(jsonArray, parentId, listPart);
+            }
+        }
+        return listPart;
+    }
+
+    public String getData3(JSONArray jsonArray, String code, String listPart) {
+        //获根据子集获取父级市编码
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            Map<String,Object> jsonObject = (Map<String,Object>) child.get(0);
+            String parentId = (String) jsonObject.get("parentId");
+            String orgTitle = (String) jsonObject.get("orgTitle");
+            if(!"1".equals(orgTitle) && !"2".equals(orgTitle)) {
+                getData3(jsonArray, parentId, listPart);
+            } else if("2".equals(orgTitle)){
+                codeCity = (String) jsonObject.get("id");
+            }
+        }
+        return codeCity;
+    }
+
+    /**
+     * 获取市级和县级组织机构
+     * @param jsonArray
+     * @param code
+     * @return
+     */
+    public Map<String,Object> getData4(JSONArray jsonArray, String code) {
+        //获根据子集获取父级市编码
+        JSONArray child = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(code)).collect(Collectors.toCollection(JSONArray::new));
+        if(null != child && child.size()>0) {
+            Map<String,Object> jsonObject = (Map<String,Object>) child.get(0);
+            String parentId = (String) jsonObject.get("parentId");
+            String orgTitle = (String) jsonObject.get("orgTitle");
+            if(!"1".equals(orgTitle) && !"2".equals(orgTitle)) {
+                if("3".equals(orgTitle)) {
+                    codeCountry = (String) jsonObject.get("id");
+                    JSONArray jsonArray1 = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(codeCountry)).collect(Collectors.toCollection(JSONArray::new));
+                    if(null!=jsonArray1) {
+                        Map<String,Object> jsonObject1 = (Map<String,Object>) jsonArray1.get(0);
+                        codeCountry = (String) jsonObject1.get("name");
+                    }
+                    resultsMap.put("county",codeCountry);
+                } else if("4".equals(orgTitle)){
+                    placeCountry = (String) jsonObject.get("id");
+                    codeCountry = (String) jsonObject.get("id");
+                    JSONArray jsonArray1 = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(placeCountry)).collect(Collectors.toCollection(JSONArray::new));
+                    if(null!=jsonArray1) {
+                        Map<String,Object> jsonObject1 = (Map<String,Object>) jsonArray1.get(0);
+                        placeCountry = (String) jsonObject1.get("name");
+                    }
+                    resultsMap.put("place",placeCountry);
+                }
+                getData4(jsonArray, parentId);
+            } else if("2".equals(orgTitle)){
+                codeCity = (String) jsonObject.get("id");
+                JSONArray jsonArray1 = jsonArray.stream().filter(item -> ((Map<String,Object>)item).get("id").equals(codeCity)).collect(Collectors.toCollection(JSONArray::new));
+                if(null!=jsonArray1) {
+                    Map<String,Object> jsonObject1 = (Map<String,Object>) jsonArray1.get(0);
+                    codeCity = (String) jsonObject1.get("name");
+                }
+                resultsMap.put("city",codeCity);
+            }
+        }
+        return resultsMap;
+    }
+}

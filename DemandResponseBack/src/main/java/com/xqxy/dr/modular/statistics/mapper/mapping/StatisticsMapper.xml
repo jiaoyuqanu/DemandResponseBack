@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.StatisticsMapper">
+    <select id="getUserAdjustRes" parameterType="com.xqxy.dr.modular.statistics.param.AdjustParam" resultType="com.xqxy.dr.modular.statistics.result.AdjustResourceResult">
+        SELECT
+        ( @i := @i + 1 ) AS sort,
+        a.*
+        FROM
+        (
+        SELECT
+        dc.id as id,
+        dc.CONS_NAME as name,
+        dc.first_contact_info as phone,
+        dc.CREATE_TIME as createTime,
+        IFNULL(sum( dcap.CONS_DES_POWER ),0) AS consDesPower,
+        IFNULL(sum( dcap.CONS_RIS_POWER ),0) AS consRisPower
+        FROM
+        dr_cons dc
+        LEFT JOIN dr_cons_adjustable_potential dcap ON dc.ID = dcap.CONS_ID
+        <where>
+            <if test="startTime != null and startTime != ''">
+                DATE_FORMAT(dc.CREATE_TIME,'%Y-%m-%d') &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and DATE_FORMAT(dc.CREATE_TIME,'%Y-%m-%d') &lt;= #{endTime}
+            </if>
+        </where>
+        GROUP BY dc.id
+        ) a,(
+        SELECT
+        @i := 0
+        ) AS i
+    </select>
+
+    <select id="getDeviceResponseTime" parameterType="com.xqxy.dr.modular.statistics.param.AdjustParam" resultType="com.xqxy.dr.modular.statistics.result.DeviceResponseTimeResult">
+        SELECT
+        ( @i := @i + 1 ) AS sort,
+        a.DEVICE_TYPE_NAME as deviceTypeName,
+        a.RATED_VOLTAGE as ratedVoltage,
+        a.RATED_POWER as ratedPower,
+        a.CREATE_TIME as createTime,
+        CASE
+        WHEN a.DES_RESPONSE_TIME >= 1440 THEN
+        CONCAT( format( a.DES_RESPONSE_TIME / 60 / 24, 1 ), '天' )
+        WHEN a.DES_RESPONSE_TIME &gt;= 60
+        AND a.DES_RESPONSE_TIME &lt; 1440 THEN
+        CONCAT( format( a.DES_RESPONSE_TIME / 60, 1 ), '小时' ) ELSE CONCAT( a.DES_RESPONSE_TIME, '分钟' )
+        END AS desResponseTime,
+        CASE
+        WHEN a.RIS_RESPONSE_TIME &gt;= 1440 THEN
+        CONCAT( format( a.RIS_RESPONSE_TIME / 60 / 24, 1 ), '天' )
+        WHEN a.RIS_RESPONSE_TIME >= 60
+        AND a.RIS_RESPONSE_TIME &lt; 1440 THEN
+        CONCAT( format( a.RIS_RESPONSE_TIME / 60, 1 ), '小时' ) ELSE CONCAT( a.RIS_RESPONSE_TIME, '分钟' )
+        END AS risResponseTime
+        FROM
+        ( SELECT dc.DEVICE_TYPE_NAME,
+                 dc.RATED_VOLTAGE,
+                 RATED_POWER,
+                 dc.CREATE_TIME,
+                 SUM( dc.DES_RESPONSE_TIME ) AS DES_RESPONSE_TIME,
+                 sum( dc.RIS_RESPONSE_TIME ) AS RIS_RESPONSE_TIME
+            FROM
+        dr_device_adjustable_base dc
+        <where>
+            <if test="startTime != null and startTime != ''">
+                DATE_FORMAT(dc.CREATE_TIME,'%Y-%m-%d') &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and DATE_FORMAT(dc.CREATE_TIME,'%Y-%m-%d') &lt;= #{endTime}
+            </if>
+        </where>
+        GROUP BY DEVICE_TYPE_CODE
+        ) a,(
+        SELECT
+        @i := 0
+        ) AS i
+    </select>
+
+    <select id="getDeviceType" resultType="com.xqxy.dr.modular.statistics.result.DeviceTypeResult">
+        SELECT
+            DEVICE_TYPE_NAME as name,
+            IFNULL( sum( DEVICE_NUM ), 0 ) AS total
+        FROM
+            dr_device_adjustable_base
+        WHERE
+            DEVICE_TYPE_NAME IS NOT NULL
+        GROUP BY
+            DEVICE_TYPE_NAME
+    </select>
+
+    <select id="getCoResource" resultType="com.xqxy.dr.modular.statistics.result.CoResourceResult">
+        SELECT
+            b.ORG_NAME AS NAME,
+            b.goal,
+            IFNULL(sum( c.CONS_DES_POWER ),0) AS des,
+            IFNULL(sum( c.CONS_RIS_POWER ),0) AS ris
+        FROM
+            dr_cons a
+            LEFT JOIN dr_cons_adjustable_potential c ON c.cons_id = a.id
+            LEFT JOIN dr_org_goal b ON a.org_no = b.org_id
+        WHERE
+            b.YEAR = YEAR (
+            NOW())
+        GROUP BY
+        NAME
+    </select>
+
+    <select id="responseTimeStatistics" resultType="com.xqxy.dr.modular.statistics.result.ResponseTimeStatisticsResult">
+
+        select * from (select * from
+        (select IFNULL(sum(REPORT_DES_MAX_POWER),0) reportDesMaxPower1 from dr_cons_adjustable_potential where DES_PREPARE_TIME<![CDATA[ <= ]]> 30)a,
+
+        (select IFNULL(sum(REPORT_DES_MAX_POWER),0) reportDesMaxPower2 from dr_cons_adjustable_potential where DES_PREPARE_TIME>30 and DES_PREPARE_TIME<![CDATA[ <= ]]> 240)b,
+
+        (select IFNULL(sum(REPORT_DES_MAX_POWER),0) reportDesMaxPower3 from dr_cons_adjustable_potential where DES_PREPARE_TIME>240 and DES_PREPARE_TIME<![CDATA[ <= ]]> 1440)c,
+
+        (select IFNULL(sum(REPORT_DES_MAX_POWER),0) reportDesMaxPower4 from dr_cons_adjustable_potential where DES_PREPARE_TIME>1440)d)abc
+        ,
+        (select * from
+        (select IFNULL(sum(REPORT_RIS_MAX_POWER),0) reportRisMaxPower1 from dr_cons_adjustable_potential where DES_PREPARE_TIME<![CDATA[ <= ]]> 30)a,
+
+        (select IFNULL(sum(REPORT_RIS_MAX_POWER),0) reportRisMaxPower2 from dr_cons_adjustable_potential where DES_PREPARE_TIME>30 and DES_PREPARE_TIME<![CDATA[ <= ]]> 240)b,
+
+        (select IFNULL(sum(REPORT_RIS_MAX_POWER),0) reportRisMaxPower3 from dr_cons_adjustable_potential where DES_PREPARE_TIME>240 and DES_PREPARE_TIME<![CDATA[ <= ]]> 1440)c,
+
+        (select IFNULL(sum(REPORT_RIS_MAX_POWER),0) reportRisMaxPower4 from dr_cons_adjustable_potential where DES_PREPARE_TIME>1440)d)def
+    </select>
+
+</mapper>

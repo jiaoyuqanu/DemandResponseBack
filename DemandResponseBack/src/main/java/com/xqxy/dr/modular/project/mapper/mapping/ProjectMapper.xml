@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.ProjectMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.Project">
+        <id column="project_id" property="projectId" />
+        <result column="project_no" property="projectNo" />
+        <result column="project_name" property="projectName" />
+        <result column="project_type" property="projectType" />
+        <result column="project_target" property="projectTarget" />
+        <result column="begin_date" property="beginDate" />
+        <result column="end_date" property="endDate" />
+        <result column="elec_price" property="elecPrice" />
+        <result column="partici_condition" property="particiCondition" />
+        <result column="incentive_standard" property="incentiveStandard"/>
+        <result column="validity_judgment" property="validityJudgment"/>
+        <result column="base_line_cal" property="baseLineCal"/>
+        <result column="state" property="state"/>
+        <result column="check_status" property="checkStatus"/>
+        <result column="pub_time" property="pubTime"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+        <association property="consContractInfo" javaType="com.xqxy.dr.modular.project.entity.ConsContractInfo">
+            <result column="contract_id" property="contractId"/>
+            <result column="CONS_ID" property="consId"/>
+            <result column="project_id" property="projectId"/>
+            <result column="partic_type" property="particType"/>
+            <result column="EXTRACT_RATIO" property="extractRatio"/>
+            <result column="first_contact_name" property="firstContactName"/>
+            <result column="first_contact_info" property="firstContactInfo"/>
+            <result column="second_contact_name" property="secondContactName"/>
+            <result column="second_contact_inifo" property="secondContactInifo"/>
+            <result column="check_status" property="checkStatus"/>
+            <result column="status" property="status"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        project_id, project_no, project_name, project_type, project_target, begin_date, end_date, elec_price,
+        partici_condition, incentive_standard, validity_judgment, base_line_cal, state, check_status, pub_time,
+        CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+
+    <select id="listProjectByConsId" resultMap="BaseResultMap">
+        SELECT
+            info.contract_id,
+            info.cons_id,
+            info.project_id,
+            info.partic_type,
+            info.extract_ratio,
+            info.first_contact_name,
+            info.first_contact_info,
+            info.second_contact_name,
+            info.second_contact_inifo,
+            info.check_status,
+            info.status,
+            dp.*
+        FROM dr_cons_contract_info info
+                 LEFT JOIN dr_project dp ON info.project_id = dp.project_id
+        WHERE info.`status` = 2
+          AND info.CONS_ID = #{consId}
+        ORDER BY dp.begin_date DESC
+    </select>
+    <!--    获取最近项目id-->
+    <select id="recentProjects" resultType="java.lang.String">
+        SELECT project_id
+        FROM dr_project
+        WHERE check_status = '3'
+        ORDER BY begin_date DESC LIMIT 1
+    </select>
+
+</mapper>

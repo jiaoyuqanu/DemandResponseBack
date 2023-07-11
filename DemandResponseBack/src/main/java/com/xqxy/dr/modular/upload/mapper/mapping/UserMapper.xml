@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.upload.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="UserMap" type="com.xqxy.dr.modular.upload.entity.Drcons">
+        <id column="ID" property="ID"/>
+        <association property="Potential" javaType="com.xqxy.dr.modular.upload.entity.AdjustablePotential">
+            <result column="id" property="id"></result>
+            <result column="CONS_ID" property="consId"></result>
+            <result column="BIG_CLASS_NAME" property="bigClassName"></result>
+            <result column="BIG_CLASS_CODE" property="bigClassCode"></result>
+            <result column="CLASS_NAME" property="className"></result>
+            <result column="CLASS_CODE" property="classCode"></result>
+            <result column="DES_PREPARE_TIME" property="desPrepareTime"></result>
+            <result column="DES_PREPARE_TIME_UNIT" property="desPrepareTimeUnit"></result>
+            <result column="RIS_PREPARE_TIME" property="risPrepareTime"></result>
+            <result column="RIS_PREPARE_TIME_UNIT" property="risPrepareTimeUnit"></result>
+            <result column="PROD_START_TIME" property="prodStartTime"></result>
+            <result column="PROD_START_TIME_UNIT" property="prodStartTimeUnit"></result>
+            <result column="PROD_END_TIME" property="prodEndTime"></result>
+            <result column="PROD_END_TIME_UNIT" property="prodEndTimeUnit"></result>
+            <result column="SAFETY_LOAD" property="safetyLoad"></result>
+            <result column="REPORT_DES_MAX_POWER" property="reportDesMaxPower"></result>
+            <result column="PARTAKE_DES_NUM" property="partakeDesNum"></result>
+            <result column="REPORT_RIS_MAX_POWER" property="reportRisMaxPower"></result>
+            <result column="PARTAKE_RIS_NUM" property="partakeRisNum"></result>
+            <result column="ONCE_REPONSE_TIME" property="onceReponseTime"></result>
+            <result column="ONCE_REPONSE_TIME_UNIT" property="onceReponseTimeUnit"></result>
+            <result column="EXPECT_DES_PRICE" property="expectDesPrice"></result>
+            <result column="EXPECT_RIS_PRICE" property="expectRisPrice"></result>
+            <result column="LAST_YEAR_RESP_POWER" property="lastYearRespPower"></result>
+            <result column="LAST_PART_DES_NUM" property="lastPartDesNum"></result>
+            <result column="LAST_DES_SUM_POWER" property="lastDesSumPower"></result>
+            <result column="LAST_PART_RIS_NUM" property="lastPartRisNum"></result>
+            <result column="LAST_RIS_SUM_ENERGY" property="lastRisSumEnergy"></result>
+            <result column="CONS_DES_POWER" property="consDesPower"></result>
+            <result column="CONS_RIS_POWER" property="consRisPower"></result>
+            <result column="YEAR" property="year"></result>
+            <result column="PROVINCE_ELE_CODE" property="PROVINCE_ELE_CODE"></result>
+            <result column="PROVINCE_ELE_NAME" property="PROVINCE_ELE_NAME"></result>
+            <result column="CITY_ELE_NAME" property="CITY_ELE_NAME"></result>
+            <result column="CITY_ELE_CODE" property="CITY_ELE_CODE"></result>
+        </association>
+        <association property="Cust" javaType="com.xqxy.dr.modular.upload.entity.Drcust">
+            <result column="ID" property="ID"></result>
+        </association>
+        <association property="Plancons" javaType="com.xqxy.dr.modular.upload.entity.PlanCons">
+            <result column="partic_id" property="particId"></result>
+            <result column="CONS_ID" property="consId"></result>
+            <result column="PLAN_ID" property="planId"></result>
+            <result column="baseline_cap_id" property="baselineCapId"></result>
+            <result column="DEMAND_CAP" property="demandCap"></result>
+            <result column="reply_price" property="replyPrice"></result>
+            <result column="sequence_no" property="sequenceNo"></result>
+            <result column="deleted" property="deleted"></result>
+            <result column="del_rule" property="delRule"></result>
+            <result column="CREATE_TIME" property="createTime"></result>
+            <result column="CREATE_USER" property="createUser"></result>
+            <result column="UPDATE_TIME" property="updateTime"></result>
+            <result column="UPDATE_USER" property="updateUser"></result>
+            <result column="INVOLVED_IN" property="involvedIn"></result>
+        </association>
+    </resultMap>
+
+    <select id="getUser" resultType="com.xqxy.dr.modular.upload.entity.Drcons">
+     SELECT
+     dr_cons_adjustable_potential.
+     id,dr_cons.CITY_CODE,
+     dr_cons.COUNTY_CODE,
+     dr_cons_adjustable_potential.CONS_ID,
+     dr_cons_adjustable_potential.BIG_CLASS_NAME,
+     dr_cons_adjustable_potential.BIG_CLASS_CODE,
+     dr_cons.CONTRACT_CAP,
+     dr_cons.DAY_MAX_POWER,
+     dr_cons_adjustable_potential.CONS_DES_POWER,
+     dr_cons.CREATE_TIME,
+     dr_cons.RUN_CAP,
+     dr_cust.CREDIT_CODE,
+     dr_cons.VOLTCODE
+     FROM dr_cons
+     LEFT JOIN dr_cons_adjustable_potential ON dr_cons.ID=dr_cons_adjustable_potential.CONS_ID
+     LEFT JOIN dr_cust ON dr_cust.ID=dr_cons.CUST_ID
+    </select>
+
+    <select id="getAbility" resultType="com.xqxy.dr.modular.upload.entity.Drcons">
+        SELECT
+        dr_cons.ID,
+        dr_cons_contract_info.contract_id,
+        dr_cons.CREATE_TIME,
+        dr_plan_cons.PLAN_ID,
+        dr_plan_cons.DEMAND_CAP
+        FROM dr_cons LEFT JOIN dr_cons_contract_info on dr_cons.ID=dr_cons_contract_info.CONS_ID
+        LEFT JOIN dr_plan_cons on dr_cons.ID=dr_plan_cons.CONS_ID
+    </select>
+
+
+</mapper>

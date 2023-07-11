@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.data.mapper.CustomerMapper">
+
+    <select id="getConsFromMarketing" parameterType="string" resultType="com.xqxy.sys.modular.cust.entity.Cons">
+        select
+        cons_id consid,
+        vat_id vatid,
+        cust_id custid,
+        a.cons_sort "consSort",
+        c.cons_no id,
+        trade_code "tradeCode",
+        status_code "statusCode",
+        cons_name "consName",
+        cust_query_no custqueryno,
+        tmp_pay_rela_no temppayrelano,
+        orgn_cons_no orgnconsno,
+        cons_sort_code "consSortCode",
+        elec_addr "elecAddr",
+        elec_type_code electype,
+        contract_cap contractcap,
+        run_cap "runCap",
+        lode_attr_code loadattr,
+        build_date builddate,
+        ps_date psdate,
+        cancel_date canceldate,
+        notify_mode notifymode,
+        settle_mode settlemode,
+        c.org_no "orgNo",
+        chk_cycle chkcycle,
+        checker_no checkerno,
+        security_cap securitycap
+        from fro_cms_epm_md.c_cons c,fro_amr_ocean_arch.r_data_mp a
+        where c.cons_no = a.cons_no
+        <if test="consNo != null and consNo != ''">
+            AND c.cons_no like concat('%',#{consNo},'%')
+        </if>
+        <if test="consName != null and consName != ''">
+            AND cons_name like concat('%',#{consName},'%')
+        </if>
+        <if test="orgNo != null and orgNo != ''">
+            AND c.org_no like concat('%',#{orgNo},'%')
+        </if>
+
+    </select>
+
+</mapper>

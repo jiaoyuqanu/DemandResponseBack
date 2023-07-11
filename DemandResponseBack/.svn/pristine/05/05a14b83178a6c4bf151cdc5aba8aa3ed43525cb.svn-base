@@ -1,0 +1,744 @@
+package com.xqxy.dr.modular.event.controller;
+
+
+import cn.afterturn.easypoi.entity.vo.NormalExcelConstants;
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
+import cn.afterturn.easypoi.view.PoiBaseView;
+import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.fill.FillConfig;
+import com.alibaba.excel.write.metadata.fill.FillWrapper;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.core.util.JSONRespUtil;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.data.entity.ConsCurveToday;
+import com.xqxy.dr.modular.data.service.ConsCurveService;
+import com.xqxy.dr.modular.data.service.ConsCurveTodayService;
+import com.xqxy.dr.modular.event.entity.*;
+import com.xqxy.dr.modular.event.model.*;
+import com.xqxy.dr.modular.event.param.*;
+import com.xqxy.dr.modular.event.result.ConsMonitorCurve;
+import com.xqxy.dr.modular.event.result.EventUserConsLineResult;
+import com.xqxy.dr.modular.event.result.EventUserCustLineResult;
+import com.xqxy.dr.modular.event.service.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+/**
+ * <p>
+ * 方案参与用户 前端控制器
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+@Api(tags = "方案参与用户API接口")
+@RestController
+@RequestMapping("/event/plan-cons")
+public class PlanConsController {
+
+    @Resource
+    private PlanConsService planConsService;
+
+    @Resource
+    private ConsCurveTodayService consCurveTodayService;
+
+    @Resource
+    private ConsCurveService consCurveService;
+
+    @Resource
+    private PlanService planService;
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private EventPowerSampleService eventPowerSampleService;
+
+    @Resource
+    private EventPowerSampleAllService eventPowerSampleAllService;
+
+    @Resource
+    private ConsBaselineService consBaselineService;
+
+    @Resource
+    private ConsBaselineAllService consBaselineAllService;
+
+    /**
+     * @description: 方案编制用户分页查询(未剔除)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "方案编制用户分页查询(未剔除)", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "方案编制用户分页查询(未剔除)", notes = "方案编制用户分页查询(未剔除)", produces = "application/json")
+    @PostMapping("/pageNotDeleted")
+    public ResponseData page(@RequestBody PlanConsParam planConsParam) {
+        return ResponseData.success(planConsService.pageNotDeleted(planConsParam));
+    }
+
+    /**
+     * @description: 方案编制用集成商页查询(未剔除)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "方案编制用集成商页查询(未剔除)", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "方案编制用集成商页查询(未剔除)", notes = "方案编制用集成商页查询(未剔除)", produces = "application/json")
+    @PostMapping("/pageCustNotDeleted")
+    public ResponseData pageCust(@RequestBody PlanCustParam planCustParam) {
+        return ResponseData.success(planConsService.pageCustNotDeleted(planCustParam));
+    }
+
+    /**
+     * @description: 执行方案集成商分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案集成商分页查询", notes = "执行方案集成商分页查询", produces = "application/json")
+    @PostMapping("/getCustExecuteList")
+    public ResponseData getCustExecuteList(@RequestBody DeleteCustParam deleteRuleParam) {
+        return ResponseData.success(planConsService.getCustExecuteList(deleteRuleParam));
+    }
+
+    /**
+     * @description: 执行方案用户分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案用户分页查询", notes = "执行方案用户分页查询", produces = "application/json")
+    @PostMapping("/getConsExecuteList")
+    public ResponseData getConsExecuteList(@RequestBody DeleteConsParam deleteRuleParam) {
+        return ResponseData.success(planConsService.getConsExecuteList(deleteRuleParam));
+    }
+
+    /**
+     * @description: 执行方案用户导出
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案用户导出", notes = "执行方案用户导出", produces = "application/json")
+    @PostMapping("/exportConsExecuteList")
+    public void exportConsExecuteList(@RequestBody DeleteConsParam deleteRuleParam,HttpServletResponse response, HttpServletRequest request) throws ExecutionException, InterruptedException {
+        List<PlanCons> list = planConsService.exportConsExecuteList(deleteRuleParam);
+        try {
+            //读取模板输入流
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("static/cons_execute.xlsx");
+
+            if(resourceAsStream == null){
+                System.out.println("未读取到 模板");
+            }
+
+            //设置文件名称
+            String fileName = URLEncoder.encode("Cons" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()), "UTF-8");
+            //设置文件类型
+            response.setContentType("application/vnd.ms-excel");
+            //设置编码格式
+            response.setCharacterEncoding("utf-8");
+            // https://www.jb51.net/article/30565.htm Content-Disposition 使用说明
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+            //创建excel
+            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(resourceAsStream).build();
+            //创建sheet
+            WriteSheet writeSheet = EasyExcel.writerSheet().build();
+            FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+
+            // 如果有多个list 模板上必须有{前缀.} 这里的前缀就是 a，然后多个list必须用 FillWrapper包裹
+            excelWriter.fill(new FillWrapper("a", list), fillConfig, writeSheet);
+//
+            Map map = new HashMap<>();
+            map.put("total","");
+            excelWriter.fill(map, writeSheet);
+
+            // 别忘记关闭流
+            excelWriter.finish();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @description: 执行方案用户导出
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案负荷聚合商导出", notes = "执行方案负荷聚合商导出", produces = "application/json")
+    @PostMapping("/exportCustExecuteList")
+    public void exportCustExecuteList(@RequestBody DeleteCustParam deleteRuleParam,HttpServletResponse response, HttpServletRequest request) {
+        List<PlanCust> list = planConsService.exportCustExecuteList(deleteRuleParam);
+        if(null==list) {
+            list = new ArrayList<>();
+        }
+        try {
+            //读取模板输入流
+            InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("static/cust_execute.xlsx");
+
+            if(resourceAsStream == null){
+                System.out.println("未读取到 模板");
+            }
+
+            //设置文件名称
+            String fileName = URLEncoder.encode("Cust" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()), "UTF-8");
+            //设置文件类型
+            response.setContentType("application/vnd.ms-excel");
+            //设置编码格式
+            response.setCharacterEncoding("utf-8");
+            // https://www.jb51.net/article/30565.htm Content-Disposition 使用说明
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+            //创建excel
+            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream()).withTemplate(resourceAsStream).build();
+            //创建sheet
+            WriteSheet writeSheet = EasyExcel.writerSheet().build();
+            FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
+
+            // 如果有多个list 模板上必须有{前缀.} 这里的前缀就是 a，然后多个list必须用 FillWrapper包裹
+            excelWriter.fill(new FillWrapper("a", list), fillConfig, writeSheet);
+//
+            Map map = new HashMap<>();
+            map.put("total","");
+            excelWriter.fill(map, writeSheet);
+
+            // 别忘记关闭流
+            excelWriter.finish();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    /**
+     * @description: 执行方案统计查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案统计查询", notes = "执行方案统计查询", produces = "application/json")
+    @PostMapping("/getExecuteStatisticCity")
+    public ResponseData getExecuteStatisticCity(@RequestBody PlanParam planParam) {
+        return ResponseData.success(planConsService.getExecuteStatisticCitys(planParam));
+    }
+
+    /**
+     * @description: 执行方案统计查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案统计查询", notes = "执行方案统计查询", produces = "application/json")
+    @PostMapping("/exportExecuteStatisticCity")
+    public void getExecuteStatisticCity(@RequestBody PlanParam planParam, HttpServletRequest request, HttpServletResponse response) {
+        List<ConsExecuteStatistic> executeStatisticCitys = planConsService.getExecuteStatisticCitys(planParam);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(NormalExcelConstants.FILE_NAME, "地市执行方案统计");
+//        map.put(NormalExcelConstants.MAP_LIST, sheetList);
+        map.put(NormalExcelConstants.CLASS, ConsExecuteStatistic.class);
+        map.put(NormalExcelConstants.PARAMS, new ExportParams("地市执行方案统计", "地市执行方案统计", ExcelType.XSSF));
+        map.put(NormalExcelConstants.DATA_LIST, executeStatisticCitys);
+        PoiBaseView.render(map, request, response, NormalExcelConstants.EASYPOI_EXCEL_VIEW);
+    }
+
+    /**
+     * @description: 执行方案统计查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行方案统计查询", notes = "执行方案统计查询", produces = "application/json")
+    @PostMapping("/getExecuteStatistic")
+    public ResponseData getExecuteStatistic(@RequestBody PlanParam planParam) {
+        return ResponseData.success(planConsService.getExecuteStatistic(planParam));
+    }
+
+    /**
+     * @description: 人工执行用户(执行方案)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "人工执行用户", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "人工执行用户", notes = "人工执行用户", produces = "application/json")
+    @PostMapping("/deleteExecuteCons")
+    public ResponseData deleteExecuteCons(@RequestBody PlanParam planParam) {
+        planConsService.deleteExecuteCons(planParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 人工执行客户(执行方案)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "人工执行客户", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "人工执行客户", notes = "人工执行客户", produces = "application/json")
+    @PostMapping("/deleteExecuteCust")
+    public ResponseData deleteExecuteCust(@RequestBody PlanParam planParam) {
+        planConsService.deleteExecuteCust(planParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 取消执行用户(执行方案)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "取消执行用户", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "取消执行用户", notes = "取消执行用户", produces = "application/json")
+    @PostMapping("/cancelDeleteExecuteCons")
+    public ResponseData cancelDeleteExecuteCons(@RequestBody PlanParam planParam) {
+        planConsService.cancelDeleteExecuteCons(planParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 取消执行客户(执行方案)
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "取消执行客户", opType = LogAnnotionO人工执行客户pTypeEnum.QUERY)
+    @ApiOperation(value = "取消执行客户", notes = "取消执行客户", produces = "application/json")
+    @PostMapping("/cancelDeleteExecuteCust")
+    public ResponseData cancelDeleteExecuteCust(@RequestBody PlanParam planParam) {
+        planConsService.cancelDeleteExecuteCust(planParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 获取用户短信列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "获取用户短信列表", notes = "获取用户短信列表", produces = "application/json")
+    @PostMapping("/getConsMessageList")
+    public ResponseData getConsMessageList(@RequestBody ConsMessageParam planParam) {
+        return ResponseData.success(planConsService.getConsMessageList(planParam));
+    }
+
+    /**
+     * @description: 获取集成商短信列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/18 16:01
+     */
+//    @BusinessLog(title = "执行方案用户分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "获取集成商短信列表", notes = "获取集成商短信列表", produces = "application/json")
+    @PostMapping("/getCustMessageList")
+    public ResponseData getCustMessageList(@RequestBody CustMessageParam planParam) {
+        return ResponseData.success(planConsService.getCustMessageList(planParam));
+    }
+
+
+    /**
+     * @description: 执行监测-用户监测-分页
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行监测-用户监测-分页", notes = "执行监测-用户监测-分页", produces = "application/json")
+    @PostMapping("/pageConsMonitor")
+    public ResponseData pageConsMonitor(@RequestBody PlanConsParam planConsParam) {
+        return ResponseData.success(planConsService.pageConsMonitor(planConsParam));
+    }
+
+    /**
+     * @description: 执行监测-用户监测-导出
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-导出", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行监测-用户监测-导出", notes = "执行监测-用户监测-导出", produces = "application/json")
+    @PostMapping("/exportConsMonitor")
+    public ResponseData exportConsMonitor(@RequestBody PlanConsParam planConsParam) throws ExecutionException, InterruptedException{
+        return ResponseData.success(planConsService.exportConsMonitor(planConsParam));
+    }
+
+    /**
+     * @description: 执行监测-用户监测-曲线信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 14:19
+     */
+    //  @BusinessLog(title = "执行监测-用户监测-曲线信息", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "执行监测-用户监测-曲线信息", notes = "执行监测-用户监测-曲线信息", produces = "application/json")
+    @PostMapping("/curveOfBaseAndTarget")
+    public ResponseData curveOfBaseAndTarget(@RequestBody PlanConsParam planConsParam) {
+        ConsMonitorCurve consMonitorCurve = planConsService.curveOfBaseAndTarget(planConsParam);
+        return ResponseData.success(consMonitorCurve);
+    }
+
+    /**
+     * @description: 电力用户-执行监测-用户监测-分页
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "电力用户-执行监测-用户监测-分页", notes = "电力用户-执行监测-用户监测-分页", produces = "application/json")
+    @PostMapping("/pageUserConsMonitor")
+    public ResponseData pageUserConsMonitor(@RequestBody EventUserConsPlanListParam eventUserConsPlanListParam) {
+        return ResponseData.success(planConsService.pageUserConsMonitor(eventUserConsPlanListParam));
+    }
+
+    /**
+     * @description: 电力用户-执行监测-用户执行曲线
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "电力用户-执行监测-用户执行曲线", notes = "电力用户-执行监测-用户执行曲线", produces = "application/json")
+    @PostMapping("/getUserConsLine")
+    public ResponseData<EventUserConsLineResult> getUserConsLine(@RequestBody EventUserConsLineParam eventUserConsLineParam) {
+        return ResponseData.success(planConsService.getUserConsLine(eventUserConsLineParam));
+    }
+
+    /**
+     * @description: 电力用户-执行监测-用户执行曲线2
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "电力用户-执行监测-用户执行曲线", notes = "电力用户-执行监测-用户执行曲线", produces = "application/json")
+    @PostMapping("/getUserConsLine2")
+    public ResponseData getUserConsLine2(@RequestBody EventUserConsLineParam eventUserConsLineParam) {
+        EventUserConsLineResult userConsLine = planConsService.getUserConsLine(eventUserConsLineParam);
+        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(userConsLine));
+        return ResponseData.success(JSONRespUtil.removeP(jsonObject, 2));
+    }
+
+
+    /**
+     * @description: 负荷聚合商-执行监测-聚合商执行曲线
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/27 9:46
+     */
+    // @BusinessLog(title = "执行监测-用户监测-分页", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "电力用户-执行监测-用户执行曲线", notes = "电力用户-执行监测-用户执行曲线", produces = "application/json")
+    @PostMapping("/getUserCustLine")
+    public ResponseData<EventUserCustLineResult> getUserCustLine(@RequestBody EventUserCustLineParam eventUserConsLineParam) {
+        return ResponseData.success(planConsService.getUserCustLine(eventUserConsLineParam));
+    }
+
+
+    /**
+     * @description: 用户执行监测导出
+     * @param:
+     * @return:
+     * @author: lqr
+     * @date: 2022/8/2 9:46
+     */
+    @ApiOperation(value = "", notes = "", produces = "application/json")
+    @PostMapping("/exportUserCustLine")
+    public void exportUserCustLine(@RequestBody EventParam eventParam,HttpServletResponse response, HttpServletRequest request) {
+        if(eventParam == null){
+            throw new ServiceException(500,"传参为空");
+        }
+        if(StringUtils.isEmpty(eventParam.getEventId())){
+            throw new ServiceException(500,"必传参数事件id为空");
+        }
+        if(StringUtils.isEmpty(eventParam.getConsId())){
+            throw new ServiceException(500,"必传传参用户id为空");
+        }
+
+        // 查询事件
+        Event event = eventService.getById(eventParam.getEventId());
+        if(event == null){
+            throw new ServiceException(500,"未查找到该事件，请核查事件id");
+        }
+
+        //查询方案
+        LambdaQueryWrapper<Plan> planWrapper = new LambdaQueryWrapper<>();
+        planWrapper.eq(Plan::getRegulateId,event.getEventId());
+        Plan plan = planService.getOne(planWrapper);
+
+        if(plan == null){
+            throw new ServiceException(500,"该事件id无对应方案");
+        }
+
+        Workbook workBook = null;
+        String fileName = null;
+        try {
+            //设置文件名称
+            fileName = URLEncoder.encode("用户执行监测导出", "UTF-8");
+            //设置文件类型
+            response.setContentType("application/vnd.ms-excel");
+            //设置编码格式
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        List<Map<String, Object>> mapList = new ArrayList<>();
+
+
+        //查询 用户全量基线
+        LambdaQueryWrapper<ConsBaselineAll> consBaselineAllQueryWrapper = new LambdaQueryWrapper<>();
+        consBaselineAllQueryWrapper.eq(ConsBaselineAll::getBaselineLibId,plan.getBaselinId());
+        consBaselineAllQueryWrapper.eq(ConsBaselineAll::getConsId,eventParam.getConsId());
+        List<ConsBaselineAll> consBaselineAlls = consBaselineAllService.list(consBaselineAllQueryWrapper);
+
+        List<ConsBaselineAllModel> consBaselineAllModels = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(consBaselineAlls)){
+            for (ConsBaselineAll consBaselineAll : consBaselineAlls) {
+                ConsBaselineAllModel consBaselineAllModel = new ConsBaselineAllModel();
+                BeanUtil.copyProperties(consBaselineAll,consBaselineAllModel);
+                consBaselineAllModels.add(consBaselineAllModel);
+            }
+
+            ExportParams consBaselineAllExportParams = new ExportParams();
+            // 设置sheet得名称
+            consBaselineAllExportParams.setSheetName("用户全量基线");
+            // 创建sheet1使用得map
+            Map<String, Object> consBaselineAllMap = new HashMap<>();
+            // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+            consBaselineAllMap.put("title", consBaselineAllExportParams);
+            // 模版导出对应得实体类型
+            consBaselineAllMap.put("entity", ConsBaselineAllModel.class);
+            // sheet中要填充得数据
+            consBaselineAllMap.put("data", consBaselineAllModels);
+            mapList.add(consBaselineAllMap);
+        }
+
+        //查询用户全量基线 样本负荷
+        List<EventPowerSampleAllModel> eventPowerSampleAllModels = new ArrayList<>();
+        List<EventPowerSampleAll> eventPowerSampleAlls = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(consBaselineAlls)){
+            String simplesId = consBaselineAllModels.get(0).getSimplesId();
+            if(!StringUtils.isEmpty(simplesId)){
+                LambdaQueryWrapper<EventPowerSampleAll> eventPowerSampleQueryWrapper = new LambdaQueryWrapper<>();
+                List<String> ids = Arrays.asList(simplesId.split(","));
+                eventPowerSampleQueryWrapper.in(EventPowerSampleAll::getId,ids);
+                eventPowerSampleAlls = eventPowerSampleAllService.list(eventPowerSampleQueryWrapper);
+                if(!CollectionUtils.isEmpty(eventPowerSampleAlls)){
+                    for (EventPowerSampleAll eventPowerSampleAll : eventPowerSampleAlls) {
+                        EventPowerSampleAllModel eventPowerSampleAllModel = new EventPowerSampleAllModel();
+                        BeanUtil.copyProperties(eventPowerSampleAll,eventPowerSampleAllModel);
+                        eventPowerSampleAllModels.add(eventPowerSampleAllModel);
+                    }
+
+                    ExportParams eventPowerSampleAllExportParams = new ExportParams();
+                    // 设置sheet得名称
+                    eventPowerSampleAllExportParams.setSheetName("用户全量基线的样本负荷");
+                    // 创建sheet1使用得map
+                    Map<String, Object> eventPowerSampleAllMap = new HashMap<>();
+                    // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+                    eventPowerSampleAllMap.put("title", eventPowerSampleAllExportParams);
+                    // 模版导出对应得实体类型
+                    eventPowerSampleAllMap.put("entity", EventPowerSampleAllModel.class);
+                    // sheet中要填充得数据
+                    eventPowerSampleAllMap.put("data", eventPowerSampleAllModels);
+                    mapList.add(eventPowerSampleAllMap);
+                }
+            }
+        }
+
+
+        //查询用户区间基线
+        LambdaQueryWrapper<ConsBaseline> consBaselineQueryWrapper = new LambdaQueryWrapper<>();
+        consBaselineQueryWrapper.eq(ConsBaseline::getBaselineLibId,plan.getBaselinId());
+        consBaselineQueryWrapper.eq(ConsBaseline::getConsId,eventParam.getConsId());
+        List<ConsBaseline> consBaselines = consBaselineService.list(consBaselineQueryWrapper);
+
+        List<ConsBaselineModel> consBaselineModels = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(consBaselines)){
+            for (ConsBaseline consBaseline : consBaselines) {
+                ConsBaselineModel consBaselineModel = new ConsBaselineModel();
+                BeanUtil.copyProperties(consBaseline, consBaselineModel);
+                consBaselineModels.add(consBaselineModel);
+            }
+
+            ExportParams dconsBaselinetExportParams = new ExportParams();
+            // 设置sheet得名称
+            dconsBaselinetExportParams.setSheetName("用户区间基线");
+            // 创建sheet1使用得map
+            Map<String, Object> consBaselineMap = new HashMap<>();
+            // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+            consBaselineMap.put("title", dconsBaselinetExportParams);
+            // 模版导出对应得实体类型
+            consBaselineMap.put("entity", ConsBaselineModel.class);
+            // sheet中要填充得数据
+            consBaselineMap.put("data", consBaselineModels);
+            mapList.add(consBaselineMap);
+        }
+
+        //查询用户区间基线 样本负荷
+        List<EventPowerSampleModel> eventPowerSampleModels = new ArrayList<>();
+        List<EventPowerSample> eventPowerSamples = new ArrayList<>();
+        if(!CollectionUtils.isEmpty(consBaselines)){
+            String simplesId = consBaselineModels.get(0).getSimplesId();
+            if(!StringUtils.isEmpty(simplesId)){
+                LambdaQueryWrapper<EventPowerSample> eventPowerSampleQueryWrapper = new LambdaQueryWrapper<>();
+                List<String> ids = Arrays.asList(simplesId.split(","));
+                eventPowerSampleQueryWrapper.in(EventPowerSample::getId,ids);
+                eventPowerSamples = eventPowerSampleService.list(eventPowerSampleQueryWrapper);
+                if(!CollectionUtils.isEmpty(eventPowerSamples)){
+                    for (EventPowerSample eventPowerSample : eventPowerSamples) {
+                        EventPowerSampleModel eventPowerSampleModel = new EventPowerSampleModel();
+                        BeanUtil.copyProperties(eventPowerSample,eventPowerSampleModel);
+                        eventPowerSampleModels.add(eventPowerSampleModel);
+                    }
+
+                    ExportParams eventPowerSampleExportParams = new ExportParams();
+                    // 设置sheet得名称
+                    eventPowerSampleExportParams.setSheetName("区间基线的样本负荷");
+                    // 创建sheet1使用得map
+                    Map<String, Object> eventPowerSampleMap = new HashMap<>();
+                    // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+                    eventPowerSampleMap.put("title", eventPowerSampleExportParams);
+                    // 模版导出对应得实体类型
+                    eventPowerSampleMap.put("entity", EventPowerSampleModel.class);
+                    // sheet中要填充得数据
+                    eventPowerSampleMap.put("data", eventPowerSampleModels);
+                    mapList.add(eventPowerSampleMap);
+                }
+            }
+        }
+
+        //查询用户实时负荷/历史负荷
+        List<ConsCurveModel> consCurveModels = new ArrayList<>();
+        if(!StringUtils.isEmpty(event.getRegulateDate())){
+            List<ConsCurveToday> consCurveTodays;
+            List<ConsCurve> consCurves;
+            if(LocalDate.now().equals(event.getRegulateDate())){
+                LambdaQueryWrapper<ConsCurveToday> todayQueryWrapper = new LambdaQueryWrapper<>();
+                todayQueryWrapper.eq(ConsCurveToday::getConsId,eventParam.getConsId());
+                todayQueryWrapper.eq(ConsCurveToday::getDataDate,event.getRegulateDate());
+                consCurveTodays = consCurveTodayService.list(todayQueryWrapper);
+                if(!CollectionUtils.isEmpty(consCurveTodays)){
+                    for (ConsCurveToday consCurveToday : consCurveTodays) {
+                        ConsCurveModel consCurveModel = new ConsCurveModel();
+                        BeanUtil.copyProperties(consCurveToday,consCurveModel);
+                        consCurveModels.add(consCurveModel);
+                    }
+                    ExportParams consCurveModelExportParams = new ExportParams();
+                    // 设置sheet得名称
+                    consCurveModelExportParams.setSheetName("用户负荷");
+                    // 创建sheet1使用得map
+                    Map<String, Object> consCurveModelMap = new HashMap<>();
+                    // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+                    consCurveModelMap.put("title", consCurveModelExportParams);
+                    // 模版导出对应得实体类型
+                    consCurveModelMap.put("entity", ConsCurveModel.class);
+                    // sheet中要填充得数据
+                    consCurveModelMap.put("data", consCurveModels);
+                    mapList.add(consCurveModelMap);
+                }
+            }else {
+                LambdaQueryWrapper<ConsCurve> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(ConsCurve::getConsId,eventParam.getConsId());
+                queryWrapper.eq(ConsCurve::getDataDate,event.getRegulateDate());
+                consCurves = consCurveService.list(queryWrapper);
+                if(!CollectionUtils.isEmpty(consCurves)){
+                    for (ConsCurve consCurve : consCurves) {
+                        ConsCurveModel consCurveModel = new ConsCurveModel();
+                        BeanUtil.copyProperties(consCurve,consCurveModel);
+                        consCurveModels.add(consCurveModel);
+                    }
+                    ExportParams consCurveModelExportParams = new ExportParams();
+                    // 设置sheet得名称
+                    consCurveModelExportParams.setSheetName("用户负荷");
+                    // 创建sheet1使用得map
+                    Map<String, Object> consCurveModelMap = new HashMap<>();
+                    // title的参数为ExportParams类型，目前仅仅在ExportParams中设置了sheetName
+                    consCurveModelMap.put("title", consCurveModelExportParams);
+                    // 模版导出对应得实体类型
+                    consCurveModelMap.put("entity", ConsCurveModel.class);
+                    // sheet中要填充得数据
+                    consCurveModelMap.put("data", consCurveModels);
+                    mapList.add(consCurveModelMap);
+                }
+            }
+        }
+
+        try {
+            // 执行方法
+            if(!CollectionUtils.isEmpty(mapList)){
+                workBook = ExcelExportUtil.exportExcel(mapList, ExcelType.HSSF);
+                workBook.write(response.getOutputStream());
+            }
+            response.getOutputStream().flush();
+            response.getOutputStream().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(workBook != null) {
+                try {
+                    workBook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+

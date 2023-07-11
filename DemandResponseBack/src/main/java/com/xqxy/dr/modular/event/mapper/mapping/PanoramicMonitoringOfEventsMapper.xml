@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.PanoramicMonitoringOfEventsMapper">
+    <select id="queryEventInfo" resultType="com.xqxy.dr.modular.event.entity.Event">
+        SELECT
+           *
+        FROM
+            dr_event
+        where EVENT_ID=#{ed}
+    </select>
+
+
+    <select id="queryDeadLineTime" resultType="String">
+        SELECT
+           deadline_time
+        FROM
+            dr_cons_invitation
+        where EVENT_ID=#{ed}
+    </select>
+
+    <select id="schemeExecLoad" resultType="BigDecimal">
+       select REGULATE_CAP from dr_event where EVENT_ID=#{event_id}
+    </select>
+
+
+
+
+
+    <select id="queryBaseLine" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+         SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96
+        from dr_event_power_base
+        where event_id=#{ed} and org_no=#{orgId}
+    </select>
+
+
+    <select id="queryRealLine" resultType="com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo">
+         SELECT
+        IFNULL(p1/10000,null) as p1,IFNULL(p2/10000,null) as p2,IFNULL(p3/10000,null) as p3,
+        IFNULL(p4/10000,null) as p4, IFNULL(p5/10000,null) as p5,IFNULL(p6/10000,null) as p6,
+        IFNULL(p7/10000,null) as p7,IFNULL(p8/10000,null) as p8,IFNULL(p9/10000,null) as p9,
+        IFNULL(p10/10000,null) as p10,IFNULL(p11/10000,null) as p11,IFNULL(p12/10000,null) as p12,
+        IFNULL(p13/10000,null) as p13,IFNULL(p14/10000,null) as p14, IFNULL(p15/10000,null) as p15,
+        IFNULL(p16/10000,null) as p16,IFNULL(p7/10000,null) as p17,IFNULL(p18/10000,null) as p18,
+        IFNULL(p19/10000,null) as p19, IFNULL(p20/10000,null) as p20,IFNULL(p21/10000,null) as p21,
+        IFNULL(p22/10000,null) as p22,IFNULL(p23/10000,null) as p23,IFNULL(p24/10000,null) as p24,
+        IFNULL(p25/10000,null) as p25,IFNULL(p26/10000,null) as p26,IFNULL(p27/10000,null) as p27,
+        IFNULL(p28/10000,null) as p28,IFNULL(p29/10000,null) as p29, IFNULL(p30/10000,null) as p30,
+        IFNULL(p31/10000,null) as p31,IFNULL(p32/10000,null) as p32,IFNULL(p33/10000,null) as p33,
+        IFNULL(p34/10000,null) as p34, IFNULL(p35/10000,null) as p35,IFNULL(p36/10000,null) as p36,
+        IFNULL(p37/10000,null) as p37,IFNULL(p38/10000,null) as p38,IFNULL(p39/10000,null) as p39,
+        IFNULL(p40/10000,null) as p40,IFNULL(p41/10000,null) as p41,IFNULL(p42/10000,null) as p42,
+        IFNULL(p43/10000,null) as p43,IFNULL(p44/10000,null) as p44, IFNULL(p45/10000,null) as p45,
+        IFNULL(p46/10000,null) as p46,IFNULL(p47/10000,null) as p47,IFNULL(p48/10000,null) as p48,
+        IFNULL(p49/10000,null) as p49,IFNULL(p50/10000,null) as p50,IFNULL(p51/10000,null) as p51,
+        IFNULL(p52/10000,null) as p52,IFNULL(p53/10000,null) as p53,IFNULL(p54/10000,null) as p54,
+        IFNULL(p55/10000,null) as p55,IFNULL(p56/10000,null) as p56,IFNULL(p57/10000,null) as p57,
+        IFNULL(p58/10000,null) as p58,IFNULL(p59/10000,null) as p59, IFNULL(p60/10000,null) as p60,
+        IFNULL(p61/10000,null) as p61,IFNULL(p62/10000,null) as p62,IFNULL(p63/10000,null) as p63,
+        IFNULL(p64/10000,null) as p64, IFNULL(p65/10000,null) as p65,IFNULL(p66/10000,null) as p66,
+        IFNULL(p67/10000,null) as p67,IFNULL(p68/10000,null) as p68,IFNULL(p69/10000,null) as p69,
+        IFNULL(p70/10000,null) as p70,IFNULL(p71/10000,null) as p71,IFNULL(p72/10000,null) as p72,
+        IFNULL(p73/10000,null) as p73,IFNULL(p74/10000,null) as p74, IFNULL(p75/10000,null) as p75,
+        IFNULL(p76/10000,null) as p76, IFNULL(p77/10000,null) as p77,IFNULL(p78/10000,null) as p78,
+        IFNULL(p79/10000,null) as p79, IFNULL(p80/10000,null) as p80,IFNULL(p81/10000,null) as p81,
+        IFNULL(p82/10000,null) as p82,IFNULL(p83/10000,null) as p83,IFNULL(p84/10000,null) as p84,
+        IFNULL(p85/10000,null) as p85,IFNULL(p86/10000,null) as p86,IFNULL(p87/10000,null) as p87,
+        IFNULL(p88/10000,null) as p88,IFNULL(p89/10000,null) as p89,IFNULL(p90/10000,null) as p90,
+        IFNULL(p91/10000,null) as p91,IFNULL(p92/10000,null) as p92,IFNULL(p93/10000,null) as p93,
+        IFNULL(p94/10000,null) as p94,IFNULL(p95/10000,null) as p95,IFNULL(p96/10000,null) as p96
+        from dr_event_power_day
+        where event_id=#{ed} and org_no=#{orgId}
+    </select>
+
+    <select id="invitedHouseholds" resultType="Integer">
+        SELECT
+        count(CONS_ID)
+        FROM
+        dr_cons_invitation
+        where EVENT_ID=#{event_id}
+        and CONS_ID in (select id from dr_cons where ORG_NO in(
+        <foreach collection="org_nos" item="org_no" separator=",">
+            #{org_no}
+        </foreach>
+        )
+        )
+    </select>
+
+    <select id="implementHouseholds" resultType="Integer">
+        SELECT
+        count(CONS_ID)
+        FROM
+        dr_plan_cons
+        where
+        CONS_ID in (select id from dr_cons where ORG_NO in(
+        <foreach collection="org_nos" item="org_no" separator=",">
+            #{org_no}
+        </foreach>
+        )
+        )
+        and PLAN_ID = #{planID} and IMPLEMENT="Y"
+    </select>
+
+    <select id="nominalLoad" resultType="Integer">
+        SELECT
+        IFNULL(max(reply_cap),0)
+        FROM
+        dr_cons_invitation
+        where
+        EVENT_ID = #{ed}
+    </select>
+
+    <select id="numberOfQualifiedHouseholds" resultType="Integer">
+        SELECT
+        count(CONS_ID)
+        FROM
+        dr_cons_evaluation
+        where
+        CONS_ID in (select id from dr_cons where ORG_NO in(
+        <foreach collection="org_nos" item="org_no" separator=",">
+            #{org_no}
+        </foreach>
+        )
+        )
+        and EVENT_ID = #{event_id} and is_effective="Y"
+    </select>
+
+    <select id="numberOfSubstandardHouseholds" resultType="Integer">
+        SELECT
+        count(CONS_ID)
+        FROM
+        dr_cons_evaluation
+        where
+        CONS_ID in (select id from dr_cons where ORG_NO in(
+        <foreach collection="org_nos" item="org_no" separator=",">
+            #{org_no}
+        </foreach>
+        )
+        )
+        and EVENT_ID = #{event_id} and is_effective="N"
+    </select>
+
+    <select id="nowPressureDropLoad" resultType="BigDecimal">
+        select
+        <trim suffixOverrides=",">
+            <if test="pi =='p1'">
+                IFNULL(a.p1,0)-IFNULL(b.p1,0) ,
+            </if>
+            <if test="pi =='p2'">
+                IFNULL(a.p2,0)-IFNULL(b.p2,0) ,
+            </if>
+            <if test="pi =='p3'">
+                IFNULL(a.p3,0)-IFNULL(b.p3,0) ,
+            </if>
+            <if test="pi =='p4'">
+                IFNULL(a.p4,0)-IFNULL(b.p4,0) ,
+            </if>
+            <if test="pi =='p5'">
+                IFNULL(a.p5,0)-IFNULL(b.p5,0) ,
+            </if>
+            <if test="pi =='p6'">
+                IFNULL(a.p6,0)-IFNULL(b.p6,0) ,
+            </if>
+            <if test="pi =='p7'">
+                IFNULL(a.p7,0)-IFNULL(b.p7,0) ,
+            </if>
+            <if test="pi =='p8'">
+                IFNULL(a.p8,0)-IFNULL(b.p8,0) ,
+            </if>
+            <if test="pi =='p9'">
+                IFNULL(a.p9,0)-IFNULL(b.p9,0) ,
+            </if>
+            <if test="pi =='p10'">
+                IFNULL(a.p10,0)-IFNULL(b.p10,0) ,
+            </if>
+            <if test="pi =='p11'">
+                IFNULL(a.p11,0)-IFNULL(b.p11,0) ,
+            </if>
+            <if test="pi =='p12'">
+                IFNULL(a.p12,0)-IFNULL(b.p12,0) ,
+            </if>
+            <if test="pi =='p13'">
+                IFNULL(a.p13,0)-IFNULL(b.p13,0) ,
+            </if>
+            <if test="pi =='p14'">
+                IFNULL(a.p14,0)-IFNULL(b.p14,0) ,
+            </if>
+            <if test="pi =='p15'">
+                IFNULL(a.p15,0)-IFNULL(b.p15,0) ,
+            </if>
+            <if test="pi =='p16'">
+                IFNULL(a.p16,0)-IFNULL(b.p16,0) ,
+            </if>
+            <if test="pi =='p17'">
+                IFNULL(a.p17,0)-IFNULL(b.p17,0) ,
+            </if>
+            <if test="pi =='p18'">
+                IFNULL(a.p18,0)-IFNULL(b.p18,0) ,
+            </if>
+            <if test="pi =='p19'">
+                IFNULL(a.p19,0)-IFNULL(b.p19,0) ,
+            </if>
+            <if test="pi =='p20'">
+                IFNULL(a.p20,0)-IFNULL(b.p20,0) ,
+            </if>
+            <if test="pi =='p21'">
+                IFNULL(a.p21,0)-IFNULL(b.p21,0) ,
+            </if>
+            <if test="pi =='p22'">
+                IFNULL(a.p22,0)-IFNULL(b.p22,0) ,
+            </if>
+            <if test="pi =='p23'">
+                IFNULL(a.p23,0)-IFNULL(b.p23,0) ,
+            </if>
+            <if test="pi =='p24'">
+                IFNULL(a.p24,0)-IFNULL(b.p24,0) ,
+            </if>
+            <if test="pi =='p25'">
+                IFNULL(a.p25,0)-IFNULL(b.p25,0) ,
+            </if>
+            <if test="pi =='p26'">
+                IFNULL(a.p26,0)-IFNULL(b.p26,0) ,
+            </if>
+            <if test="pi =='p27'">
+                IFNULL(a.p27,0)-IFNULL(b.p27,0) ,
+            </if>
+            <if test="pi =='p28'">
+                IFNULL(a.p28,0)-IFNULL(b.p28,0) ,
+            </if>
+            <if test="pi =='p29'">
+                IFNULL(a.p29,0)-IFNULL(b.p29,0) ,
+            </if>
+            <if test="pi =='p30'">
+                IFNULL(a.p30,0)-IFNULL(b.p30,0) ,
+            </if>
+            <if test="pi =='p31'">
+                IFNULL(a.p31,0)-IFNULL(b.p31,0) ,
+            </if>
+            <if test="pi =='p32'">
+                IFNULL(a.p32,0)-IFNULL(b.p32,0) ,
+            </if>
+            <if test="pi =='p33'">
+                IFNULL(a.p33,0)-IFNULL(b.p33,0) ,
+            </if>
+            <if test="pi =='p34'">
+                IFNULL(a.p34,0)-IFNULL(b.p34,0) ,
+            </if>
+            <if test="pi =='p35'">
+                IFNULL(a.p35,0)-IFNULL(b.p35,0) ,
+            </if>
+            <if test="pi =='p36'">
+                IFNULL(a.p36,0)-IFNULL(b.p36,0) ,
+            </if>
+            <if test="pi =='p37'">
+                IFNULL(a.p37,0)-IFNULL(b.p37,0) ,
+            </if>
+            <if test="pi =='p38'">
+                IFNULL(a.p38,0)-IFNULL(b.p38,0) ,
+            </if>
+            <if test="pi =='p39'">
+                IFNULL(a.p39,0)-IFNULL(b.p39,0) ,
+            </if>
+            <if test="pi =='p40'">
+                IFNULL(a.p40,0)-IFNULL(b.p40,0) ,
+            </if>
+            <if test="pi =='p41'">
+                IFNULL(a.p41,0)-IFNULL(b.p41,0) ,
+            </if>
+            <if test="pi =='p42'">
+                IFNULL(a.p42,0)-IFNULL(b.p42,0) ,
+            </if>
+            <if test="pi =='p43'">
+                IFNULL(a.p43,0)-IFNULL(b.p43,0) ,
+            </if>
+            <if test="pi =='p44'">
+                IFNULL(a.p44,0)-IFNULL(b.p44,0) ,
+            </if>
+            <if test="pi =='p45'">
+                IFNULL(a.p45,0)-IFNULL(b.p45,0) ,
+            </if>
+            <if test="pi =='p46'">
+                IFNULL(a.p46,0)-IFNULL(b.p46,0) ,
+            </if>
+            <if test="pi =='p47'">
+                IFNULL(a.p47,0)-IFNULL(b.p47,0) ,
+            </if>
+            <if test="pi =='p48'">
+                IFNULL(a.p48,0)-IFNULL(b.p48,0) ,
+            </if>
+            <if test="pi =='p49'">
+                IFNULL(a.p49,0)-IFNULL(b.p49,0) ,
+            </if>
+            <if test="pi =='p50'">
+                IFNULL(a.p50,0)-IFNULL(b.p50,0) ,
+            </if>
+            <if test="pi =='p51'">
+                IFNULL(a.p51,0)-IFNULL(b.p51,0) ,
+            </if>
+            <if test="pi =='p52'">
+                IFNULL(a.p52,0)-IFNULL(b.p52,0) ,
+            </if>
+            <if test="pi =='p53'">
+                IFNULL(a.p53,0)-IFNULL(b.p53,0) ,
+            </if>
+            <if test="pi =='p54'">
+                IFNULL(a.p54,0)-IFNULL(b.p54,0) ,
+            </if>
+            <if test="pi =='p55'">
+                IFNULL(a.p55,0)-IFNULL(b.p55,0) ,
+            </if>
+            <if test="pi =='p56'">
+                IFNULL(a.p56,0)-IFNULL(b.p56,0) ,
+            </if>
+            <if test="pi =='p57'">
+                IFNULL(a.p57,0)-IFNULL(b.p57,0) ,
+            </if>
+            <if test="pi =='p58'">
+                IFNULL(a.p58,0)-IFNULL(b.p58,0) ,
+            </if>
+            <if test="pi =='p59'">
+                IFNULL(a.p59,0)-IFNULL(b.p59,0) ,
+            </if>
+            <if test="pi =='p60'">
+                IFNULL(a.p60,0)-IFNULL(b.p60,0) ,
+            </if>
+            <if test="pi =='p61'">
+                IFNULL(a.p61,0)-IFNULL(b.p61,0) ,
+            </if>
+            <if test="pi =='p62'">
+                IFNULL(a.p62,0)-IFNULL(b.p62,0) ,
+            </if>
+            <if test="pi =='p63'">
+                IFNULL(a.p63,0)-IFNULL(b.p63,0) ,
+            </if>
+            <if test="pi =='p64'">
+                IFNULL(a.p64,0)-IFNULL(b.p64,0) ,
+            </if>
+            <if test="pi =='p65'">
+                IFNULL(a.p65,0)-IFNULL(b.p65,0) ,
+            </if>
+            <if test="pi =='p66'">
+                IFNULL(a.p66,0)-IFNULL(b.p66,0) ,
+            </if>
+            <if test="pi =='p67'">
+                IFNULL(a.p67,0)-IFNULL(b.p67,0) ,
+            </if>
+            <if test="pi =='p68'">
+                IFNULL(a.p68,0)-IFNULL(b.p68,0) ,
+            </if>
+            <if test="pi =='p69'">
+                IFNULL(a.p69,0)-IFNULL(b.p69,0) ,
+            </if>
+            <if test="pi =='p70'">
+                IFNULL(a.p70,0)-IFNULL(b.p70,0) ,
+            </if>
+            <if test="pi =='p71'">
+                IFNULL(a.p71,0)-IFNULL(b.p71,0) ,
+            </if>
+            <if test="pi =='p72'">
+                IFNULL(a.p72,0)-IFNULL(b.p72,0) ,
+            </if>
+            <if test="pi =='p73'">
+                IFNULL(a.p73,0)-IFNULL(b.p73,0) ,
+            </if>
+            <if test="pi =='p74'">
+                IFNULL(a.p74,0)-IFNULL(b.p74,0) ,
+            </if>
+            <if test="pi =='p75'">
+                IFNULL(a.p75,0)-IFNULL(b.p75,0) ,
+            </if>
+            <if test="pi =='p76'">
+                IFNULL(a.p76,0)-IFNULL(b.p6,0) ,
+            </if>
+            <if test="pi =='p77'">
+                IFNULL(a.p77,0)-IFNULL(b.p77,0) ,
+            </if>
+            <if test="pi =='p78'">
+                IFNULL(a.p78,0)-IFNULL(b.p78,0) ,
+            </if>
+            <if test="pi =='p79'">
+                IFNULL(a.p79,0)-IFNULL(b.p79,0) ,
+            </if>
+            <if test="pi =='p80'">
+                IFNULL(a.p80,0)-IFNULL(b.p80,0) ,
+            </if>
+            <if test="pi =='p81'">
+                IFNULL(a.p81,0)-IFNULL(b.p81,0) ,
+            </if>
+            <if test="pi =='p82'">
+                IFNULL(a.p82,0)-IFNULL(b.p82,0) ,
+            </if>
+            <if test="pi =='p83'">
+                IFNULL(a.p83,0)-IFNULL(b.p83,0) ,
+            </if>
+            <if test="pi =='p84'">
+                IFNULL(a.p84,0)-IFNULL(b.p84,0) ,
+            </if>
+            <if test="pi =='p85'">
+                IFNULL(a.p85,0)-IFNULL(b.p85,0) ,
+            </if>
+            <if test="pi =='p86'">
+                IFNULL(a.p86,0)-IFNULL(b.p86,0) ,
+            </if>
+            <if test="pi =='p87'">
+                IFNULL(a.p87,0)-IFNULL(b.p87,0) ,
+            </if>
+            <if test="pi =='p88'">
+                IFNULL(a.p88,0)-IFNULL(b.p88,0) ,
+            </if>
+            <if test="pi =='p89'">
+                IFNULL(a.p89,0)-IFNULL(b.p89,0) ,
+            </if>
+            <if test="pi =='p90'">
+                IFNULL(a.p90,0)-IFNULL(b.p90,0) ,
+            </if>
+            <if test="pi =='p91'">
+                IFNULL(a.p91,0)-IFNULL(b.p91,0) ,
+            </if>
+            <if test="pi =='p92'">
+                IFNULL(a.p92,0)-IFNULL(b.p92,0) ,
+            </if>
+            <if test="pi =='p93'">
+                IFNULL(a.p93,0)-IFNULL(b.p93,0) ,
+            </if>
+            <if test="pi =='p94'">
+                IFNULL(a.p94,0)-IFNULL(b.p94,0) ,
+            </if>
+            <if test="pi =='p95'">
+                IFNULL(a.p95,0)-IFNULL(b.p95,0) ,
+            </if>
+            <if test="pi =='p96'">
+                IFNULL(a.p96,0)-IFNULL(b.p96,0) ,
+            </if>
+        </trim>
+        from dr_event_power_base a left join dr_event_power b
+        on a.data_id=b.data_id
+        where a.event_id=#{event_id} and a.org_no=#{orgNo}
+
+
+    </select>
+
+
+</mapper>

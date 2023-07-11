@@ -1,0 +1,223 @@
+package com.xqxy.dr.modular.subsidy.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.core.annotion.NeedSetValueField;
+import com.xqxy.core.client.SystemClient;
+import com.xqxy.core.enums.ApprovalCodeEnum;
+import com.xqxy.core.enums.BusTypeEnum;
+import com.xqxy.core.enums.CurrenUserInfoExceptionEnum;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.bidding.enums.BiddingCheckStatusEnums;
+import com.xqxy.dr.modular.project.enums.ExamineExceptionEnum;
+import com.xqxy.dr.modular.project.enums.ProjectCheckStatusEnums;
+import com.xqxy.dr.modular.project.params.ExamineParam;
+import com.xqxy.dr.modular.subsidy.entity.ConsSubsidy;
+import com.xqxy.dr.modular.subsidy.entity.CustSubsidy;
+import com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal;
+import com.xqxy.dr.modular.subsidy.enums.SubsidyExceptionEnum;
+import com.xqxy.dr.modular.subsidy.mapper.SubsidyAppealMapper;
+import com.xqxy.dr.modular.subsidy.param.ConsSubsidyDailyParam;
+import com.xqxy.dr.modular.subsidy.param.ConsSubsidyParam;
+import com.xqxy.dr.modular.subsidy.param.CustSubsidyDailyParam;
+import com.xqxy.dr.modular.subsidy.param.SubsidyAppealParam;
+import com.xqxy.dr.modular.subsidy.service.ConsSubsidyService;
+import com.xqxy.dr.modular.subsidy.service.CustSubsidyService;
+import com.xqxy.dr.modular.subsidy.service.SubsidyAppealService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.sys.modular.cust.entity.Cust;
+import com.xqxy.sys.modular.cust.param.BusConfigParam;
+import com.xqxy.sys.modular.cust.result.Result;
+import com.xqxy.sys.modular.cust.service.CustService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 补贴申诉 服务实现类
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-25
+ */
+@Service
+public class SubsidyAppealServiceImpl extends ServiceImpl<SubsidyAppealMapper, SubsidyAppeal> implements SubsidyAppealService {
+
+    @Resource
+    SystemClient systemClient;
+
+    @Resource
+    ConsSubsidyService consSubsidyService;
+
+    @Resource
+    CustSubsidyService custSubsidyService;
+
+    @Autowired
+    private CustService custService;
+
+    @Override
+    public void update(SubsidyAppealParam subsidyAppealParam) {
+        SubsidyAppeal subsidyAppeal = new SubsidyAppeal();
+        BeanUtils.copyProperties(subsidyAppealParam,subsidyAppeal);
+        this.updateById(subsidyAppeal);
+    }
+
+
+    @Override
+    @NeedSetValueField
+    public SubsidyAppeal detail(Long busId) {
+       /* LambdaQueryWrapper<SubsidyAppeal> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SubsidyAppeal::getId,busId);
+        List<SubsidyAppeal> list = this.list(queryWrapper);
+        if (list.size() > 0) {
+            return list.get(0);
+        }*/
+        SubsidyAppeal subsidyAppeal = baseMapper.getDetail(busId);
+        if(null!=subsidyAppeal) {
+            return baseMapper.getDetail(busId);
+        }
+        throw new ServiceException(SubsidyExceptionEnum.SUBSIDY_EXCEPTION_NUll);
+    }
+
+    @Override
+    public Page<SubsidyAppeal> page(SubsidyAppealParam subsidyAppealParam) {
+        // 异议工单
+        LambdaQueryWrapper<SubsidyAppeal> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(subsidyAppealParam)) {
+            if (ObjectUtil.isNotEmpty(subsidyAppealParam.getCustId())) {
+                // 客户事件补贴
+                CustSubsidyDailyParam custSubsidyDailyParam = new CustSubsidyDailyParam();
+                custSubsidyDailyParam.setCustId(subsidyAppealParam.getCustId());
+                List<CustSubsidy> custSubsidyList = custSubsidyService.list(custSubsidyDailyParam);
+                List<Long> custSubsidyIdList = custSubsidyList.stream().map(CustSubsidy::getSubsidyId).collect(Collectors.toList());
+                queryWrapper.in(SubsidyAppeal::getEvaluationId,custSubsidyIdList);
+            }
+            if (ObjectUtil.isNotEmpty(subsidyAppealParam.getConsId()) || ObjectUtil.isNotEmpty(subsidyAppealParam.getConsIdList())) {
+                // 用户事件补贴
+                ConsSubsidyDailyParam consSubsidyDailyParam = new ConsSubsidyDailyParam();
+                consSubsidyDailyParam.setConsId(subsidyAppealParam.getConsId());
+                consSubsidyDailyParam.setConsIdList(subsidyAppealParam.getConsIdList());
+                List<ConsSubsidy> ConsSubsidyList = consSubsidyService.list(consSubsidyDailyParam);
+                List<Long> consSubsidyIdList = ConsSubsidyList.stream().map(ConsSubsidy::getSubsidyId).collect(Collectors.toList());
+                queryWrapper.in(SubsidyAppeal::getEvaluationId,consSubsidyIdList);
+            }
+        }
+        queryWrapper.orderByDesc(SubsidyAppeal::getCreateTime);
+        return this.page(subsidyAppealParam.getPage(),queryWrapper);
+    }
+
+    @Override
+    public void sumbitCheck(SubsidyAppealParam subsidyAppealParam) {
+        BusConfigParam busConfigParam = new BusConfigParam();
+        CurrenUserInfo currentUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if(ObjectUtil.isNull(currentUserInfo)) {
+            throw new ServiceException(CurrenUserInfoExceptionEnum.CURRENT_USER_INFO_NOT_EXIST);
+        }
+        // 创建待办任务成功，否则为失败
+        // 修改竞价的状态为提交审核
+        SubsidyAppeal subsidyAppeal = new SubsidyAppeal();
+        BeanUtils.copyProperties(subsidyAppealParam,subsidyAppeal);
+        subsidyAppeal.setStatus(BiddingCheckStatusEnums.UNSUBMITTED.getCode());
+        this.save(subsidyAppeal);
+
+        String infoId = currentUserInfo.getId();
+        if(infoId != null){
+            Long custId = Long.valueOf(infoId);
+            if(custId != null){
+                Cust cust = custService.getById(custId);
+                if(cust != null){
+                    busConfigParam.setApplyManName(cust.getApplyName());
+                }
+            }
+        }
+        busConfigParam.setBusId(String.valueOf(subsidyAppeal.getId()));
+        busConfigParam.setApplyOrgId(currentUserInfo.getOrgId()); // 申请人组织机构id
+        busConfigParam.setBusType(BusTypeEnum.SUBSIDY_PROCESS.getCode()); // 业务类型
+        busConfigParam.setApplyManId(Long.parseLong(currentUserInfo.getId())); // 申请人id
+        busConfigParam.setLevel(1);
+        busConfigParam.setOperaManId(currentUserInfo.getId());
+
+        Result result = null;
+        try{
+            System.out.println(busConfigParam);
+            result = systemClient.selectInfo(busConfigParam);
+        }catch (Exception e){
+            log.error(e.toString());
+        }finally{
+            if(ObjectUtil.isNotNull(result) && result.getCode().equals("000000") && result.getData().getString("handleCode").equals("000")) {
+                subsidyAppeal.setStatus(BiddingCheckStatusEnums.UNDER_REVIEW.getCode());
+                this.updateById(subsidyAppeal);
+
+            }else{
+                // 创建失败，抛出异常
+                this.removeById(subsidyAppeal);
+                //throw new ServiceException(ExamineExceptionEnum.CREATION_FAILED);
+            }
+        }
+        return;
+    }
+
+
+    @Override
+    public void examine(ExamineParam examineParam) {
+        BusConfigParam busConfigParam = new BusConfigParam();
+        BeanUtil.copyProperties(examineParam,busConfigParam);
+        // 暂时不行
+        // CurrenUserInfo sysLoginUser = LoginContextHolder.me().getSysLoginUser();
+        CurrenUserInfo currentUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if(ObjectUtil.isNull(currentUserInfo)) {
+            throw new ServiceException(CurrenUserInfoExceptionEnum.CURRENT_USER_INFO_NOT_EXIST);
+        }
+        busConfigParam.setOperaManId(currentUserInfo.getId()); // 操作人id
+        busConfigParam.setBusType(BusTypeEnum.SUBSIDY_PROCESS.getCode()); // 业务类型
+        Result result = systemClient.selectInfo(busConfigParam);
+        System.out.println(busConfigParam);
+        if(ObjectUtil.isNotNull(result) && result.getCode().equals("000000")) {
+            if(result.getData().getString("handleCode").equals(ApprovalCodeEnum.PROCESS_FAIL.getCode())) {
+                // 审核流程失败
+                throw new ServiceException(ExamineExceptionEnum.APPROVAL_FAIL);
+            }
+            // 修改异议工单的状态
+            SubsidyAppeal subsidyAppeal = new SubsidyAppeal();
+            SubsidyAppealParam subsidyAppealParam = new SubsidyAppealParam();
+
+            SubsidyAppeal detail = this.detail(Long.parseLong(examineParam.getBusId()));
+            BeanUtils.copyProperties(detail,subsidyAppeal);
+
+            // 审核结束
+            if(result.getData().getString("handleCode").equals(ApprovalCodeEnum.PROCESS_SUCCESS.getCode())) {
+                subsidyAppeal.setStatus(ProjectCheckStatusEnums.PASS_THE_AUDIT.getCode());
+            }
+            // 申请被驳回
+            if(result.getData().getString("handleCode").equals(ApprovalCodeEnum.APPROVAL_REJECT.getCode())) {
+                subsidyAppeal.setStatus(ProjectCheckStatusEnums.AUDIT_FAILED.getCode());
+            }
+            this.updateById(subsidyAppeal);
+            return ;
+        }
+        // 接口状态码不为000000，抛出异常
+        throw new ServiceException(ExamineExceptionEnum.CREATION_FAILED);
+    }
+
+    @Override
+   public String getFileName(String fileId)
+    {
+        if(ObjectUtil.isEmpty(fileId)) {
+            return "";
+        }
+        String fileName=getBaseMapper().getFileName(fileId);
+        return  fileName;
+    }
+
+
+
+}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.ConsSubsidyDailyAppealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDailyAppeal">
+        <id column="id" property="id" />
+        <result column="cons_id" property="consId" />
+        <result column="subsidy_date" property="subsidyDate" />
+        <result column="settled_amount" property="settledAmount" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="sub_time" property="subTime" />
+        <result column="sub_status" property="subStatus" />
+        <result column="sub_exception" property="subException" />
+        <result column="cac_rule" property="cacRule" />
+        <result column="event_ids" property="eventIds" />
+        <result column="settlement_no" property="settlementNo" />
+        <result column="event_num" property="eventNum" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, cons_id, subsidy_date, settled_amount, status, create_time, create_user, update_time, update_user, sub_time, sub_status, sub_exception, cac_rule, event_ids, settlement_no, event_num
+    </sql>
+
+
+
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.SubsidyMonthlyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.SubsidyMonthly">
+        <id column="id" property="id" />
+        <result column="cons_id" property="consId" />
+        <result column="subsidy_month" property="subsidyMonth" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="cons_amount" property="consAmount" />
+        <result column="aggregate_amount" property="aggregateAmount" />
+        <result column="effective_num" property="effectiveNum" />
+        <result column="cons_effective_num" property="consEffectiveNum" />
+        <result column="aggregate_effective_num" property="aggregateEffectiveNum" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+
+        <association property="cons" javaType="com.xqxy.sys.modular.cust.entity.Cons">
+            <result column="cons_name" property="consName"/>
+            <result column="first_contact_info" property="firstContactInfo"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, cons_id, subsidy_month, total_amount, cons_amount, aggregate_amount, effective_num, cons_effective_num, aggregate_effective_num, status, create_time, create_user, update_time, update_user
+    </sql>
+
+    <select id="getConsMonthlySubsidy" resultType="com.xqxy.dr.modular.subsidy.result.MonthlySubsidyInfo">
+        select m.id subsidyId, m.subsidy_month subsidyMonth, c.id consId, c.cons_name consName, c.first_contact_info tel, m.total_amount settledAmount, m.status
+        from dr_subsidy_monthly m, dr_cons c
+        <where> m.cons_id = c.id
+            <if test="subsidyMonth != '' and subsidyMonth != null"> and m.subsidy_month = #{subsidyMonth} </if>
+            <if test="consName != '' and consName != null"> and c.cons_name like concat('%', #{consName}, '%') </if>
+            and c.org_no in
+            <foreach collection="orgIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </where>
+        order by consId asc, subsidyMonth asc
+    </select>
+
+    <select id="subsidyMonthlyPage" resultMap="BaseResultMap">
+        select
+            s.*, c.cons_name, c.first_contact_info
+        from
+            dr_subsidy_monthly s, dr_cons c
+        <where>
+            s.cons_id = c.id
+            <if test="map.subsidyMonth != null and map.subsidyMonth != ''">
+                and s.subsidy_month = #{map.subsidyMonth}
+            </if>
+            <if test="map.consName != null and map.consName != ''">
+                and c.cons_name like concat('%', #{map.consName}, '%')
+            </if>
+            and c.org_no in
+            <foreach collection="map.orgIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,180 @@
+package com.xqxy.dr.modular.event.param;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.xqxy.core.pojo.base.param.BaseParam;
+import com.xqxy.dr.modular.project.entity.ConsContractInfo;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * <p>
+ * 事件 参数
+ * </p>
+ *
+ * @author xiao jun
+ * @since 2021-03-11
+ */
+@ApiModel(description = "事件 参数")
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EventParam extends BaseParam {
+
+    /**
+     * 事件标识
+     */
+    @NotNull(message = "eventId不能为空，请检查eventId参数", groups = {detail.class})
+    private Long eventId;
+
+    /**
+     * 方案标识
+     */
+    private Long regulateId;
+
+    /**
+     * 项目标识
+     */
+    private Long projectId;
+
+    /**
+     * 事件编号
+     */
+    private Long eventNo;
+
+    /**
+     * 事件名称
+     */
+    private String eventName;
+
+    /**
+     * 响应类型
+     */
+    private String responseType;
+
+    /**
+     * 时间类型
+     */
+    private String timeType;
+
+    /**
+     * 调控范围类别：地区/分区/变电站/线路/台区
+     */
+    private String rangeType;
+
+    /**
+     * 调控范围
+     */
+    private String regulateRange;
+
+    /**
+     * 调控目标
+     */
+    private BigDecimal regulateCap;
+
+    /**
+     * 调控日期
+     */
+    private LocalDate regulateDate;
+
+    /**
+     * 响应开始时间
+     */
+    private String startTime;
+
+    /**
+     * 响应结束时间
+     */
+    private String endTime;
+
+    /**
+     * 提前通知时间
+     */
+    private String advanceNoticeTime;
+
+    /**
+     * 事件状态 1:保存，2待执行，3执行中，4结束，5废弃，6事件已发布，7撤销
+     */
+    private String eventStatus;
+
+    /**
+     * 审核状态 1:未提交，2：审核中，3：审核通过，4：审核不通过
+     */
+    private String checkStatus;
+
+    /**
+     * 结束日期
+     */
+    // private String searchEndDate;
+
+
+    /**
+     * 状态集合
+     */
+    private List<String> statusList;
+
+    /**
+     * 参与条件  [{type:1,value:1,2,3,4},....]
+     */
+    private String particiCondition;
+
+    /**
+     * 激励标准 格式：1，2，3
+     */
+    private String incentiveStandard;
+
+    /**
+     * 有效性判定,格式：1，2，3
+     */
+    private String validityJudgment;
+
+    /**
+     * 基线计算准则 格式：1，2，3
+     */
+    private String baseLineCal;
+
+    /**
+     * 事件标识集合
+     */
+    private List<Long> eventIdList;
+
+    /**
+     *  邀约信息是否同步到方案
+     */
+    private String synchToPlan;
+
+
+    private String orgNo;
+
+
+    private String consId;
+
+    private String provinceCode;
+
+    private String cityCode;
+
+    private String countryCode;
+
+    private ArrayList<String> orgNos;
+
+    //工作台接口
+    private Integer year;
+
+    private List<ConsContractInfo> consContractInfos;
+
+    private String subsidyPub;
+
+    private String smsContent;
+
+
+    @ApiModelProperty(value = "基线库id")
+    private String baselineLibId;
+}

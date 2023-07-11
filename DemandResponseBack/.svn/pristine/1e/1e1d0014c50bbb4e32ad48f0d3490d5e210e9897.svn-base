@@ -1,0 +1,42 @@
+package com.xqxy.dr.modular.newloadmanagement.mapper;
+
+
+import com.xqxy.dr.modular.evaluation.entity.DrPlan;
+import com.xqxy.dr.modular.newloadmanagement.vo.DrEventTime;
+import com.xqxy.dr.modular.newloadmanagement.vo.Point96Vo;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Mapper
+public interface BaselineAndMeasurementMapper {
+
+    List<Long> getEventId(@Param(value = "time") LocalDate time);
+
+    List<DrEventTime> getEventTime(@Param(value = "time") LocalDate time, @Param(value = "event_id") List eventid);
+
+    List<Point96Vo> getBaseLine(@Param(value = "event_id") List eventid, @Param(value = "orgNo") String orgNo);
+
+    List<Point96Vo> getRealTimeData(@Param(value = "event_id") List eventid, @Param(value = "orgNo") String orgNo);
+
+    List<Point96Vo> getRealTimeDataByEvent(@Param(value = "event_id") String eventid, @Param(value = "orgNo") String orgNo);
+
+
+    List<Point96Vo> getFrozenData(@Param(value = "event_id") List eventid, @Param(value = "orgNo") String orgNo);
+
+    List<DrPlan> getPlanIdAndBaseLineID(@Param(value = "event_id") List eventid);
+
+    List<DrPlan> getPlanIdAndBaseLineIDByEvent(@Param(value = "event_id") String eventid);
+
+    List<Long> getConsId(@Param(value = "planId") Long planId);
+
+    Point96Vo getRealTime(@Param(value = "cons_id") List consId, @Param(value = "time") LocalDate time);
+
+    Point96Vo getFrozenData(@Param(value = "cons_id") List consId, @Param(value = "time") LocalDate time);
+
+    Point96Vo getBaseLine96Point(@Param(value = "cons_id") List consId, @Param(value = "time") LocalDate time,@Param(value = "baseId") Long baseId);
+
+
+}

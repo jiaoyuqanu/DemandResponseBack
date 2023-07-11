@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.EventMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.Event">
+        <id column="EVENT_ID" property="eventId" />
+        <result column="REGULATE_ID" property="regulateId" />
+        <result column="PROJECT_ID" property="projectId" />
+        <result column="EVENT_NO" property="eventNo" />
+        <result column="EVENT_NAME" property="eventName" />
+        <result column="RESPONSE_TYPE" property="responseType" />
+        <result column="TIME_TYPE" property="timeType" />
+        <result column="RANGE_TYPE" property="rangeType" />
+        <result column="REGULATE_RANGE" property="regulateRange" />
+        <result column="REGULATE_CAP" property="regulateCap" />
+        <result column="REGULATE_GAP" property="regulateGap" />
+        <result column="REGULATE_DATE" property="regulateDate" />
+        <result column="RANGE_TYPE" property="rangeType" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="advance_notice_time" property="advanceNoticeTime" />
+        <result column="event_status" property="eventStatus" />
+        <result column="check_status" property="checkStatus" />
+        <result column="synch_to_plan" property="synchToPlan" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="plan_id" property="planId" />
+        <result column="create_org" property="createOrg" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        EVENT_ID, REGULATE_ID, PROJECT_ID, EVENT_NO, EVENT_NAME, RESPONSE_TYPE, TIME_TYPE, RANGE_TYPE, REGULATE_RANGE, REGULATE_CAP, REGULATE_DATE, START_TIME, END_TIME, advance_notice_time, event_status, check_status, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <update id="editEventRegulateCap">
+        UPDATE dr_event eve
+        LEFT JOIN dr_demand demand ON eve.REGULATE_ID = demand.REGULATE_ID
+        SET eve.REGULATE_CAP = #{regulateCap},demand.REGULATE_CAP = #{regulateCap}
+        WHERE
+            eve.EVENT_ID = #{eventId}
+    </update>
+
+    <select id="getEventDetailWithPlan" resultMap="BaseResultMap">
+        select e.*,p.plan_id,p.create_org,p.REGULATE_CAP/10000 as REGULATE_GAP  from dr_event e left join dr_plan p on e.event_id = p.regulate_id where e.event_id = #{eventId}
+    </select>
+
+    <select id="eventDetail" resultType="com.xqxy.dr.modular.event.VO.EventVO">
+        SELECT
+            SUM(planCons.DEMAND_CAP) replyCap,
+            COUNT(planCons.CONS_ID) invitationCount,
+            eve.*
+        FROM
+            dr_event eve,
+            dr_plan plan,
+            dr_plan_cons planCons
+        WHERE
+            eve.EVENT_ID = plan.REGULATE_ID
+        AND plan.PLAN_ID = planCons.PLAN_ID
+        AND eve.EVENT_ID = #{eventId}
+        AND planCons.IMPLEMENT = "Y"
+    </select>
+
+    <select id="eventDetailByProject" resultType="com.xqxy.dr.modular.event.VO.EventVO">
+        SELECT
+            RESPONSE_TYPE responseType,
+            TIME_TYPE timeType,
+            advance_notice_time advanceNoticeTime,
+            event_status,
+            COUNT(*) count
+        FROM
+            dr_event
+        WHERE
+            PROJECT_ID = #{projectId}
+        GROUP BY
+            RESPONSE_TYPE,
+            TIME_TYPE,
+            advance_notice_time,
+            PROJECT_ID,
+            event_status
+    </select>
+
+    <select id="getConsCountByEvents" resultType="Integer">
+        SELECT
+        count( DISTINCT CONS_ID ) AS count
+        FROM
+        dr_plan_cons
+        WHERE
+        PLAN_ID IN (
+        SELECT
+        PLAN_ID
+        FROM
+        dr_plan
+        WHERE 1=1
+        <if test="eventIds != null and eventIds.size>0">
+            and REGULATE_ID in
+            <foreach
+                collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+                #{eventId}
+            </foreach>
+            </if>
+         )
+         and IMPLEMENT = 'Y'
+
+    </select>
+
+    <select id="getConsCountByEventsAndOrgs" resultType="Integer">
+        SELECT
+        count( DISTINCT a.CONS_ID ) AS count
+        FROM
+        dr_plan_cons a
+        left join dr_cons b on a.CONS_ID = b.id
+        WHERE
+        a.PLAN_ID IN (
+        SELECT
+        PLAN_ID
+        FROM
+        dr_plan
+        WHERE 1=1
+        <if test="eventIds != null and eventIds.size>0">
+            and REGULATE_ID in
+            <foreach
+                    collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+                #{eventId}
+            </foreach>
+        </if>
+        )
+        and a.IMPLEMENT = 'Y'
+        <if test="orgNos != null and orgNos.size>0">
+            and b.ORG_NO in
+            <foreach
+                    collection="orgNos" item="orgId" index="index" open="(" close=")" separator=",">
+                #{orgId}
+            </foreach>
+        </if>
+
+    </select>
+    <!--    省本年度需求响应累计执行天数（天）-->
+    <select id="annualExecutionDays" resultType="java.lang.Integer">
+        SELECT count(
+                       DISTINCT (REGULATE_DATE))
+        FROM dr_event
+        WHERE REGULATE_DATE LIKE concat(YEAR ( now()), '%')
+          AND event_status = '04'
+    </select>
+
+    <select id="getBaseLineIdByEventId" resultType="Long">
+        SELECT BASELIN_ID
+        FROM dr_plan
+        WHERE REGULATE_ID = #{eventId}
+    </select>
+    <!--    需求响应计划表——————————日前邀约削峰-->
+    <select id="daysAgoSchedule" resultType="com.xqxy.executor.entity.Schedule">
+        SELECT de.EVENT_ID                                         eventId,
+               de.EVENT_NAME                                       eventName,
+               concat(de.REGULATE_DATE, ' ', de.START_TIME, ':00') executionStart,
+               concat(de.REGULATE_DATE, ' ', de.END_TIME, ':00')   endOfExecution,
+               de.REGULATE_CAP / 10000                             regulation
+        FROM dr_event de
+        WHERE de.event_status = '03'
+          <choose>
+              <when test="eventId != null and eventId != ''">
+                  AND de.EVENT_ID = #{eventId}
+              </when>
+              <when test="date != null and date != ''">
+                  AND de.CREATE_TIME LIKE concat(#{date}, '%')
+              </when>
+              <otherwise>and 1=0</otherwise>
+          </choose>
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '1'
+    </select>
+    <!--    需求响应计划表——————————日内邀约削峰-->
+    <select id="intradaySchedule" resultType="com.xqxy.executor.entity.Schedule">
+        SELECT de.EVENT_ID                                         eventId,
+               de.EVENT_NAME                                       eventName,
+               concat(de.REGULATE_DATE, ' ', de.START_TIME, ':00') executionStart,
+               concat(de.REGULATE_DATE, ' ', de.END_TIME, ':00')   endOfExecution,
+               de.REGULATE_CAP / 10000                             regulation
+        FROM dr_event de
+        WHERE de.event_status = '03'
+          AND de.REGULATE_DATE = date (NOW())
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '2'
+    </select>
+    <!--    需求响应计划表——————————实时邀约削峰-->
+    <select id="realTimeSchedule" resultType="com.xqxy.executor.entity.Schedule">
+        SELECT de.EVENT_ID                                         eventId,
+               de.EVENT_NAME                                       eventName,
+               concat(de.REGULATE_DATE, ' ', de.START_TIME, ':00') executionStart,
+               concat(de.REGULATE_DATE, ' ', de.END_TIME, ':00')   endOfExecution,
+               de.REGULATE_CAP / 10000                             regulation
+        FROM dr_event de
+        WHERE de.event_status = '03'
+          AND de.REGULATE_DATE = date (NOW())
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '3'
+    </select>
+
+    <select id="getDeadLimeTime" resultType="String" parameterType="Long">
+       select deadline_time from dr_cons_invitation where EVENT_ID=#{eventId} limit 1
+    </select>
+</mapper>

@@ -1,0 +1,82 @@
+package com.xqxy.dr.modular.event.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.xqxy.dr.modular.event.VO.EventVO;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.executor.entity.Schedule;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * <p>
+ * 需求响应事件 Mapper 接口
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-08
+ */
+public interface EventMapper extends BaseMapper<Event> {
+
+    @Select("select max(event_no + 1) from dr_event where DATE_FORMAT(REGULATE_DATE,'%Y') = '${year}'")
+    Long getMaxNo(@Param("year") String year);
+
+    Event getEventDetailWithPlan(@Param("eventId") Long eventId);
+
+    @Select("select count(*) from dr_event where REGULATE_DATE = '${cdrDate}' and event_status in('03','04')")
+    int countEventNumber(LocalDate cdrDate);
+
+    /**
+     * 工作台事件信息
+     * @param eventId
+     * @return
+     */
+    EventVO eventDetail(Long eventId);
+
+    /**
+     * 统计各个事件类型的数量
+     *
+     * @param projectId
+     * @return
+     */
+    List<EventVO> eventDetailByProject(Long projectId);
+
+    Integer getConsCountByEvents(@Param("eventIds") List<Long> eventIds);
+
+    Integer getConsCountByEventsAndOrgs(@Param("eventIds") List<Long> eventIds, @Param("orgNos") List<String> orgNos);
+
+    /**
+     * 省本年度需求响应累计执行天数（天）
+     *
+     * @return 天数
+     */
+    int annualExecutionDays();
+
+    Long getBaseLineIdByEventId(Long eventId);
+
+    /**
+     * 需求响应计划表--------------->日前邀约削峰
+     *
+     * @param date 当前时间(yyyy-MM-dd)-1
+     * @return
+     */
+    List<Schedule> daysAgoSchedule(String date);
+
+    /**
+     * 需求响应计划表--------------->日内邀约削峰
+     *
+     * @return
+     */
+    List<Schedule> intradaySchedule();
+
+    /**
+     * 需求响应计划表--------------->实时邀约削峰
+     *
+     * @return
+     */
+    List<Schedule> realTimeSchedule();
+
+    String getDeadLimeTime(Long eventId);
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.powerplant.mapper.DrDaVoidanceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.powerplant.entity.DrDaVoidance">
+        <id column="id" property="id" />
+        <result column="peak_date" property="peakDate" />
+        <result column="peak_time_interval" property="peakTimeInterval" />
+        <result column="execution_date" property="executionDate" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="voidance_price" property="voidancePrice" />
+        <result column="update_user" property="updateUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_user" property="createUser" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, peak_date, peak_time_interval, execution_date, start_time, end_time, voidance_price, declare_power_id, voidance_power_id, update_user, update_time, create_user, create_time
+    </sql>
+
+</mapper>

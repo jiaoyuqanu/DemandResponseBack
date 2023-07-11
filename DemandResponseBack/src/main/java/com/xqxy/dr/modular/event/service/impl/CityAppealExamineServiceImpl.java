@@ -1,0 +1,101 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.event.param.MyRepresentation;
+import com.xqxy.dr.modular.event.service.abstractService.AbstractAppealExamineService;
+import com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal;
+import com.xqxy.dr.modular.subsidy.param.SubsidyAppealParam;
+import com.xqxy.dr.modular.subsidy.service.SubsidyAppealService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * <p></p>
+ *
+ * @author djj Create on 2022/8/23
+ * @version 1.0
+ */
+@Slf4j
+@Service("cityAppealExamineService")
+public class CityAppealExamineServiceImpl extends AbstractAppealExamineService  {
+
+    @Resource
+    private SubsidyAppealService subsidyAppealService;
+
+    @Override
+    public void appealExamineSubmit(MyRepresentation myRepresentation) throws ServiceException{
+        SubsidyAppeal currentAppeal = getCurrentAppeal(Long.parseLong(myRepresentation.getDrSubsidyAppealId()));
+        //本侧已驳回或用户侧已撤回，禁止提交
+        if (currentAppeal != null && !StringUtils.isEmpty(currentAppeal.getStatusCity()) && !CANCEL_STATUS.equals(currentAppeal.getStatus())) {
+            SubsidyAppealParam subsidyAppealParam = new SubsidyAppealParam();
+            subsidyAppealParam.setCityUser(SecurityUtils.getCurrentUserInfoUTF8().getName());
+            BeanUtils.copyProperties(myRepresentation,subsidyAppealParam);
+            subsidyAppealParam.setId(Long.valueOf(myRepresentation.getDrSubsidyAppealId()));
+            subsidyAppealParam.setSubmitCityTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()));
+            subsidyAppealParam.setUpdateTime(LocalDateTime.now());
+            subsidyAppealParam.setStatusCity(SUBMIT_STATUS);
+            subsidyAppealParam.setStatusProvince(WAIT_PROCESS);
+            subsidyAppealService.update(subsidyAppealParam);
+        }else{
+            log.error("当前申诉记录为空或者用户侧已撤回");
+            throw new ServiceException(99999,"当前申诉记录为空或者用户侧已撤回");
+        }
+    }
+
+    @Override
+    public void appealExamineCancel(MyRepresentation myRepresentation) {
+        SubsidyAppeal currentAppeal = getCurrentAppeal(Long.parseLong(myRepresentation.getDrSubsidyAppealId()));
+        if (currentAppeal != null && !SUBMIT_STATUS.equals(currentAppeal.getStatusProvince())) {
+            SubsidyAppealParam subsidyAppealParam = new SubsidyAppealParam();
+            subsidyAppealParam.setCityUser(SecurityUtils.getCurrentUserInfoUTF8().getName());
+            subsidyAppealParam.setId(Long.valueOf(myRepresentation.getDrSubsidyAppealId()));
+            subsidyAppealParam.setUpdateTime(LocalDateTime.now());
+            subsidyAppealParam.setStatusCity(CANCEL_STATUS);
+            subsidyAppealParam.setStatusProvince(REFRESH_STATUS);
+            subsidyAppealService.update(subsidyAppealParam);
+        }else{
+            log.error("当前申诉记录为空或者省侧已提交");
+            throw new ServiceException(99999,"当前申诉记录为空或者省侧已提交");
+        }
+    }
+
+    @Override
+    public SubsidyAppeal appealExamineDetail(MyRepresentation myRepresentation) throws ServiceException{
+        SubsidyAppeal subsidyAppeal;
+        try {
+            subsidyAppeal = subsidyAppealService.appealDetail(Long.parseLong(myRepresentation.getDrSubsidyAppealId()));
+            //赋值最终详情页展示的审批意见,如果能源局/省侧有拒绝意见 优先展示（优先级:能源局>省>市）
+            subsidyAppeal.setFinalSuggestion(subsidyAppeal.acquireFinalSuggestion());
+        } catch (Exception e) {
+            log.error("查询申诉详情失败");
+            throw new ServiceException(99999,"查询申诉详情失败");
+        }
+        return subsidyAppeal;
+    }
+
+    @Override
+    public void appealExamineTurnDown(MyRepresentation myRepresentation) throws ServiceException{
+        SubsidyAppeal currentAppeal = getCurrentAppeal(Long.parseLong(myRepresentation.getDrSubsidyAppealId()));
+        //本侧或省侧已提交，禁止驳回
+        if (currentAppeal != null && !SUBMIT_STATUS.equals(currentAppeal.getStatusCity()) && !SUBMIT_STATUS.equals(currentAppeal.getStatusProvince())) {
+            SubsidyAppealParam subsidyAppealParam = new SubsidyAppealParam();
+            BeanUtils.copyProperties(myRepresentation,subsidyAppealParam);
+            subsidyAppealParam.setCityUser(SecurityUtils.getCurrentUserInfoUTF8().getName());
+            subsidyAppealParam.setId(Long.valueOf(myRepresentation.getDrSubsidyAppealId()));
+            subsidyAppealParam.setUpdateTime(LocalDateTime.now());
+            subsidyAppealParam.setStatus(ABORT_STATUS);
+            subsidyAppealParam.setStatusCity(REFRESH_STATUS);
+            subsidyAppealService.update(subsidyAppealParam);
+        }else{
+            log.error("当前申诉记录为空或者省/市侧已提交");
+            throw new ServiceException(99999,"当前申诉记录为空或者省/市侧已提交");
+        }
+    }
+
+}

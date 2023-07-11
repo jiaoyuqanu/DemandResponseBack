@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.CustSubsidyPayMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.CustSubsidyPay">
+        <id column="pay_id" property="payId"/>
+        <result column="pay_no" property="payNo"/>
+        <result column="begin_date" property="beginDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="integrator" property="integrator"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="partic_num" property="particNum"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+        <result column="CUST_ID" property="custId"/>
+
+        <association property="cust" javaType="com.xqxy.sys.modular.cust.entity.Cust">
+            <result column="legal_name" property="legalName"/>
+            <result column="id" property="id"/>
+            <result column="credit_code" property="creditCode"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        pay_id
+        , pay_no, begin_date, end_date, integrator, subsidy_amount, partic_num, pay_status, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER, CUST_ID
+    </sql>
+
+    <select id="custSubsidyPayPage" resultMap="BaseResultMap">
+        select
+        s.*,
+        c.legal_name,
+        c.id,
+        c.CREDIT_CODE
+        from
+        dr_cust_subsidy_pay s, dr_cust c
+        <where>
+            s.cust_id = c.id
+            and s.integrator = '1'
+            <if test="map.payNo != null and map.payNo != ''">
+                and s.pay_no = #{map.payNo}
+            </if>
+
+            <if test="map.legalName != null and map.legalName != ''">
+                and c.legal_name like concat('%', #{map.legalName}, '%')
+            </if>
+
+            <if test="map.creditCode != null and map.creditCode != ''">
+                and c.credit_code like concat('%', #{map.creditCode}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="eventCustSubsidyPayPage" resultType="com.xqxy.dr.modular.subsidy.result.EventCustSubsidyPayInfo">
+        SELECT
+        e.EVENT_ID as eventId,
+        e.EVENT_NO as eventNo,
+        e.EVENT_NAME as eventName,
+        COUNT( cs.subsidy_id ) AS totalCons,
+        COUNT(ce.is_effective = 'Y' or null) as isEffectiveCons,
+        ifnull(SUM(cs.subsidy_amount),0) as totalMoney
+        FROM
+        dr_event e
+        LEFT JOIN dr_cons_subsidy cs ON cs.EVENT_ID = e.EVENT_ID
+        LEFT JOIN dr_cons_evaluation ce on ce.CONS_ID = cs.CONS_ID and ce.EVENT_ID = e.EVENT_ID
+        <where>
+            <if test="param.eventIds != '' and param.eventIds != null">
+                and cs.EVENT_ID in
+                <foreach collection="param.eventIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="param.consIds != '' and param.consIds != null">
+                and cs.CONS_ID in
+                <foreach collection="param.consIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="param.eventCode != '' and param.eventCode != null">
+                and e.EVENT_NO = #{param.eventCode}
+            </if>
+            <if test="param.eventName != '' and param.eventName != null">
+                and e.EVENT_NAME LIKE CONCAT('%',#{param.eventName},"%")
+            </if>
+        </where>
+        GROUP BY e.EVENT_ID
+        ORDER BY e.START_TIME desc
+    </select>
+
+</mapper>

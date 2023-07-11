@@ -1,0 +1,26 @@
+package com.xqxy.dr.modular.newloadmanagement.mapper;
+
+
+import com.xqxy.dr.modular.newloadmanagement.entity.Drevent;
+import com.xqxy.dr.modular.newloadmanagement.vo.UserSignalDetailVo;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Mapper
+public interface CitiesInvitedMapper {
+    BigDecimal queryGoal(@Param("orgid") String orgId,@Param("eventid") Long eventID);
+
+    Drevent query3Condition(Long eventId);
+
+    List<Long> queryProjectId(@Param("drevent") Drevent drevent);
+
+    Integer userSignalCount(@Param("projectIds") List<Long> projects, @Param("consIds") List consIds);
+
+    List<String> userSignal(@Param("projectIds") List<Long> projects, @Param("consIds") List consIds);
+
+     List<UserSignalDetailVo>  userSignalInfo(@Param("eventid") Long eventID, @Param("consIds") List consIds);
+
+}

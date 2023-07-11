@@ -1,0 +1,424 @@
+package com.xqxy.dr.modular.strategy;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.context.requestno.RequestNoContext;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.dr.modular.anhui.utils.AnhuiAdsCstUtils;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.data.entity.ConsCurveToday;
+import com.xqxy.dr.modular.data.entity.ConsEnergyCurve;
+import com.xqxy.dr.modular.data.service.ConsCurveService;
+import com.xqxy.dr.modular.data.service.ConsCurveTodayService;
+import com.xqxy.dr.modular.data.service.ConsEnergyCurveService;
+import com.xqxy.dr.modular.device.VO.EquipmentRecordVO;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.enums.ConsExceptionEnum;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import com.xqxy.sys.modular.utils.HttpClientUtil;
+import com.xqxy.sys.modular.utils.SnowflakeIdWorker;
+import net.sf.json.JSONArray;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * @Description
+ * @ClassName LocalDataAccessStrategy
+ * @Author User
+ * @date 2021.04.13 17:49
+ */
+@Component
+public class AnHuiLocalDataAccessStrategy implements DataAccessStrategy {
+
+    private static final Log log = Log.get();
+
+    @Resource
+    ConsService consService;
+
+    @Resource
+    ConsCurveService consCurveService;
+
+    @Resource
+    ConsCurveTodayService consCurveTodayService;
+
+    @Resource
+    ConsEnergyCurveService consEnergyCurveService;
+
+
+    class RequestField {
+        String fieldName;
+        String fieldValue;
+        String operator = "=";
+
+        RequestField(String fieldName, String fieldValue) {
+            this.fieldName = fieldName;
+            this.fieldValue = fieldValue;
+        }
+
+        RequestField(String fieldName, String fieldValue, String operator) {
+            this.fieldName = fieldName;
+            this.fieldValue = fieldValue;
+            this.operator = operator;
+        }
+
+        public void setOperator(String operator) {
+            this.operator = operator;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+
+        public void setFieldName(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldValue() {
+            return fieldValue;
+        }
+
+        public void setFieldValue(String fieldValue) {
+            this.fieldValue = fieldValue;
+        }
+
+        public String getOperator() {
+            return operator;
+        }
+
+        @Override
+        public String toString() {
+            return "RequestField{" +
+                    "fieldName='" + fieldName + '\'' +
+                    ", fieldValue='" + fieldValue + '\'' +
+                    ", operator='" + operator + '\'' +
+                    '}';
+        }
+    }
+    @Override
+    public ConsCurve queryDayLoadCurveByConsNo(String elecConsNo, String dataDate) {
+        if (StringUtils.isEmpty(elecConsNo) || StringUtils.isEmpty(dataDate)) {
+            ConsCurve consCurve = new ConsCurve();
+            consCurve.setConsId(elecConsNo);
+            return consCurve;
+        }
+        Cons cons =  consService.getById(elecConsNo);
+        if (ObjectUtil.isNull(cons)) {
+            throw new ServiceException(ConsExceptionEnum.CONS_NOT_EXIST);
+//        } else if (consList.size() > 1) {
+//            throw new ServiceException(ConsExceptionEnum.CONS_REPEAT);
+        }
+        // Cons cons = consList.get(0);
+        log.info(">>> 本地历史接口，请求号为：{}，请求户号：{}，请求日期：{}", RequestNoContext.get(), elecConsNo, dataDate);
+        ConsCurve consCurve = consCurveService.getCurveByConsIdAndDate(cons.getId(), dataDate);
+        if (ObjectUtil.isNull(consCurve)) {
+            consCurve = new ConsCurve();
+        }
+        consCurve.setConsId(cons.getId());
+        log.info(">>> 本地历史接口，请求号为：{}，结果：{}", RequestNoContext.get(), consCurve);
+        return consCurve;
+    }
+
+    @Override
+    public List<ConsCurve> queryHistoryCurveList(String elecConsNo, String startDate, String endDate) {
+        LambdaQueryWrapper<ConsCurve> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ConsCurve::getConsId,elecConsNo);
+        queryWrapper.ge(ConsCurve::getDataDate,startDate);
+        queryWrapper.le(ConsCurve::getDataDate,endDate);
+        List<ConsCurve> list = consCurveService.list(queryWrapper);
+        return list;
+    }
+
+    @Override
+    public ConsCurve queryTodayLoadCurveByConsNo(String elecConsNo, String dataDate) {
+        if (StringUtils.isEmpty(elecConsNo) || StringUtils.isEmpty(dataDate)) {
+            ConsCurve consCurve = new ConsCurve();
+            consCurve.setConsId(elecConsNo);
+            return consCurve;
+        }
+
+        Cons cons =  consService.getById(elecConsNo);
+        if(ObjectUtil.isNull(cons)) throw new ServiceException(ConsExceptionEnum.CONS_NOT_EXIST);
+        /*if (consList == null || consList.size() < 1) {
+            throw new ServiceException(ConsExceptionEnum.CONS_NOT_EXIST);
+        } else if (consList.size() > 1) {
+            throw new ServiceException(ConsExceptionEnum.CONS_REPEAT);
+        }*/
+        // Cons cons = consList.get(0);
+        ConsCurve consCurve = new ConsCurve();
+        log.info(">>> 本地实时接口，请求号为：{}，请求户号：{}，请求日期：{}", RequestNoContext.get(), elecConsNo, dataDate);
+        ConsCurveToday consCurveToday = consCurveTodayService.getCurveByConsIdAndDate(cons.getId(), dataDate);
+        consCurve.setConsId(cons.getId());
+        if (ObjectUtil.isNotNull(consCurveToday)) {
+            BeanUtils.copyProperties(consCurveToday, consCurve);
+        } else {
+            return consCurve;
+        }
+
+        log.info(">>> 本地实时接口，请求号为：{}，结果：{}", RequestNoContext.get(), consCurve);
+        return consCurve;
+    }
+
+    @Override
+    public List<ConsCurve> queryTodayCurveList(List<String> elecConsNoList, String dataDate) {
+        //实时历史本地库数据相同
+        if (CollectionUtil.isEmpty(elecConsNoList) || ObjectUtil.isEmpty(dataDate)) {
+            return null;
+        }
+        LambdaQueryWrapper<ConsCurveToday> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(ConsCurveToday::getConsId,elecConsNoList);
+        queryWrapper.eq(ConsCurveToday::getDataDate,LocalDate.parse(dataDate));
+        List<ConsCurveToday> list = consCurveTodayService.list(queryWrapper);
+        log.info(">>> 本地实时日期参数：{},本地实时结果：{}",dataDate,list);
+        List<ConsCurve>  consCurves = new ArrayList<>();
+        if(null!=list && list.size()>0) {
+            for(ConsCurveToday consCurveToday : list) {
+                ConsCurve consCurve = new ConsCurve();
+                BeanUtils.copyProperties(consCurveToday,consCurve);
+                if(null!=consCurveToday.getConsId()) {
+                    consCurve.setConsId(consCurveToday.getConsId().toString());
+                }
+                consCurves.add(consCurve);
+            }
+        }
+        log.info(">>> 本地拷贝实时多日期结果：{}",consCurves);
+        return consCurves;
+    }
+
+    @Override
+    public List<ConsCurve> queryHistoryCurveList(List<String> elecConsNolist, List<String> dataDateList) {
+        if (CollectionUtil.isEmpty(dataDateList) || CollectionUtil.isEmpty(elecConsNolist)) {
+            return null;
+        }
+        LambdaQueryWrapper<ConsCurve> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(ConsCurve::getConsId,elecConsNolist);
+        queryWrapper.in(ConsCurve::getDataDate,dataDateList);
+        List<ConsCurve> list = consCurveService.list(queryWrapper);
+        log.info(">>> 本地历史多日期户号参数：{},本地历史多日期日期参数：{},本地历史多日期结果：{}",elecConsNolist,dataDateList,list);
+        return list;
+    }
+
+    @Override
+    public List<ConsCurve> queryHistoryCurvePage(List<String> elecConsNoList, String dataDate) {
+        if (CollectionUtil.isEmpty(elecConsNoList) || ObjectUtil.isEmpty(dataDate)) {
+            return null;
+        }
+        LambdaQueryWrapper<ConsCurve> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(ConsCurve::getConsId,elecConsNoList);
+        queryWrapper.eq(ConsCurve::getDataDate,LocalDate.parse(dataDate));
+        List<ConsCurve> list = consCurveService.list(queryWrapper);
+        log.info(">>> 本地历史多日期户号参数：{},本地历史多日期日期参数：{},本地历史多日期结果：{}",elecConsNoList,dataDate,list);
+        return list;
+    }
+
+    @Override
+    public List<ConsEnergyCurve> queryDayLoadEnergyByConsNo(List<String> consIdList, String dataDate) {
+
+        return null;
+    }
+
+    @Override
+    public ConsEnergyCurve queryDayLoadEnergyByConsNo(String elecConsNo, String dataDate) {
+        return null;
+    }
+
+    @Override
+    public ConsEnergyCurve queryTodayLoadEnergyByConsNo(String elecConsNo, String dataDate) {
+        List<Cons> consList = (List<Cons>) consService.getById(elecConsNo);
+        if (consList == null || consList.size() < 1) {
+            throw new ServiceException(ConsExceptionEnum.CONS_NOT_EXIST);
+        } else if (consList.size() > 1) {
+            throw new ServiceException(ConsExceptionEnum.CONS_REPEAT);
+        }
+        Cons cons = consList.get(0);
+        ConsEnergyCurve energyCurve = consEnergyCurveService.getCurveByConsIdAndDate(cons.getId(), dataDate);
+        energyCurve.setConsNo(cons.getId());
+        return energyCurve;
+//        ConsCurve consCurve = consCurveService.getCurveByConsIdAndDate(cons.getConsId(), dataDate);
+//        consCurve.setConsNo(cons.getElecConsNo());
+    }
+
+    @Override
+    public Cons getConsFromMarketing(String elecNo, String consName, String orgNo) {
+        Cons resCons=new Cons();
+        if(ObjectUtil.isNotNull(elecNo)){
+            long time = Calendar.getInstance().getTime().getTime();
+            log.info(">>> 请求接口开始",time);
+            Map<Object, Object> objectObjectMap = AnhuiAdsCstUtils.queryCons("1", "10", elecNo);
+            long time2 = Calendar.getInstance().getTime().getTime();
+            log.info(">>> 请求接口结束", time2);
+            log.info(">>> 请求中台接口总计耗时：", time2-time);
+            if(ObjectUtil.isNotNull(objectObjectMap)){
+                if(ObjectUtil.isNotNull(objectObjectMap.get("ELECADDR"))){
+                    resCons.setElecAddr(String.valueOf(objectObjectMap.get("ELECADDR")));//用电地址
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("CONSSORT"))){
+                    String.valueOf(objectObjectMap.get("CONSSORT"));//分类方式
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("CONTRACTCAP"))){
+                    resCons.setContractCap(BigDecimal.valueOf(Long.parseLong(String.valueOf(objectObjectMap.get("CONTRACTCAP")))));;//合同-容量
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("SECURITYCAP"))){
+                    resCons.setSafetyLoad(BigDecimal.valueOf(Long.parseLong(String.valueOf(objectObjectMap.get("SECURITYCAP")))));;//保安容量
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("SGNAME"))){
+                    resCons.setConsName(String.valueOf(objectObjectMap.get("SGNAME")));//客户名称
+                }
+
+                String.valueOf(objectObjectMap.get("ISPOWEROFF"));//停电标识
+                if(ObjectUtil.isNotNull(objectObjectMap.get("PUCNUMBER"))){
+                    resCons.setId(String.valueOf(objectObjectMap.get("PUCNUMBER")));//户号
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("RUNCAP"))){
+                    resCons.setRunCap(BigDecimal.valueOf(Long.parseLong(String.valueOf(objectObjectMap.get("RUNCAP")))));;//运行容量
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("PSVOLT"))){
+                    resCons.setVoltCode(String.valueOf(objectObjectMap.get("PSVOLT")));//电压等级
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("ORGNO"))){
+                    resCons.setOrgNo(String.valueOf(objectObjectMap.get("ORGNO")));;//供电单位编码
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("CONSID"))){
+                    resCons.setCustId(Long.valueOf(String.valueOf(objectObjectMap.get("CONSID"))));;//唯一主键
+                }
+                if(ObjectUtil.isNotNull(objectObjectMap.get("ELECTYPE"))){
+                    resCons.setBigTradeCode(String.valueOf(objectObjectMap.get("ELECTYPE")));//用电类别
+                }
+                // String.valueOf(objectObjectMap.get("MKTPROP"));//市场化属性分类
+                //String.valueOf(objectObjectMap.get("LOADATTR"));//主要程度
+                //String.valueOf(objectObjectMap.get("SGSTATUS"));//客户状态
+                if(ObjectUtil.isNotNull(objectObjectMap.get("SGSTATUS"))){
+                    resCons.setState(String.valueOf(objectObjectMap.get("SGSTATUS")));//客户状态
+                }
+                //第一联系人方式
+                if(ObjectUtil.isNotNull(objectObjectMap.get("mobilephone"))){
+                    resCons.setFirstContactInfo(String.valueOf(objectObjectMap.get("mobilephone")));
+                }
+                //第一联系人姓名
+                if(ObjectUtil.isNotNull(objectObjectMap.get("lastname"))){
+                    resCons.setFirstContactName(String.valueOf(objectObjectMap.get("lastname")));
+                }
+                //String.valueOf(objectObjectMap.get("LOADFEATURE"));//用户对应负荷特性
+                return resCons;
+            }
+        }
+
+        return resCons;
+    }
+
+    @Override
+    public List<EquipmentRecordVO> queryDeviceHistoryCurvePage(String deviceId, String date) {
+        return null;
+    }
+
+
+    @Value("${deviceRealTimeCurveUrl}")
+    private String deviceRealTimeCurveUrl;
+    @Override
+    public List<EquipmentRecordVO> queryDeviceRealTimeCurvePage(String deviceId) {
+        String url = deviceRealTimeCurveUrl + "?equipmentNos=" + deviceId ;
+        net.sf.json.JSONObject data = HttpClientUtil.sendGet(url, "");
+
+        List<EquipmentRecordVO> list  = this.drDeviceCurveToMap(data == null ? null : data.toString());
+        return list;
+    }
+
+    private List<EquipmentRecordVO> drDeviceCurveToMap(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        List<EquipmentRecordVO> deviceList = new ArrayList<>();
+//        log.info("数据开始json格式 value={}");
+        net.sf.json.JSONObject jsonObject = net.sf.json.JSONObject.fromObject(value);
+//        log.info("数据开始 jsonObject 格式 jsonObject={}", jsonObject == null ? null : jsonObject.toString());
+        String code = jsonObject.getString("code");
+//        log.info("获取 code ={}", code);
+        if ("0".equals(code)) {
+            String data = jsonObject.getString("data");
+            jsonObject = net.sf.json.JSONObject.fromObject(data);
+            String list = jsonObject.getString("list");
+            JSONArray jsonArray1 = JSONArray.fromObject(list);
+            List<String> keys = null;
+            for (int i = 0; i < jsonArray1.size(); i++) {
+                net.sf.json.JSONObject jsonObject2 = jsonArray1.getJSONObject(i);
+                Map map = (Map) net.sf.json.JSONObject.toBean(jsonObject2, Map.class);
+                Map<String, BigDecimal> mapParam = new HashMap<String, BigDecimal>();
+                EquipmentRecordVO equipmentRecordVO = new EquipmentRecordVO();
+                keys = mapToList(map);
+
+                if (keys == null || keys.size() != 96) {
+                    keys = mapToList(map);
+                }
+                for (int x = 0; x < 96; x++) {
+                    String key = keys.get(x) == null ? null : keys.get(x).replace("t","");
+                    Integer hour = Integer.parseInt(key.substring(0, 2));
+                    Integer min = Integer.parseInt(key.substring(2));
+                    Integer i1 = (hour * 60 + min) / 15;
+                    if(i1 == 0){
+                        i1 = 96;
+                    }
+
+                    String strValue = map.get("t"+key).toString();
+                    if (strValue.equals("null")) {
+                        strValue =null;
+                        continue;
+                    }
+                    mapParam.put("p" + (i1), BigDecimal.valueOf(Double.parseDouble(strValue)));
+                }
+                try {
+                    org.apache.commons.beanutils.BeanUtils.copyProperties(equipmentRecordVO, map);
+                    org.apache.commons.beanutils.BeanUtils.copyProperties(equipmentRecordVO, mapParam);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+
+                String ymd = (String) map.get("ymd");
+                equipmentRecordVO.setYmd(ymd);
+                String equipmentNo = map.get("equipmentNo").toString();
+                equipmentRecordVO.setEquipmentNo(equipmentNo);
+                String dataId = map == null ? null : map.get("dataId").toString();
+                equipmentRecordVO.setDataId(dataId);
+                equipmentRecordVO.setId(SnowflakeIdWorker.generateId().toString());//雪花算法生成Id
+
+                deviceList.add(equipmentRecordVO);
+            }
+        }
+        return deviceList;
+    }
+
+    /**
+     * mapParam key获取出来
+     */
+    private static List<String> mapToList(Map<String, Object> mapParam) {
+        List<String> list = null;
+        if (list == null || list.size() != 96) {
+            Set<Map.Entry<String, Object>> entries = mapParam.entrySet();
+            list = new ArrayList<String>();
+            for (Map.Entry<String, Object> entry : entries) {
+                String key = entry.getKey();
+                //获取
+                if (key != null && key.length() == 5) {
+                    String substring = key.substring(0, 1);
+                    String substring1 = key.substring(1, 4);
+                    if (com.xqxy.sys.modular.utils.StringUtils.isString(key, "t") && com.xqxy.sys.modular.utils.StringUtils.isNumeric(substring1)) {
+                        list.add(key);
+                    }
+                }
+            }
+            Collections.sort(list);
+        }
+        return list;
+    }
+}

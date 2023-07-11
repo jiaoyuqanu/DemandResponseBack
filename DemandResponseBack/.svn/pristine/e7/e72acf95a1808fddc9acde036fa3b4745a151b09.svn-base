@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.cust.mapper.BlackNameMapper">
+    <select id="getEvalution" parameterType="BigDecimal" resultType="com.xqxy.sys.modular.cust.entity.BlackName">
+        SELECT
+        a.cons_id AS consId,
+        count(a.evaluation_id) AS count,
+        date_format(now(),'%Y') as year,
+        b.cons_name as consName
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_cons b on a.cons_id = b.id
+        LEFT JOIN  dr_event c on c.event_id = a.event_id
+        WHERE
+        a.is_effective = 'N'
+        AND a.execute_rate &lt; #{executeRate}
+        AND date_format(now(),'%y') = date_format(c.regulate_date,'%y')
+        GROUP BY
+        a.cons_id
+    </select>
+
+    <select id="getEvalutionEvent" parameterType="BigDecimal" resultType="com.xqxy.sys.modular.cust.entity.BlackName">
+        SELECT
+        a.cons_id AS consId,
+		a.event_id as eventId,
+		c.event_no as eventNo,
+        c.event_name as eventName
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_cons b on a.cons_id = b.id
+        LEFT JOIN  dr_event c on c.event_id = a.event_id
+        WHERE
+        a.is_effective = 'N'
+        AND a.execute_rate &lt; #{executeRate}
+        AND date_format(now(),'%y') = date_format(c.regulate_date,'%y')
+    </select>
+    
+    <select id="getConsInvication" resultType="com.xqxy.sys.modular.cust.entity.BlackName">
+        SELECT
+        a.cons_id AS consId,
+        count(a.invitation_id) AS count,
+		date_format(now(),'%Y') as year,
+        b.cons_name as consName
+        FROM
+        dr_cons_invitation a
+        LEFT JOIN dr_cons b on a.cons_id = b.id
+		LEFT JOIN  dr_event c on c.event_id = a.event_id
+        WHERE
+        (a.is_participate = 'N' or a.is_participate is null)
+        AND date_format(now(),'%y') = date_format(c.regulate_date,'%y')
+        AND now() &gt;CONCAT(c.REGULATE_DATE,' ',c.START_TIME)
+        AND a.no_reply_reason != '1'
+        AND c.event_status in ('06','03','04')
+        GROUP BY
+        a.cons_id
+    </select>
+
+    <select id="getConsInvicationEvent" parameterType="BigDecimal" resultType="com.xqxy.sys.modular.cust.entity.BlackName">
+        SELECT
+        a.cons_id AS consId,
+		a.event_id as eventId,
+		c.event_no as eventNo,
+        c.event_name as eventName
+        FROM
+        dr_cons_invitation a
+        LEFT JOIN dr_cons b on a.cons_id = b.id
+        LEFT JOIN  dr_event c on c.event_id = a.event_id
+        WHERE
+        (a.is_participate = 'N' or a.is_participate is null)
+        AND date_format(now(),'%y') = date_format(c.regulate_date,'%y')
+        AND a.no_reply_reason != '1'
+    </select>
+
+    <delete id="deleteByTime">
+        DELETE from dr_black_list where NOW() &gt;= expire_time
+    </delete>
+
+    <select id="getBlackNameConsIds" resultType="String">
+        select cons_id as consId from dr_black_list where is_effective='Y'
+    </select>
+
+</mapper>

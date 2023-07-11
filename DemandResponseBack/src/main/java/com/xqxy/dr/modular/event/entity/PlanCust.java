@@ -1,0 +1,139 @@
+package com.xqxy.dr.modular.event.entity;
+
+import java.math.BigDecimal;
+
+import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.TableField;
+import java.io.Serializable;
+
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * <p>
+ * 方案参与客户
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+@Data
+@EqualsAndHashCode(callSuper = false)
+@TableName("dr_plan_cust")
+public class PlanCust  extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
+    /**
+     * 参与标识
+     */
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long particId;
+
+    /**
+     * 方案标识
+     */
+    @TableField("PLAN_ID")
+    private Long planId;
+
+    /**
+     * 本实体记录的唯一标识，产生规则为流水号
+     */
+    @TableField("CUST_ID")
+    private Long custId;
+
+
+    /**
+     * 可响应负荷
+     */
+    @Excel(name = "认约负荷",width = 10)
+    @TableField("DEMAND_CAP")
+    private BigDecimal demandCap;
+
+    /**
+     * 是否集成商
+     */
+    private String integrator;
+
+    private BigDecimal replyPrice;
+
+    /**
+     * 方案序位
+     */
+    private Integer sequenceNo;
+
+    /**
+     * 是否被剔除
+     */
+    private String deleted;
+
+    /**
+     * 被剔除使用的规则
+     */
+    private String delRule;
+
+    /**
+     * 是否参与事件
+     */
+    @Excel(name = "是否参与",width = 10)
+    private String involvedIn;
+
+    /**
+     * 是否参与执行，反馈后方案编制最终确认参与用户标志，字典yes_or_no
+     */
+    @TableField("IMPLEMENT")
+    private String implement;
+
+    /**
+     * 法人姓名(客户名称)
+     */
+    @Excel(name = "客户名称",width = 10)
+    @TableField(exist = false)
+    private String legalName;
+
+    /**
+     * 统一社会信用编码
+     */
+    @Excel(name = "统一社会信用代码",width = 10)
+    @TableField(exist = false)
+    private String creditCode;
+
+    /**
+     * 联系人姓名
+     */
+    @TableField(exist = false)
+    private String contactName;
+
+    /**
+     * 联系电话
+     */
+    @TableField(exist = false)
+    private String phone;
+
+    /**
+     * 参与户数
+     */
+    @TableField(exist = false)
+    private Integer count;
+
+    /**
+     * 签约响应容量
+     */
+    @TableField("CONTRACT_CAP")
+    private BigDecimal contractCap;
+
+    @Excel(name = "平均基线负荷",width = 10)
+    @TableField(exist = false)
+    private BigDecimal avgBaseline;
+
+    @Excel(name = "反馈时间",width = 10)
+    @TableField(exist = false)
+    private String replyTime;
+
+}

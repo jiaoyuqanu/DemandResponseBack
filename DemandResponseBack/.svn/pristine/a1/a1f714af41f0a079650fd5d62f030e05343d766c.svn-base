@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.ConsInvitationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.ConsInvitation">
+        <id column="invitation_id" property="invitationId" />
+        <result column="CONS_ID" property="consId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="baseline_cap_id" property="baselineCapId" />
+        <result column="invitation_time" property="invitationTime" />
+        <result column="invitation_cap" property="invitationCap" />
+        <result column="invitation_round" property="invitationRound" />
+        <result column="invitation_no" property="invitationNo" />
+        <result column="deadline_time" property="deadlineTime" />
+        <result column="is_participate" property="isParticipate" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="is_reply" property="isReply" />
+        <result column="no_reply_reason" property="noReplyReason" />
+        <result column="reply_time" property="replyTime" />
+        <result column="reply_source" property="replySource" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="aggre_name" property="aggreName" />
+<!--        <association property="consInfo" javaType="com.xqxy.sys.modular.cust.entity.Cons">-->
+            <result column="cons_name" property="consName"/>
+            <result column="elec_addr" property="elecAddr"/>
+            <result column="big_trade_name" property="bigTradeName"/>
+            <result column="big_trade_code" property="bigTradeCode"/>
+            <result column="day_max_power" property="dayMaxPower"/>
+            <result column="contract_cap" property="contractCap"/>
+            <result column="run_cap" property="runCap"/>
+            <result column="org_name" property="orgName"/>
+            <result column="org_no" property="orgNo"/>
+            <result column="province_code" property="provinceCode"/>
+            <result column="city_code" property="cityCode"/>
+            <result column="county_code" property="countyCode"/>
+            <result column="first_contact_name" property="firstContactName"/>
+            <result column="first_contact_info" property="firstContactInfo"/>
+<!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        invitation_id, CONS_ID, EVENT_ID, baseline_cap_id, invitation_time, invitation_cap, invitation_round, invitation_no, deadline_time, is_participate, reply_cap, reply_time, reply_source, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="selectPageVo" resultMap="BaseResultMap">
+        SELECT
+            inv.*,
+            c.cons_name,
+            c.elec_addr,
+            c.big_trade_name,
+            c.big_trade_code,
+            c.day_max_power,
+            c.contract_cap,
+            c.run_cap,
+            c.org_name,
+            c.org_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.first_contact_name,
+            c.first_contact_info,
+            cu.legal_name aggreName
+        FROM
+            dr_cons_invitation inv
+            left join dr_cons c on inv.CONS_ID = c.id
+            left join dr_user_cons_rela uc on c.id = uc.cons_no
+            left join dr_cust cu on uc.cust_id = cu.id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="getReplyPageCons" resultMap="BaseResultMap">
+        SELECT
+            inv.*,
+            c.cons_name,
+            c.elec_addr,
+            c.big_trade_name,
+            c.big_trade_code,
+            c.day_max_power,
+            c.contract_cap,
+            c.run_cap,
+            c.org_name,
+            c.org_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.first_contact_name,
+            c.first_contact_info
+        FROM
+            dr_cons_invitation inv
+            left join dr_cons c on inv.CONS_ID = c.id
+            left join dr_event e on inv.event_id = e.event_id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="proxyPageVo" resultType="com.xqxy.dr.modular.event.entity.ConsInvitation">
+        SELECT
+            inv.*,
+            con.cons_name,
+            con.elec_addr,
+            con.big_trade_name,
+            con.big_trade_code,
+            con.day_max_power,
+            con.contract_cap,
+            con.run_cap,
+            con.org_name,
+            con.org_no,
+            con.province_code,
+            con.city_code,
+            con.county_code,
+            con.first_contact_name,
+            con.first_contact_info,
+            c.cust_name aggreName
+        FROM
+            dr_cust c
+            LEFT JOIN dr_user_cons_rela uc ON c.id = uc.CUST_ID
+            LEFT JOIN dr_cons_invitation inv ON uc.CONS_NO = inv.CONS_ID
+            LEFT JOIN dr_cons con ON uc.CONS_NO = con.id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="listInvitationConsumer" resultType="com.xqxy.sys.modular.cust.entity.Cons">
+        SELECT
+            de.REGULATE_DATE,
+            de.START_TIME,
+            de.END_TIME,
+            dci.deadline_time,
+            dci.invitation_id,
+            dci.is_participate,
+            dci.join_user_type,
+            dc.*
+        FROM
+            dr_cons_invitation dci
+            LEFT JOIN dr_cons dc ON dci.CONS_ID = dc.ID
+            RIGHT JOIN dr_event de ON de.EVENT_ID = dci.EVENT_ID
+        WHERE
+            dci.EVENT_ID = #{eventId}
+        GROUP BY
+            dc.first_contact_info
+    </select>
+
+    <select id="listInvitationConsumerNoReply" resultType="com.xqxy.sys.modular.cust.entity.Cons">
+        SELECT
+            de.REGULATE_DATE,
+            de.START_TIME,
+            de.END_TIME,
+            dci.deadline_time,
+            dci.invitation_id,
+            dci.is_participate,
+            dci.join_user_type,
+            dc.id as id,
+			dc.cust_id as custId
+        FROM
+            dr_cons_invitation dci
+            LEFT JOIN dr_cons dc ON dci.CONS_ID = dc.ID
+            RIGHT JOIN dr_event de ON de.EVENT_ID = dci.EVENT_ID
+        WHERE
+            dci.EVENT_ID = #{eventId}
+            and dci.deadline_time &lt; NOW()
+            and dci.is_participate is null
+            and dc.cust_id is not null
+        UNION ALL
+            SELECT
+            de.REGULATE_DATE,
+            de.START_TIME,
+            de.END_TIME,
+            dci.deadline_time,
+            dci.invitation_id,
+            dci.is_participate,
+            dci.join_user_type,
+            dc.cons_no as id,
+            dc.cust_id as custId
+            FROM
+            dr_cons_invitation dci
+            LEFT JOIN dr_user_cons_rela dc ON dci.CONS_ID = dc.cons_no
+            RIGHT JOIN dr_event de ON de.EVENT_ID = dci.EVENT_ID
+            WHERE
+            dci.EVENT_ID = #{eventId}
+            and dci.deadline_time &lt; NOW()
+            and dci.is_participate is null
+            and dc.cust_id is not null
+    </select>
+
+    <select id="page" resultType="com.xqxy.dr.modular.event.entity.Event" parameterType="com.xqxy.dr.modular.event.param.ConsInvitationParam">
+      select de.* from dr_cons_invitation dci
+      left join dr_event de on de.event_id = dci.event_id
+      where 1=1
+        <if test="consInvitationParam.eventNo != null and consInvitationParam.eventNo != '' ">
+            AND de.event_no like concat('%', #{consInvitationParam.eventNo}, '%')
+        </if>
+        <if test="consInvitationParam.responseType != null and consInvitationParam.responseType != '' ">
+            AND de.response_type = #{consInvitationParam.responseType}
+        </if>
+        <if test="consInvitationParam.consIdlist!= null and consInvitationParam.consIdlist.size()>0 ">
+            AND dci.cons_id in
+            <foreach collection="consInvitationParam.consIdlist" index="index" item="consId" open="(" close=")" separator=",">
+            #{consId}
+        </foreach>
+        order by dci.create_time desc
+        </if>
+    </select>
+
+    <select id="getMaxDeadlineTimeByEventId" resultType="java.time.LocalDateTime">
+            select max(deadline_time) from dr_cons_invitation where event_id = #{eventId}
+    </select>
+
+    <select id="getMaxDeadlineTimeByEventIdAndState" resultType="java.time.LocalDateTime">
+            select max(deadline_time) from dr_cons_invitation where event_id = #{eventId} and SYNCH_TO_PLAN = #{synchToPlan}
+    </select>
+
+    <select id="getMaxDeadlineTimeByCon" resultType="com.xqxy.dr.modular.event.entity.Event" parameterType="com.xqxy.dr.modular.event.entity.Event">
+            select deadline_time as deadlineTime,event_id as eventId from dr_cons_invitation where 1=1
+                <if test="eventList != null and eventList.size > 0">
+                    AND event_id in
+                    <foreach collection="eventList" index="index" item="event" open="(" separator="," close=")">
+                        #{event.eventId}
+                    </foreach>
+                </if>
+              and (SYNCH_TO_PLAN = 'N' or SYNCH_TO_PLAN is null)
+    </select>
+
+    <select id="invitationPage" resultType="com.xqxy.dr.modular.event.entity.Event">
+        SELECT
+            de.*,
+            dci.is_participate invitationStatus,
+            dci.invitation_id invitationId,
+            dci.cons_id consId,
+            dc.cons_name consName
+        FROM
+            dr_cons_invitation dci
+            LEFT JOIN dr_event de ON dci.event_id = de.event_id
+            LEFT JOIN dr_cons dc ON dci.cons_id = dc.id
+        WHERE 1 = 1
+            <if test="consInvitationParam.responseType != null and consInvitationParam.responseType != ''">
+                AND de.response_type = #{consInvitationParam.responseType}
+            </if>
+            <if test="consInvitationParam.invitationStatus != null and consInvitationParam.invitationStatus != '' and consInvitationParam.invitationStatus != 'WFK'">
+                AND dci.is_participate = #{consInvitationParam.invitationStatus}
+            </if>
+            <if test="consInvitationParam.invitationStatus != null and consInvitationParam.invitationStatus != '' and consInvitationParam.invitationStatus == 'WFK'">
+                AND dci.is_participate IS NULL
+            </if>
+            <if test="consInvitationParam.consIdList!= null and consInvitationParam.consIdList.size()>0 ">
+                AND dci.cons_id IN
+                <foreach item='item' index='index' collection='consInvitationParam.consIdList' open='(' separator=',' close=')'>
+                    #{item}
+                </foreach>
+            </if>
+            <if test="consInvitationParam.consId != null and consInvitationParam.consId != ''">
+                AND dci.cons_id like CONCAT('%', #{consInvitationParam.consId}, '%')
+            </if>
+            <if test="consInvitationParam.eventNo != null and consInvitationParam.eventNo != ''">
+                AND de.event_no like CONCAT('%', #{consInvitationParam.eventNo}, '%')
+            </if>
+            <if test="consInvitationParam.consName != null and consInvitationParam.consName != ''">
+                AND dc.cons_name like CONCAT('%', #{consInvitationParam.consName}, '%')
+            </if>
+            <if test="consInvitationParam.regulateDate != null and consInvitationParam.regulateDate != ''">
+                AND de.regulate_date = #{consInvitationParam.regulateDate}
+            </if>
+        ORDER BY dci.create_time DESC, de.REGULATE_DATE DESC
+    </select>
+
+    <select id="getConsCount" resultType="map" parameterType="map">
+        SELECT
+            a.acount - b.bcount - c.ccount as otherCount,
+            b.bcount as partCount,
+            c.ccount as noPartCount
+        FROM
+            (
+            SELECT
+                count( a.CONS_ID ) as acount
+            FROM
+                dr_cons_invitation a
+                LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+            WHERE
+                a.EVENT_ID = #{eventId}
+            <if test="orgs != null and orgs.size > 0">
+                and b.org_no in
+                <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                    #{org}
+                </foreach>
+            </if>
+            ) a,
+            (
+        SELECT
+            count( a.CONS_ID ) as bcount
+        FROM
+            dr_cons_invitation a
+            LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+        WHERE
+            a.EVENT_ID = #{eventId}
+            AND a.is_participate = 'Y'
+        <if test="orgs != null and orgs.size > 0">
+            and b.org_no in
+            <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+            ) b,
+            (
+            SELECT
+                count( a.CONS_ID ) as ccount
+            FROM
+                dr_cons_invitation a
+                LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+            WHERE
+                a.EVENT_ID = #{eventId}
+            AND a.is_participate = 'N'
+            <if test="orgs != null and orgs.size > 0">
+               and b.org_no in
+                <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                    #{org}
+                </foreach>
+            </if>
+            ) c
+    </select>
+
+    <select id="getConsCount2" resultType="com.xqxy.dr.modular.event.result.EventCountVo" parameterType="map">
+        SELECT
+        a.acount as consCount,
+        b.bcount as demandConsCount,
+        IFNULL(c.ccount,0) as demandCap
+        FROM
+        (
+        SELECT
+        count( a.CONS_ID ) as acount
+        FROM
+        dr_cons_invitation a
+        LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+        WHERE
+        a.EVENT_ID = #{eventId}
+        <if test="orgs != null and orgs.size > 0">
+            and b.org_no in
+            <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        ) a,
+        (
+        SELECT
+        count( a.CONS_ID ) as bcount
+        FROM
+        dr_cons_invitation a
+        LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+        WHERE
+        a.EVENT_ID = #{eventId}
+        AND a.is_participate = 'Y'
+        <if test="orgs != null and orgs.size > 0">
+            and b.org_no in
+            <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        ) b,
+        (
+        SELECT
+        sum( a.reply_cap ) as ccount
+        FROM
+        dr_cons_invitation a
+        LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+        WHERE
+        a.EVENT_ID = #{eventId}
+        AND a.is_participate = 'Y'
+        <if test="orgs != null and orgs.size > 0">
+            and b.org_no in
+            <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        ) c
+    </select>
+
+    <select id="getPartCons" resultType="com.xqxy.dr.modular.event.entity.ConsInvitation" parameterType="com.xqxy.dr.modular.event.param.ConsInvitationParam">
+        SELECT
+            a.*
+        FROM
+            dr_cons_invitation a
+            LEFT JOIN dr_cons b ON a.CONS_ID = b.id
+            where a.EVENT_ID=#{eventId}
+            and a.is_participate = 'Y'
+            <if test="orgs != null and orgs.size > 0">
+                and b.org_no in
+                <foreach collection="orgs" index="index" item="org" open="(" separator="," close=")">
+                    #{org}
+                </foreach>
+            </if>
+    </select>
+
+    <select id="getConsInfoByEvents" resultType="com.xqxy.dr.modular.event.entity.ConsInvitation">
+        SELECT
+            invitation_id AS invitationId,
+            CONS_ID AS consId,
+            event_id AS eventId,
+            reply_price AS replyPrice,
+            is_participate as isParticipate,
+            join_user_type as joinUserType,
+            reply_cap AS replyCap
+        FROM
+            dr_cons_invitation
+        WHERE
+            is_participate = 'Y'
+            and (SYNCH_TO_PLAN ='N' or SYNCH_TO_PLAN is null)
+        <if test="eventIds != null and eventIds.size > 0">
+            and event_id in
+            <foreach collection="eventIds" index="index" item="event" open="(" separator="," close=")">
+                #{event.eventId}
+            </foreach>
+        </if>
+
+    </select>
+    <select id="getConsInfoByEvent" resultType="com.xqxy.dr.modular.event.entity.ConsInvitation">
+         SELECT
+            invitation_id AS invitationId,
+            CONS_ID AS consId,
+            event_id AS eventId,
+            reply_price AS replyPrice,
+            join_user_type as joinUserType,
+            reply_cap AS replyCap
+        FROM
+            dr_cons_invitation
+        WHERE
+            is_participate = 'Y'
+            and event_id = #{eventId}
+
+    </select>
+
+    <select id="getReplyCapTotalByEvent" resultType="BigDecimal" parameterType="com.xqxy.dr.modular.event.param.ConsInvitationParam">
+        SELECT sum(reply_cap) from dr_cons_invitation where EVENT_ID = #{eventId} and cons_id !=#{consId} and is_participate='Y'
+    </select>
+</mapper>

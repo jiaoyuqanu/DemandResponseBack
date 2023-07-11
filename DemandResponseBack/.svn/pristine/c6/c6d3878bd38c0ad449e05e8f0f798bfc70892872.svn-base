@@ -1,0 +1,101 @@
+package com.xqxy.sys.modular.utils;
+
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
+
+/**
+ * @className: CityAndCountyUtils
+ * @description: 省市县所封装公共方法
+ * @author: Rabbit
+ * @createTime: 2022/8/2 9:53
+ * @version: 1.0
+ */
+@Slf4j
+@Configuration
+public class CityAndCountyUtils {
+    // 创建一个新的ThreadFactory构建器。 设置命名使用此 ThreadFactory 创建的线程 ( Thread.setName ) 时使用的命名格式。
+    private static final ThreadFactory namedThreadFactory = new ThreadFactoryBuilder()
+            .setNameFormat("demo-pool-%d").build();
+    // 公共线程池 使用给定的初始参数创建一个新的ThreadPoolExecutor。
+    // corePoolSize - 保留在池中的线程数，即使它们是空闲的，除非设置allowCoreThreadTimeOut。
+    // maximumPoolSize – 池中允许的最大线程数。
+    // keepAliveTime – 当线程数大于核心时，这是多余的空闲线程在终止前等待新任务的最长时间。
+    // unit – keepAliveTime参数的时间单位。
+    // workQueue – 用于在执行任务之前保存任务的队列。此队列将仅保存由execute方法提交的Runnable任务。
+    // threadFactory – 执行器创建新线程时使用的工厂。
+    // handler – 由于达到线程边界和队列容量而阻塞执行时使用的处理程序。
+    private static final ExecutorService pool = new ThreadPoolExecutor(5, 20,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(1024), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+
+    public Map<String, Object> cityAndCounty(String orgNo, JSONObject allOrgs) throws ExecutionException, InterruptedException {
+        Future<Map<String, Object>> future = pool.submit(() -> {
+            Map<String, Object> map = new HashMap<>();
+            if (ObjectUtil.isEmpty(orgNo) || ObjectUtil.isEmpty(allOrgs)) {
+                log.warn("Orgno and allorgs cannot be empty!");
+                return map;
+            } else {
+                // 1是省级,2是市级,3县级,4所级
+                log.info("Orgno and allorgs are not empty!");
+                // 开始时间
+                long startTime = System.currentTimeMillis();
+                JSONArray allOrgsJSONArray = allOrgs.getJSONArray("data");
+                Map<String, JSONObject> allOrgsData = new HashMap<>();
+                for (int i = 0; i < allOrgsJSONArray.size(); i++) {
+                    JSONObject jsonObject = allOrgsJSONArray.getJSONObject(i);
+                    allOrgsData.put(jsonObject.getString("id"), jsonObject);
+                }
+                JSONObject orgInfo = allOrgsData.get(orgNo);
+                if (ObjectUtil.isNotEmpty(orgInfo)) {
+                    if (orgInfo.getInteger("orgTitle") == 1) {
+                        map.put("province", orgInfo.getString("name"));
+                    }
+                    if (orgInfo.getInteger("orgTitle") == 2) {
+                        map.put("city", orgInfo.getString("name"));
+                    }
+                    if (orgInfo.getInteger("orgTitle") == 3) {
+                        map.put("county", orgInfo.getString("name"));
+                    }
+                    if (orgInfo.getInteger("orgTitle") == 4) {
+                        map.put("place", orgInfo.getString("name"));
+                    }
+                    String parentOrgNo = orgInfo.getString("parentId");
+                    while (ObjectUtil.isNotEmpty(parentOrgNo)) {
+                        JSONObject parentOrgInfo = allOrgsData.get(parentOrgNo);
+                        if (ObjectUtil.isNotEmpty(parentOrgInfo)) {
+                            parentOrgNo = parentOrgInfo.getString("parentId");
+                            if (parentOrgInfo.getInteger("orgTitle") == 1) {
+                                map.put("province", parentOrgInfo.getString("name"));
+                            }
+                            if (parentOrgInfo.getInteger("orgTitle") == 2) {
+                                map.put("city", parentOrgInfo.getString("name"));
+                            }
+                            if (parentOrgInfo.getInteger("orgTitle") == 3) {
+                                map.put("county", parentOrgInfo.getString("name"));
+                            }
+                            if (parentOrgInfo.getInteger("orgTitle") == 4) {
+                                map.put("place", parentOrgInfo.getString("name"));
+                            }
+                        } else {
+                            parentOrgNo = null;
+                        }
+                    }
+                }
+                // 开始时间
+                long endTime = System.currentTimeMillis();
+                log.debug("CityAndCountyUtils->程序运行时间：" + (endTime - startTime) + "ms");
+            }
+            log.info(orgNo + "---->省：" + map.get("province") + ",市：" + map.get("city") + ",县：" + map.get("county") + ",所：" + map.get("place"));
+            return map;
+        });
+        return future.get();
+    }
+}

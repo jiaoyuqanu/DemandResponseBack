@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.project.mapper.ConsContractDetailMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.project.entity.ConsContractDetail">
+        <id column="DETAIL_ID" property="detailId"/>
+        <result column="contract_id" property="contractId"/>
+        <result column="RESPONSE_TYPE" property="responseType"/>
+        <result column="TIME_TYPE" property="timeType"/>
+        <result column="RESPONSE_CAP" property="responseCap"/>
+        <result column="CONTRACT_CAP" property="contractCap"/>
+        <result column="CONTRACT_PRICE" property="contractPrice"/>
+        <result column="EXTRACT_RATIO" property="extractRatio"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        DETAIL_ID
+        , contract_id, RESPONSE_TYPE, TIME_TYPE, RESPONSE_PERIOD, RESPONSE_CAP, CONTRACT_CAP, CONTRACT_PRICE, EXTRACT_RATIO, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <update id="updateByDetailIdToNull">
+        UPDATE dr_cons_contract_detail
+        SET SPARE_CAP        = NULL,
+            spare_min_times  = NULL,
+            aircondition_cap = NULL
+        WHERE DETAIL_ID = #{detailId}
+    </update>
+
+    <select id="queryConsContractDetailGroupOrgNo" resultType="com.xqxy.dr.modular.project.VO.DrConsContractDetailsVO">
+        SELECT
+            SUM(detail.CONTRACT_CAP) contractCap,
+            cons.ORG_NO orgNo
+        FROM
+            dr_cons_contract_detail detail
+        LEFT JOIN dr_cons_contract_info info ON info.contract_id = detail.contract_id
+        LEFT JOIN dr_cons cons ON info.CONS_ID = cons.ID
+        WHERE
+            detail.PROJECT_DETAIL_ID = #{projectDetailId}
+        AND info.check_status = #{checkStatus}
+        GROUP BY
+            cons.ORG_NO
+    </select>
+
+    <select id="contractProjecttDetail" resultType="com.xqxy.dr.modular.workbench.VO.ContractProjecttDetailVO">
+        SELECT
+            cons.ORG_NO orgNo,
+            SUM(detail.CONTRACT_CAP) contractCap,
+            detail.PROJECT_DETAIL_ID projectDetailId,
+            contract.check_status
+        FROM
+            dr_cons_contract_info contract
+        LEFT JOIN dr_cons_contract_detail detail ON detail.contract_id = contract.contract_id
+        LEFT JOIN dr_cons cons ON contract.CONS_ID = cons.ID
+        WHERE
+                response_type = #{responseType}
+            AND time_type = #{timeType}
+            AND advance_notice_time = #{advanceNoticeTime}
+            AND contract.project_id = #{projectId}
+            GROUP BY
+                cons.ORG_NO,
+                contract.check_status
+    </select>
+
+    <select id="pageContractDetail" resultType="com.xqxy.dr.modular.workbench.VO.ContractDetailVO" parameterType="Map">
+        SELECT b.cons_id      AS consId,
+               c.cons_name    AS consName,
+               d.CONTRACT_CAP AS dayInvtionPeakContractCap,
+               d.min_times    AS dayInvtionPeakMinTimes
+        FROM dr_cust_contract_info a
+                 LEFT JOIN dr_cons_contract_info b ON a.CUST_ID = b.CUST_ID and a.PROJECT_ID = b.PROJECT_ID
+                 LEFT JOIN dr_cons c ON b.cons_id = c.id
+                 LEFT JOIN dr_cons_contract_detail d ON b.contract_id = d.contract_id
+        WHERE d.advance_notice_time = #{map.advanceNoticeTime}
+          AND d.RESPONSE_TYPE = #{map.responseType}
+          AND d.TIME_TYPE = #{map.timeType}
+          AND a.contract_id = #{map.contractId}
+    </select>
+
+    <select id="pageContractDetailPage" resultType="com.xqxy.dr.modular.workbench.VO.ContractDetailVO"
+            parameterType="Long">
+        SELECT b.cons_id      AS consId,
+               c.cons_name    AS consName,
+               d.CONTRACT_CAP AS dayInvtionPeakContractCap,
+               d.min_times    AS dayInvtionPeakMinTimes
+        FROM dr_cust_contract_info a
+                 LEFT JOIN dr_cons_contract_info b ON a.CUST_ID = b.CUST_ID and a.PROJECT_ID = b.PROJECT_ID
+                 LEFT JOIN dr_cons c ON b.cons_id = c.id
+                 LEFT JOIN dr_cons_contract_detail d ON b.contract_id = d.contract_id
+        WHERE a.contract_id = #{contractId} and c.cons_name is not null
+        group by b.cons_id
+    </select>
+
+    <select id="getContractCapByCondition" parameterType="Map" resultType="BigDecimal">
+        select CONTRACT_CAP
+        from dr_cons_contract_detail
+        where contract_id = #{contractId}
+          and RESPONSE_TYPE = #{responseType}
+          and TIME_TYPE = #{timeType}
+          and advance_notice_time = #{advanceNoticeTime}
+    </select>
+    <select id="selectListByContractId" resultType="com.xqxy.dr.modular.workbench.VO.ContractDetailVO">
+        SELECT b.cons_id      AS consId,
+               c.cons_name    AS consName,
+               d.CONTRACT_CAP AS dayInvtionPeakContractCap,
+               d.min_times    AS dayInvtionPeakMinTimes
+        FROM dr_cust_contract_info a
+                 LEFT JOIN dr_cons_contract_info b ON a.CUST_ID = b.CUST_ID and a.PROJECT_ID = b.PROJECT_ID
+                 LEFT JOIN dr_cons c ON b.cons_id = c.id
+                 LEFT JOIN dr_cons_contract_detail d ON b.contract_id = d.contract_id
+        WHERE a.contract_id = #{contractId}
+        group by b.cons_id
+    </select>
+    <select id="listContractDetailVO" resultType="com.xqxy.dr.modular.workbench.VO.ContractDetailVO"
+            parameterType="Map">
+        select dccd.CONTRACT_CAP dayInvtionPeakContractCap,
+               dccd.min_times    dayInvtionPeakMinTimes
+        from dr_cons_contract_detail dccd
+                 left join dr_project_detail dpd
+                           on dccd.DETAIL_ID = dpd.DETAIL_ID
+        where dccd.contract_id = #{map.contractId}
+          and dccd.RESPONSE_TYPE = #{map.responseType}
+          and dccd.TIME_TYPE = #{map.timeType}
+          and dccd.advance_notice_time = #{map.advanceNoticeTime}
+    </select>
+    <select id="selectInfoByProjectId" resultType="com.xqxy.dr.modular.project.VO.DrConsContractDetailsVO">
+        select dcci.contract_id         contractId,
+               dcci.CONS_ID             consId,
+               dccd.RESPONSE_TYPE       responseType,
+               dccd.TIME_TYPE           timeType,
+               dccd.advance_notice_time advanceNoticeTime,
+               dccd.CONTRACT_CAP        contractCap,
+               dccd.min_times           minTimes
+        from dr_cons_contract_info dcci
+                 join dr_cons_contract_detail dccd on dcci.contract_id = dccd.contract_id
+        where dcci.project_id = #{projectId}
+    </select>
+    <!--    负荷聚合商聚合负荷规模（万kW）上报-->
+    <select id="consContractDetailCount" resultType="java.math.BigDecimal">
+        SELECT IFNULL(sum(dccd.CONTRACT_CAP), 0) / 10000
+        FROM dr_cons_contract_detail dccd
+                 LEFT JOIN dr_cons_contract_info dcci ON dccd.contract_id = dcci.contract_id
+                 LEFT JOIN dr_cust dc ON dcci.cust_id = dc.id
+        WHERE dc.integrator = '1'
+          AND dc.state = '2'
+          AND dccd.RESPONSE_TYPE = '1'
+          AND dccd.TIME_TYPE = '1'
+          AND dccd.advance_notice_time = '1'
+    </select>
+    <select id="userContractedCapacity" resultType="java.math.BigDecimal">
+        select ifnull(sum(b.contractedCapacity),0) contractedCapacity from
+        (SELECT
+        ifnull( a.contractedCapacity, 0 ) contractedCapacity
+        FROM
+        (
+        SELECT
+        dc.id,
+        ifnull(dccd.CONTRACT_CAP, 0 )/ 10000 contractedCapacity
+        FROM
+        dr_cons_contract_detail dccd
+        LEFT JOIN dr_cons_contract_info dcci ON dccd.contract_id = dcci.contract_id
+        LEFT JOIN dr_cons dc ON dcci.CONS_ID = dc.ID
+        <where>
+            dc.BIG_TRADE_CODE = #{customerType1}
+            AND dccd.RESPONSE_TYPE = '1'
+            AND dcci.project_id = #{projectId}
+            AND dcci.check_status = '3'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dc.ORG_NO in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY
+        dccd.CONTRACT_CAP DESC
+        LIMIT 1000000
+        ) a
+        GROUP BY a.id ) b
+    </select>
+    <select id="userContractedCapacity1" resultType="java.math.BigDecimal">
+        select ifnull(sum(b.contractedCapacity),0) contractedCapacity from
+        (SELECT
+        ifnull( a.contractedCapacity, 0 ) contractedCapacity
+        FROM
+        (
+        SELECT
+        dc.id,
+        ifnull(dccd.CONTRACT_CAP, 0 )/ 10000 contractedCapacity
+        FROM
+        dr_cons_contract_detail dccd
+        LEFT JOIN dr_cons_contract_info dcci ON dccd.contract_id = dcci.contract_id
+        LEFT JOIN dr_cons dc ON dcci.CONS_ID = dc.ID
+        <where>
+            dc.BIG_TRADE_CODE NOT IN ( #{customerType1}, #{customerType2})
+            AND dccd.RESPONSE_TYPE = '1'
+            AND dcci.project_id = #{projectId}
+            AND dcci.check_status = '3'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dc.ORG_NO in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY
+        dccd.CONTRACT_CAP DESC
+        LIMIT 1000000
+        ) a
+        GROUP BY a.id) b;
+    </select>
+</mapper>

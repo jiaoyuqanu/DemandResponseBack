@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.bidding.mapper.CustBiddingDeclareMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.bidding.entity.CustBiddingDeclare">
+        <id column="contract_id" property="contractId" />
+        <result column="notice_id" property="noticeId" />
+        <result column="CUST_ID" property="custId" />
+        <result column="RESPONSE_TYPE" property="responseType" />
+        <result column="TIME_TYPE" property="timeType" />
+        <result column="advance_notice_time" property="advanceNoticeTime" />
+        <result column="RESPONSE_PERIOD" property="responsePeriod" />
+        <result column="CONTRACT_PRICE" property="contractPrice" />
+        <result column="RESPONSE_CAP" property="responseCap" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        contract_id, notice_id, CUST_ID, RESPONSE_TYPE, TIME_TYPE, advance_notice_time, RESPONSE_PERIOD, CONTRACT_PRICE, RESPONSE_CAP, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+</mapper>

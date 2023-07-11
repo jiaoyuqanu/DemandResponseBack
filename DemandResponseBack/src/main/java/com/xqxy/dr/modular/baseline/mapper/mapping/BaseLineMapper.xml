@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.baseline.mapper.BaseLineMapper">
+    <select id="getBaseLineInfo" resultType="com.xqxy.dr.modular.baseline.entity.BaseLine">
+        SELECT
+            baselin_id AS baselinId,
+            start_period AS startPeriod,
+            end_period AS endPeriod,
+            generate_date AS generateDate,
+            simples_date AS simplesDate
+        FROM
+            dr_baseline_library
+    </select>
+
+    <select id="getConsBaseLineInfo" resultType="com.xqxy.dr.modular.event.entity.ConsBaseline">
+        SELECT baseline_id as baselineId, baseline_lib_id as baselineLibId,cons_id as consId,normal as normal,
+         max_load_baseline as maxLoadBaseline,min_load_baseline as minLoadBaseline,avg_load_baseline as avgLoadBaseline from dr_cons_baseline
+    </select>
+
+    <select id="getConsBaseLineByBaseLineId" resultType="com.xqxy.dr.modular.event.entity.ConsBaseline" parameterType="Long">
+        SELECT baseline_id as baselineId, baseline_lib_id as baselineLibId,cons_id as consId,normal as normal,
+         max_load_baseline as maxLoadBaseline,min_load_baseline as minLoadBaseline,avg_load_baseline as avgLoadBaseline from dr_cons_baseline
+        where baseline_lib_id=#{baselineId}
+    </select>
+
+    <select id="getConsBaseLineByBaseLineIdAll" resultType="com.xqxy.dr.modular.event.entity.ConsBaseline" parameterType="Long">
+        SELECT baseline_id as baselineId, baseline_lib_id as baselineLibId,cons_id as consId,normal as normal,
+         max_load_baseline as maxLoadBaseline,min_load_baseline as minLoadBaseline,avg_load_baseline as avgLoadBaseline from dr_cons_baseline_all
+        where baseline_lib_id=#{baselineId}
+    </select>
+
+    <select id="getPlanBaseLineList" resultType="com.xqxy.dr.modular.baseline.entity.PlanBaseLine">
+        SELECT
+        *
+        FROM
+        dr_plan_baseline_task
+        WHERE
+        BASELIN_ID =(
+         SELECT
+        a.BASELIN_ID
+        FROM
+        dr_plan_baseline_task a
+		LEFT JOIN dr_baseline_library b on a.BASELIN_ID = b.baselin_id
+        WHERE
+        a.BASELINE_STATUS IN ( 1, 3 )
+        AND a.FAIL_TIMES &lt;= 3
+        ORDER BY
+		b.cons_num ASC,
+        a.CREATE_TIME DESC
+        LIMIT 1
+        )
+        AND BASELINE_STATUS IN ( 1, 3 )
+        AND FAIL_TIMES &lt;= 3
+        ORDER BY
+        CREATE_TIME DESC
+        LIMIT 5000
+    </select>
+
+    <select id="getPlanBaseLineListAll" resultType="com.xqxy.dr.modular.baseline.entity.PlanBaseLine">
+        SELECT
+        *
+        FROM
+        dr_plan_baseline_task_all
+        WHERE
+        BASELIN_ID =(
+        SELECT
+        a.BASELIN_ID
+        FROM
+        dr_plan_baseline_task_all a
+        LEFT JOIN dr_baseline_library b on a.BASELIN_ID = b.baselin_id
+        WHERE
+        a.BASELINE_STATUS IN ( 1, 3 )
+        AND a.FAIL_TIMES &lt;= 3
+        ORDER BY
+        b.cons_all_num ASC,
+        a.CREATE_TIME DESC
+        LIMIT 1
+        )
+        AND BASELINE_STATUS IN ( 1, 3 )
+        AND FAIL_TIMES &lt;= 3
+        ORDER BY
+        CREATE_TIME DESC
+        LIMIT 5000
+    </select>
+
+</mapper>

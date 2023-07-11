@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.SubsidyAppealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        <id column="id" property="id" />
+        <result column="subsidy_id" property="subsidyId" />
+        <result column="appeal_reason" property="appealReason" />
+        <result column="remark" property="remark" />
+        <result column="status" property="status" />
+        <result column="file_ids" property="fileIds" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, subsidy_id, appeal_reason, remark, status, file_ids, create_time, create_user, update_time, update_user
+    </sql>
+
+    <select id="getDetail" parameterType="LONG" resultType="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        SELECT
+        a.id as id,
+        a.evaluation_id as evaluationId,
+        a.appeal_reason as appealReason,
+        a.remark as remark,
+        a.status as status,
+        a.file_ids as fileIds,
+        b.is_effective as isEffective,
+        c.id as consId,
+        c.cons_name as consName,
+        c.first_contact_info as phone,
+        d.EVENT_NO as eventNo,
+        d.EVENT_NAME as eventName
+    FROM
+        dr_subsidy_appeal a
+        LEFT JOIN dr_cons_evaluation b ON a.evaluation_id = b.evaluation_id
+        LEFT JOIN dr_cons c on c.id = b.cons_id
+        LEFT JOIN dr_event d on d.event_id = b.event_id
+        where a.id=#{id}
+    </select>
+
+    <select id="getCityManageList" parameterType="com.xqxy.dr.modular.subsidy.param.SubsidyAppealParam" resultType="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        SELECT
+        dsae.id as id,
+        dsae.event_id as eventId,
+        de.event_name as eventName,
+        dsae.cons_id as consId,
+        dsae.cons_name as consName,
+        dsae.evaluation_id as evaluationId,
+        dsae.appeal_reason as appealReason,
+        dsae.file_ids as fileIds,
+        dsae.status_city as statusCity,
+        dsae.status_province as statusProvince,
+        dsae.status_energy as statusEnergy,
+        dsae.examine_suggestion_city as examineSuggestionCity,
+        dsae.examine_suggestion_province as examineSuggestionProvince,
+        dsae.examine_suggestion_energy as examineSuggestionEnergy,
+        dsae.create_time as submitCityTime
+        FROM
+        (select
+            dsa.id,
+            dsa.event_id,
+            dsa.cons_id,
+            dsa.evaluation_id,
+            dsa.appeal_reason,
+            dsa.file_ids,
+            dsa.status_city,
+            dsa.status_province,
+            dsa.status_energy,
+            dsa.examine_suggestion_city,
+            dsa.examine_suggestion_province,
+            dsa.examine_suggestion_energy,
+            dcin.cons_name,
+            dsa.submit_city_time,
+            dsa.create_time
+            from
+            dr_subsidy_appeal dsa
+            join
+            (select dc.id,dc.cons_name from dr_cons dc where dc.org_no in
+            <foreach collection="subsidyAppealParam.orgNos" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            ) dcin on dsa.cons_id = dcin.id
+        ) dsae
+        join
+        dr_event de on de.event_id = dsae.event_id
+        <where>
+            1 = 1
+            <if test="subsidyAppealParam.custId != null and subsidyAppealParam.custId != ''">
+                and dsae.cons_id = #{subsidyAppealParam.consId}
+            </if>
+            <if test="subsidyAppealParam.consName != null and subsidyAppealParam.consName != ''">
+                and dsae.cons_name like CONCAT('%', #{subsidyAppealParam.consName}, '%')
+            </if>
+            <if test="subsidyAppealParam.statusCity != null and subsidyAppealParam.statusCity != ''">
+                and dsae.status_city = #{subsidyAppealParam.statusCity}
+            </if>
+            <if test="subsidyAppealParam.eventId != null and subsidyAppealParam.eventId != ''">
+                and dsae.event_id = #{subsidyAppealParam.eventId}
+            </if>
+            <if test="subsidyAppealParam.startTime != null and subsidyAppealParam.startTime != ''">
+                and date_format(dsae.submit_city_time,'%Y-%m-%d') &gt;= #{subsidyAppealParam.startTime}
+            </if>
+            <if test="subsidyAppealParam.endTime != null and subsidyAppealParam.endTime != ''">
+                and date_format(dsae.submit_city_time,'%Y-%m-%d') &lt;= #{subsidyAppealParam.endTime}
+            </if>
+            and dsae.status_city != 9
+        </where>
+        ORDER BY dsae.create_time desc
+    </select>
+
+    <select id="appealDetail" parameterType="LONG" resultType="com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal">
+        SELECT
+            a.id as id,
+            a.evaluation_id as evaluationId,
+            a.appeal_reason as appealReason,
+            a.remark as confirmCap,
+            a.status as status,
+            a.file_ids as fileIds,
+            a.files_name as filesName,
+            a.check_ids as checkIds,
+            a.check_name as checkName,
+            a.event_id as eventId,
+            a.status_city as statusCity,
+            a.status_province as statusProvince,
+            a.status_energy as statusEnergy,
+            a.examine_suggestion_city as examineSuggestionCity,
+            a.examine_suggestion_province as examineSuggestionProvince,
+            a.examine_suggestion_energy as examineSuggestionEnergy,
+            b.is_effective as isEffective,
+            b.reply_cap as invitationCap,
+            b.confirm_cap as confirmCap,
+            c.id as consId,
+            c.cons_name as consName,
+            c.first_contact_info as phone,
+            d.EVENT_NO as eventNo,
+            d.EVENT_NAME as eventName,
+            e.max_load_baseline as maxLoadBaseline,
+            e.avg_load_baseline as avgLoadBaseline,
+            e.min_load_baseline as minLoadBaseline,
+            e.max_load_actual as maxLoadActual,
+            e.avg_load_actual as avgLoadActual,
+            e.min_load_actual as minLoadActual,
+            e.actual_cap as recalculateActualCap,
+            e.confirm_cap as recalculateConfirmCap,
+            e.is_effective as recalculateIsEffective
+        FROM
+            dr_subsidy_appeal a
+                LEFT JOIN dr_cons_evaluation b ON a.evaluation_id = b.evaluation_id
+                LEFT JOIN dr_cons c on c.id = a.cons_id
+                LEFT JOIN dr_event d on d.event_id = a.event_id
+                LEFT JOIN dr_cons_evaluation_appeal e on e.subsidy_appeal_id = a.id
+        where a.id=#{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.eventEvaluation.mapper.EventEvaluationMapper">
+
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.eventEvaluation.entity.EventEvaluation">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="eventId" column="EVENT_ID" jdbcType="BIGINT"/>
+        <result property="invitationCap" column="invitation_cap" jdbcType="DECIMAL"/>
+        <result property="replyCap" column="reply_cap" jdbcType="DECIMAL"/>
+        <result property="maxLoadBaseline" column="max_load_baseline" jdbcType="DECIMAL"/>
+        <result property="minLoadBaseline" column="min_load_baseline" jdbcType="DECIMAL"/>
+        <result property="avgLoadBaseline" column="avg_load_baseline" jdbcType="DECIMAL"/>
+        <result property="maxLoadActual" column="max_load_actual" jdbcType="DECIMAL"/>
+        <result property="minLoadActual" column="min_load_actual" jdbcType="DECIMAL"/>
+        <result property="avgLoadActual" column="avg_load_actual" jdbcType="DECIMAL"/>
+        <result property="actualCap" column="actual_cap" jdbcType="DECIMAL"/>
+        <result property="actualEnergy" column="actual_energy" jdbcType="DECIMAL"/>
+        <result property="confirmCap" column="confirm_cap" jdbcType="DECIMAL"/>
+        <result property="executeRate" column="execute_rate" jdbcType="DECIMAL"/>
+        <result property="isEffective" column="is_effective" jdbcType="VARCHAR"/>
+        <result property="effectiveTime" column="effective_time" jdbcType="INTEGER"/>
+        <result property="isQualified" column="is_qualified" jdbcType="VARCHAR"/>
+        <result property="isOut" column="is_out" jdbcType="VARCHAR"/>
+        <result property="createTime" column="CREATE_TIME" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="CREATE_USER" jdbcType="BIGINT"/>
+        <result property="updateTime" column="UPDATE_TIME" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="UPDATE_USER" jdbcType="BIGINT"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,EVENT_ID,invitation_cap,
+        reply_cap,max_load_baseline,min_load_baseline,
+        avg_load_baseline,max_load_actual,min_load_actual,
+        avg_load_actual,actual_cap,actual_energy,
+        confirm_cap,execute_rate,is_effective,
+        effective_time,is_qualified,is_out,
+        CREATE_TIME,CREATE_USER,UPDATE_TIME,
+        UPDATE_USER,remark
+    </sql>
+    <select id="executeMaximumLoad" resultType="com.xqxy.executor.entity.ExecuteMaximumLoad">
+        SELECT
+        ifnull( dee.actual_max_cap, 0 )/ 10000 loads,
+        de.REGULATE_DATE times
+        FROM
+        dr_event_evaluation dee
+        LEFT JOIN dr_event de ON dee.EVENT_ID = de.EVENT_ID
+        <where>
+            de.REGULATE_DATE LIKE concat( YEAR ( now()), '%' )
+            AND de.event_status = '04'
+            AND de.RESPONSE_TYPE = '1'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dee.org_no in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            ORDER BY
+            dee.actual_max_cap DESC
+            LIMIT 1;
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.sms.mapper.SysSmsSendMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.sys.modular.sms.entity.SysSmsSend">
+        <id column="id" property="id" />
+        <result column="phone_numbers" property="phoneNumbers" />
+        <result column="validate_code" property="validateCode" />
+        <result column="template_code" property="templateCode" />
+        <result column="content" property="content" />
+        <result column="biz_id" property="bizId" />
+        <result column="status" property="status" />
+        <result column="source" property="source" />
+        <result column="business_code" property="businessCode" />
+        <result column="business_rela" property="businessRela" />
+        <result column="pre_send_time" property="preSendTime" />
+        <result column="invalid_time" property="invalidTime" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="send_times" property="sendTimes" />
+        <result column="send_time" property="sendTime" />
+        <result column="fail_info" property="failInfo" />
+        <result column="user_no" property="userNo"/>
+        <result column="user_name" property="userName"/>
+        <result column="join_user_type" property="joinUserType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, phone_numbers, validate_code, template_code, content, biz_id, status, source, business_code,
+        business_rela, pre_send_time, invalid_time, create_time, create_user, update_time, update_user, send_times,
+        send_time, fail_info, user_no, user_name, join_user_type
+    </sql>
+
+</mapper>

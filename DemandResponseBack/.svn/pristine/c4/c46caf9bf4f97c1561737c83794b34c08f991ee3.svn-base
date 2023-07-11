@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.device.mapper.DeviceAdjustableBaseMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.device.entity.DeviceAdjustableBase">
+        <id column="id" property="id" />
+        <result column="CONS_ID" property="consId" />
+        <result column="DEVICE_ID" property="deviceId" />
+        <result column="DEVICE_NAME" property="deviceName" />
+        <result column="DEVICE_TYPE_NAME" property="deviceTypeName" />
+        <result column="DEVICE_TYPE_CODE" property="deviceTypeCode" />
+        <result column="DEVICE_NUM" property="deviceNum" />
+        <result column="DEVICE_BRAND" property="deviceBrand" />
+        <result column="RATED_CURRENT" property="ratedCurrent" />
+        <result column="RATED_VOLTAGE" property="ratedVoltage" />
+        <result column="RATED_POWER" property="ratedPower" />
+        <result column="DES_RESPONSE_TIME" property="desResponseTime" />
+        <result column="DES_RESPONSE_TIME_CODE" property="desResponseTimeCode" />
+        <result column="RIS_RESPONSE_TIME" property="risResponseTime" />
+        <result column="RIS_RESPONSE_TIME_CODE" property="risResponseTimeCode" />
+        <result column="DEVICE_RISE_TIME" property="deviceRiseTime" />
+        <result column="DEVICE_RISE_TIME_CODE" property="deviceRiseTimeCode" />
+        <result column="POWER_LEVEL" property="powerLevel" />
+        <result column="POWER_LEVEL_CODE" property="powerLevelCode" />
+        <result column="YEAR" property="year" />
+        <result column="PROVINCE_ELE_CODE" property="provinceEleCode" />
+        <result column="PROVINCE_ELE_NAME" property="provinceEleName" />
+        <result column="CITY_ELE_NAME" property="cityEleName" />
+        <result column="CITY_ELE_CODE" property="cityEleCode" />
+        <result column="ADDRESS" property="address" />
+        <result column="MONTORED" property="montored" />
+        <result column="DEVICE_MODEL" property="deviceModel" />
+        <result column="ACCESS_DATE" property="accessDate" />
+        <result column="state" property="state" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="file_id" property="fileId" />
+        <result column="file_type" property="fileType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, CONS_ID, DEVICE_ID, DEVICE_NAME, DEVICE_TYPE_NAME, DEVICE_TYPE_CODE, DEVICE_NUM, DEVICE_BRAND, RATED_CURRENT, RATED_VOLTAGE, RATED_POWER, DES_RESPONSE_TIME, DES_RESPONSE_TIME_CODE, RIS_RESPONSE_TIME, RIS_RESPONSE_TIME_CODE, DEVICE_RISE_TIME, DEVICE_RISE_TIME_CODE, POWER_LEVEL, POWER_LEVEL_CODE, YEAR, PROVINCE_ELE_CODE, PROVINCE_ELE_NAME, CITY_ELE_NAME, CITY_ELE_CODE, ADDRESS, MONTORED, DEVICE_MODEL, ACCESS_DATE, state, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER, file_id, file_type,
+        branch_id,branch_name,gauge_no,gauge_name
+    </sql>
+    <select id="page"  resultType="com.xqxy.dr.modular.device.VO.DeviceAdjustableBaseVO">
+        SELECT
+            device.id,
+            device.CONS_ID consId,
+            device.DEVICE_ID deviceId,
+            device.DEVICE_NAME deviceName,
+            device.DEVICE_TYPE_NAME deviceTypeName,
+            device.DEVICE_TYPE_CODE deviceTypeCode,
+            device.DEVICE_NUM deviceNum,
+            device.DEVICE_BRAND deviceBrand,
+            device.RATED_CURRENT ratedCurrent,
+            device.RATED_VOLTAGE ratedVoltage,
+            device.RATED_POWER ratedPower,
+            device.DES_RESPONSE_TIME desResponseTime,
+            device.DES_RESPONSE_TIME_CODE desResponseTimeCode,
+            device.RIS_RESPONSE_TIME risResponseTime,
+            device.RIS_RESPONSE_TIME_CODE risResponseTimeCode,
+            device.DEVICE_RISE_TIME deviceRiseTime,
+            device.DEVICE_RISE_TIME_CODE deviceRiseTimeCode,
+            device.POWER_LEVEL powerLevel,
+            device.POWER_LEVEL_CODE powerLevelCode,
+            device.YEAR year,
+            device.PROVINCE_ELE_CODE provinceEleCode,
+            device.PROVINCE_ELE_NAME provinceEleName,
+            device.CITY_ELE_NAME cityEleCode,
+            device.CITY_ELE_CODE cityEleName,
+            device.ADDRESS address,
+            device.MONTORED montored,
+            device.DEVICE_MODEL deviceModel,
+            device.ACCESS_DATE accessDate,
+            device.state,
+            device.file_id fileId,
+            device.file_type fileType,
+            file.file_origin_name fileOriginName,
+            file.file_object_name fileObjectName,
+            device.branch_id branchId,
+            device.branch_name branchName,
+            device.gauge_no gaugeNo,
+            device.gauge_name gaugeName,
+            device.run_min_load runMinLoad,
+            device.run_max_load runMaxLoad
+        FROM
+            dr_device_adjustable_base device
+        LEFT JOIN dr_sys_file_info file ON device.file_id = file.file_id
+        LEFT JOIN dr_cons cons ON cons.ID = device.CONS_ID
+        <where>
+            <if test="deviceAdjustableBaseParam.consId != null and deviceAdjustableBaseParam.consId != '' ">
+                device.CONS_ID = #{deviceAdjustableBaseParam.consId}
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceTypeCode != null and deviceAdjustableBaseParam.deviceTypeCode != '' ">
+                device.DEVICE_TYPE_CODE = #{deviceAdjustableBaseParam.deviceTypeCode}
+            </if>
+
+            <if test="deviceAdjustableBaseParam.deviceName != null and deviceAdjustableBaseParam.deviceName != '' ">
+                device.DEVICE_NAME like concat('%', #{deviceAdjustableBaseParam.deviceName}, '%')
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceModel != null and deviceAdjustableBaseParam.deviceModel != '' ">
+                device.DEVICE_MODEL = #{deviceAdjustableBaseParam.deviceModel}
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceId != null and deviceAdjustableBaseParam.deviceId != '' ">
+                and device.DEVICE_ID like concat('%', #{deviceAdjustableBaseParam.deviceId}, '%')
+            </if>
+
+            <if test="orgIds != null">
+                and cons.ORG_NO in
+                <foreach collection="orgIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+    </select>
+
+
+    <select id="pageDeviceBase" resultType="com.xqxy.dr.modular.device.VO.DeviceAdjustableBaseVO">
+        SELECT
+            device.id,
+            device.CONS_ID consId,
+            device.DEVICE_ID deviceId,
+            device.DEVICE_NAME deviceName,
+            device.DEVICE_TYPE_NAME deviceTypeName,
+            device.DEVICE_TYPE_CODE deviceTypeCode,
+            device.DEVICE_NUM deviceNum,
+            device.DEVICE_BRAND deviceBrand,
+            device.RATED_CURRENT ratedCurrent,
+            device.RATED_VOLTAGE ratedVoltage,
+            device.RATED_POWER ratedPower,
+            device.DES_RESPONSE_TIME desResponseTime,
+            device.DES_RESPONSE_TIME_CODE desResponseTimeCode,
+            device.RIS_RESPONSE_TIME risResponseTime,
+            device.RIS_RESPONSE_TIME_CODE risResponseTimeCode,
+            device.DEVICE_RISE_TIME deviceRiseTime,
+            device.DEVICE_RISE_TIME_CODE deviceRiseTimeCode,
+            device.POWER_LEVEL powerLevel,
+            device.POWER_LEVEL_CODE powerLevelCode,
+            device.YEAR year,
+            device.PROVINCE_ELE_CODE provinceEleCode,
+            device.PROVINCE_ELE_NAME provinceEleName,
+            device.CITY_ELE_NAME cityEleCode,
+            device.CITY_ELE_CODE cityEleName,
+            device.ADDRESS address,
+            device.MONTORED montored,
+            device.DEVICE_MODEL deviceModel,
+            device.ACCESS_DATE accessDate,
+            device.state,
+            device.file_id fileId,
+            device.file_type fileType,
+            file.file_origin_name fileOriginName,
+            file.file_object_name fileObjectName,
+            device.branch_id branchId,
+            device.branch_name branchName,
+            device.gauge_no gaugeNo,
+            device.gauge_name gaugeName,
+            device.run_min_load runMinLoad,
+            device.run_max_load runMaxLoad
+        FROM
+            dr_device_adjustable_base device
+        LEFT JOIN dr_sys_file_info file ON device.file_id = file.file_id
+        <where>
+            <if test="deviceAdjustableBaseParam.consId != null and deviceAdjustableBaseParam.consId != '' ">
+                device.CONS_ID = #{deviceAdjustableBaseParam.consId}
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceTypeCode != null and deviceAdjustableBaseParam.deviceTypeCode != '' ">
+                device.DEVICE_TYPE_CODE = #{deviceAdjustableBaseParam.deviceTypeCode}
+            </if>
+
+            <if test="deviceAdjustableBaseParam.deviceName != null and deviceAdjustableBaseParam.deviceName != '' ">
+                device.DEVICE_NAME like concat('%', #{deviceAdjustableBaseParam.deviceName}, '%')
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceModel != null and deviceAdjustableBaseParam.deviceModel != '' ">
+                device.DEVICE_MODEL = #{deviceAdjustableBaseParam.deviceModel}
+            </if>
+            <if test="deviceAdjustableBaseParam.deviceId != null and deviceAdjustableBaseParam.deviceId != '' ">
+                and device.DEVICE_ID like concat('%', #{deviceAdjustableBaseParam.deviceId}, '%')
+            </if>
+
+            <if test="consIdList != null">
+                and device.CONS_ID in
+                <foreach collection="consIdList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+    </select>
+
+</mapper>

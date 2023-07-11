@@ -1,0 +1,167 @@
+package com.xqxy.dr.modular.project.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.data.param.WorkProjectParam;
+import com.xqxy.dr.modular.data.result.WorkProjectInfoResult;
+import com.xqxy.dr.modular.project.VO.DrOrgGoalVO;
+import com.xqxy.dr.modular.project.entity.Project;
+import com.xqxy.dr.modular.project.params.DrOrgGoalParam;
+import com.xqxy.dr.modular.project.params.ExamineParam;
+import com.xqxy.dr.modular.project.params.ProjectParam;
+import com.xqxy.dr.modular.project.result.ProjectInfo;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
+/**
+ * <p>
+ * 需求响应项目 服务类
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-11
+ */
+public interface ProjectService extends IService<Project> {
+
+    /**
+     * @description: 需求响应项目新增
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 15:41
+     */
+    void add(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目删除
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/11 16:52
+     */
+    void delete(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目编辑
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:31
+     */
+    void edit(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目分页
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:42
+     */
+    Page<Project> page(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应列表
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/26 19:37
+     */
+    List<Project> list(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目详情查看
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/12 9:41
+     */
+    ProjectInfo detail(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目提交审核
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/12 17:08
+     */
+    ResponseData submit(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目审核通过
+     * @param: 
+     * @return: 
+     * @author: PengChuqing
+     * @date: 2021/10/13 10:19
+     */
+    void examine(ExamineParam examineParam);
+
+    /**
+     * @description: 修改需求响应项目状态为已公示
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/13 16:42
+     */
+    void publicity(ProjectParam projectParam);
+
+    /**
+     * @description: 需求响应项目修改状态
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:31
+     */
+    void editStatus(ProjectParam projectParam);
+
+    /**
+     * 项目签约下拉框
+     *
+     * @return java.util.List<com.xqxy.dr.modular.project.entity.Project>
+     * @date 11/26/2021 14:11
+     * @author Caoj
+     */
+    List<Project> selectProject(ProjectParam projectParam);
+
+
+    /**
+     * @description: 指标分解（保存）
+     * @param:
+     * @return:
+     * @author: lqr
+     * @date: 2022.01.11 10:03
+     */
+    ResponseData addTarget(DrOrgGoalParam orgGoalParam);
+
+    DrOrgGoalVO detailTarget(Long projectDetailId);
+
+
+    /**
+     * 根据事件返回项目的项目类型
+     * @param eventId
+     * @return
+     */
+    ResponseData getprojectTypeByEventId(Long eventId);
+
+    /**
+     * 需求响应项目分页查询已经截止的项目
+     * @param projectParam
+     * @return
+     */
+    Page<Project> pageByEndTime(ProjectParam projectParam);
+
+    List<Project> getProjectByYear(Integer year);
+
+    /**
+     * 获取工作台项目统计信息
+     * @param workProjectParam
+     * @return
+     */
+    WorkProjectInfoResult getWorkProjectDetail(WorkProjectParam workProjectParam);
+
+    /**
+     * 提供给第三方 全省的审核通过的签约用户数和每个项目明细的签约负荷
+     */
+    WorkProjectInfoResult groupConsContractCap(@RequestBody WorkProjectParam workProjectParam);
+}

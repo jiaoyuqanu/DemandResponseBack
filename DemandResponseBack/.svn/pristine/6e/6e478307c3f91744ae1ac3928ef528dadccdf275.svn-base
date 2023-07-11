@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.TotalStatisticsMapper">
+    <select id="getEventDays"  resultType="String">
+        SELECT REGULATE_DATE from dr_event where event_status in ('03','04') GROUP BY REGULATE_DATE
+    </select>
+
+    <select id="getCapAndEnergy" resultType="com.xqxy.dr.modular.statistics.result.TotalStatisticsResult">
+        SELECT
+        sum( a.actual_cap )/ 10000 AS actualCapSum,
+        sum( a.actual_energy )/ 10000 AS actualEnergySum
+    FROM
+        dr_cons_evaluation a
+        left join dr_event b on a.event_id = b.event_id where b.event_status in ('03','04')
+    </select>
+
+    <select id="getMaxCapAndEnergy" resultType="com.xqxy.dr.modular.statistics.result.TotalStatisticsResult">
+        SELECT
+            max( actualCapMax ) AS actualCapMax,
+            max( actualEnergyMax ) AS actualEnergyMax
+        FROM
+            (
+            SELECT
+                sum( a.actual_cap )/ 10000 AS actualCapMax,
+                sum( a.actual_energy )/ 10000 AS actualEnergyMax
+            FROM
+                dr_cons_evaluation a
+                left join dr_event b on a.event_id = b.event_id where b.event_status in ('03','04')
+            GROUP BY
+            a.event_id
+            ) a
+    </select>
+
+    <select id="getConsCount" resultType="Integer">
+        SELECT count(a.cons_id) from dr_plan_cons a
+        left join dr_plan p on a.plan_id = p.plan_id
+        left join dr_event b on p.REGULATE_ID = b.event_id where b.event_status in ('03','04')
+        and a.IMPLEMENT = 'Y'
+    </select>
+    
+    <select id="getExecuteData" resultType="com.xqxy.dr.modular.statistics.result.TotalStatisticsTableResult">
+        SELECT
+        a.*,
+        b.eventDays,
+        c.consCount,
+        d.actualCapSum,
+        d.actualEnergySum,
+        DATE_FORMAT( NOW(), '%Y' ) as year
+    FROM
+        (
+        SELECT
+        a.projectId,
+        a.regulateDate,
+        regulateCap,
+        a.actualCapMax AS actualCapMax,
+        a.actualEnergyMax AS actualEnergyMax
+        FROM
+        (
+        SELECT
+        b.EVENT_ID AS eventId,
+        b.PROJECT_ID AS projectId,
+        b.REGULATE_DATE AS regulateDate,
+        b.REGULATE_CAP / 10000 AS regulateCap,
+        sum( a.actual_cap ) / 10000 AS actualCapMax,
+        sum( a.actual_energy ) / 10000 AS actualEnergyMax
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        WHERE
+        DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+        AND b.event_status IN ( '03', '04' )
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        GROUP BY
+        b.EVENT_ID,
+        b.PROJECT_ID
+        ) a
+        where a.actualCapMax = (SELECT max(a.actualCapMax) from (
+        SELECT
+        b.EVENT_ID AS eventId,
+        b.PROJECT_ID AS projectId,
+        b.REGULATE_DATE AS regulateDate,
+        b.REGULATE_CAP / 10000 AS regulateCap,
+        sum( a.actual_cap ) / 10000 AS actualCapMax,
+        sum( a.actual_energy ) / 10000 AS actualEnergyMax
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        WHERE
+        DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+        AND b.event_status IN ( '03', '04' )
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        GROUP BY
+        b.EVENT_ID,
+        b.PROJECT_ID
+        ) a)
+        ) a
+        LEFT JOIN (
+        SELECT
+            count( a.REGULATE_DATE ) AS eventDays,
+            a.projectId
+        FROM
+            (
+            SELECT
+                d.PROJECT_ID AS projectId,
+                a.REGULATE_DATE
+            FROM
+                dr_plan a
+                LEFT JOIN dr_event d ON a.REGULATE_ID = d.EVENT_ID
+                LEFT JOIN dr_plan_cons b ON a.PLAN_ID = b.PLAN_ID
+                LEFT JOIN dr_cons c ON b.CONS_ID = c.id
+            WHERE
+                1 = 1
+                <if test="orgIds != null and orgIds.size > 0">
+                    AND c.ORG_NO in
+                    <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                        #{orgId}
+                    </foreach>
+                </if>
+                AND DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( a.REGULATE_DATE, '%Y' )
+                AND d.event_status IN ( '03', '04' )
+                AND b.IMPLEMENT = 'Y'
+            GROUP BY
+                a.REGULATE_DATE,
+                d.PROJECT_ID
+            ) a
+        GROUP BY
+            a.projectId
+        ) b ON a.projectId = b.projectId
+        LEFT JOIN (
+        SELECT
+            d.PROJECT_ID AS projectId,
+            count( b.CONS_ID ) AS consCount
+        FROM
+            dr_plan a
+            LEFT JOIN dr_event d ON a.REGULATE_ID = d.EVENT_ID
+            LEFT JOIN dr_plan_cons b ON a.PLAN_ID = b.PLAN_ID
+            LEFT JOIN dr_cons c ON b.CONS_ID = c.id
+        WHERE
+            1 = 1
+            <if test="orgIds != null and orgIds.size > 0">
+                AND c.ORG_NO in
+                <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                    #{orgId}
+                </foreach>
+            </if>
+            AND DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( a.REGULATE_DATE, '%Y' )
+            AND b.IMPLEMENT = 'Y'
+            AND d.event_status IN ( '03', '04' )
+        GROUP BY
+            d.PROJECT_ID
+        ) c ON a.projectId = c.projectId
+        LEFT JOIN (
+        SELECT
+            b.PROJECT_ID AS projectId,
+            sum( a.actual_cap )/ 10000 AS actualCapSum,
+            sum( a.actual_energy )/ 10000 AS actualEnergySum
+        FROM
+            dr_cons_evaluation a
+            LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+            LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        WHERE
+            DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+            <if test="orgIds != null and orgIds.size > 0">
+                AND c.ORG_NO in
+                <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                    #{orgId}
+                </foreach>
+            </if>
+            AND b.event_status IN ( '03', '04' )
+        GROUP BY
+        b.PROJECT_ID
+        ) d ON d.projectId = a.projectId
+    </select>
+
+    <select id="getExecuteDataCity" resultType="com.xqxy.dr.modular.statistics.result.TotalStatisticsTableResult" parameterType="java.util.List">
+        SELECT
+        a.*,
+        b.eventDays,
+        c.consCount,
+        d.actualCapSum,
+        d.actualEnergySum,
+        DATE_FORMAT( NOW(), '%Y' ) as year
+        FROM
+        (
+        SELECT
+        a.projectId,
+        a.regulateDate,
+        regulateCap,
+        a.actualCapMax AS actualCapMax,
+        a.actualEnergyMax AS actualEnergyMax
+        FROM
+        (
+        SELECT
+        b.EVENT_ID AS eventId,
+        b.PROJECT_ID AS projectId,
+        b.REGULATE_DATE AS regulateDate,
+        d.goal AS regulateCap,
+        d.REGULATE_ID,
+        sum( a.actual_cap ) / 10000 AS actualCapMax,
+        sum( a.actual_energy ) / 10000 AS actualEnergyMax
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        LEFT JOIN dr_org_demand d ON d.REGULATE_ID = b.REGULATE_ID
+        <if test="orgIds != null and orgIds.size > 0">
+            AND d.org_id in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        WHERE
+        DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+        AND b.event_status IN ( '03', '04' )
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+            and d.org_id in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        GROUP BY
+        b.EVENT_ID,
+        b.PROJECT_ID
+        ) a
+        WHERE
+        a.actualCapMax = (
+        SELECT
+        max( actualCapMax )
+        FROM
+        (
+        SELECT
+        b.EVENT_ID AS eventId,
+        b.PROJECT_ID AS projectId,
+        b.REGULATE_DATE AS regulateDate,
+        d.goal AS regulateCap,
+        d.REGULATE_ID,
+        sum( a.actual_cap ) / 10000 AS actualCapMax,
+        sum( a.actual_energy ) / 10000 AS actualEnergyMax
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        LEFT JOIN dr_org_demand d ON d.REGULATE_ID = b.REGULATE_ID
+        <if test="orgIds != null and orgIds.size > 0">
+            AND d.org_id in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        WHERE
+        DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+        AND b.event_status IN ( '03', '04' )
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        GROUP BY
+        b.EVENT_ID,
+        b.PROJECT_ID
+        ) a)
+        )a
+        LEFT JOIN (
+        SELECT
+        count( a.REGULATE_DATE ) AS eventDays,
+        a.projectId
+        FROM
+        (
+        SELECT
+        d.PROJECT_ID AS projectId,
+        a.REGULATE_DATE
+        FROM
+        dr_plan a
+        LEFT JOIN dr_event d ON a.REGULATE_ID = d.EVENT_ID
+        LEFT JOIN dr_plan_cons b ON a.PLAN_ID = b.PLAN_ID
+        LEFT JOIN dr_cons c ON b.CONS_ID = c.id
+        WHERE
+        1 = 1
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        AND DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( a.REGULATE_DATE, '%Y' )
+        AND d.event_status IN ( '03', '04' )
+        AND b.IMPLEMENT = 'Y'
+        GROUP BY
+        a.REGULATE_DATE,
+        d.PROJECT_ID
+        ) a
+        GROUP BY
+        a.projectId
+        ) b ON a.projectId = b.projectId
+        LEFT JOIN (
+        SELECT
+        d.PROJECT_ID AS projectId,
+        count( b.CONS_ID ) AS consCount
+        FROM
+        dr_plan a
+        LEFT JOIN dr_event d ON a.REGULATE_ID = d.EVENT_ID
+        LEFT JOIN dr_plan_cons b ON a.PLAN_ID = b.PLAN_ID
+        LEFT JOIN dr_cons c ON b.CONS_ID = c.id
+        WHERE
+        1 = 1
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        AND DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( a.REGULATE_DATE, '%Y' )
+        AND b.IMPLEMENT = 'Y'
+        AND d.event_status IN ( '03', '04' )
+        GROUP BY
+        d.PROJECT_ID
+        ) c ON a.projectId = c.projectId
+        LEFT JOIN (
+        SELECT
+        b.PROJECT_ID AS projectId,
+        sum( a.actual_cap )/ 10000 AS actualCapSum,
+        sum( a.actual_energy )/ 10000 AS actualEnergySum
+        FROM
+        dr_cons_evaluation a
+        LEFT JOIN dr_event b ON a.EVENT_ID = b.EVENT_ID
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        WHERE
+        DATE_FORMAT( NOW(), '%Y' ) = DATE_FORMAT( b.REGULATE_DATE, '%Y' )
+        <if test="orgIds != null and orgIds.size > 0">
+            AND c.ORG_NO in
+            <foreach collection="orgIds" index="index" item="orgId" open="(" separator="," close=")">
+                #{orgId}
+            </foreach>
+        </if>
+        AND b.event_status IN ( '03', '04' )
+        GROUP BY
+        b.PROJECT_ID
+        ) d ON d.projectId = a.projectId
+    </select>
+
+
+</mapper>

@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.DrEventInvitationMapper">
+
+    <resultMap type="com.xqxy.dr.modular.event.entity.DrEventInvitation" id="DrEventInvitationMap">
+        <result property="invitationId" column="invitation_id" jdbcType="INTEGER"/>
+        <result property="eventId" column="event_id" jdbcType="INTEGER"/>
+        <result property="consId" column="cons_id" jdbcType="VARCHAR"/>
+        <result property="invitationTime" column="invitation_time" jdbcType="TIMESTAMP"/>
+        <result property="maxLoadBaseline" column="max_load_baseline" jdbcType="NUMERIC"/>
+        <result property="minLoadBaseline" column="min_load_baseline" jdbcType="NUMERIC"/>
+        <result property="avgLoadBaseline" column="avg_load_baseline" jdbcType="NUMERIC"/>
+        <result property="invitationCap" column="invitation_cap" jdbcType="NUMERIC"/>
+        <result property="subsidyPrice" column="subsidy_price" jdbcType="NUMERIC"/>
+        <result property="deadlineTime" column="deadline_time" jdbcType="TIMESTAMP"/>
+        <result property="isParticipate" column="is_participate" jdbcType="VARCHAR"/>
+        <result property="replyCap" column="reply_cap" jdbcType="NUMERIC"/>
+        <result property="replyTime" column="reply_time" jdbcType="TIMESTAMP"/>
+        <result property="replySource" column="reply_source" jdbcType="VARCHAR"/>
+        <result property="invitationRound" column="invitation_round" jdbcType="INTEGER"/>
+        <result property="invitationSequence" column="invitation_sequence" jdbcType="INTEGER"/>
+        <result property="exceptionRemark" column="exception_remark" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="INTEGER"/>
+        <result property="calTime" column="cal_time" jdbcType="TIMESTAMP"/>
+        <result property="calStatus" column="cal_status" jdbcType="VARCHAR"/>
+        <result property="calException" column="cal_exception" jdbcType="VARCHAR"/>
+        <result property="evalTime" column="eval_time" jdbcType="TIMESTAMP"/>
+        <result property="evalStatus" column="eval_status" jdbcType="VARCHAR"/>
+        <result property="evalException" column="eval_exception" jdbcType="VARCHAR"/>
+        <result property="immediateEvalTime" column="immediate_eval_time" jdbcType="TIMESTAMP"/>
+        <result property="immediateEvalStatus" column="immediate_eval_status" jdbcType="VARCHAR"/>
+        <result property="immediateEvalException" column="immediate_eval_exception" jdbcType="VARCHAR"/>
+        <result property="subTime" column="sub_time" jdbcType="TIMESTAMP"/>
+        <result property="subStatus" column="sub_status" jdbcType="VARCHAR"/>
+        <result property="subException" column="sub_exception" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <!--    <select id="queryById" resultMap="DrEventInvitationMap">-->
+    <!--        select-->
+    <!--          invitation_id, event_id, cons_id, invitation_time, max_load_baseline, min_load_baseline, avg_load_baseline, invitation_cap, subsidy_price, deadline_time, is_participate, reply_cap, reply_time, reply_source, invitation_round, invitation_sequence, exception_remark, create_time, create_user, update_time, update_user, cal_time, cal_status, cal_exception, eval_time, eval_status, eval_exception, immediate_eval_time, immediate_eval_status, immediate_eval_exception, sub_time, sub_status, sub_exception-->
+    <!--        from dr_event_invitation-->
+    <!--        where invitation_id = #{invitationId}-->
+    <!--    </select>-->
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="DrEventInvitationMap">
+        select invitation_id,
+               event_id,
+               cons_id,
+               invitation_time,
+               max_load_baseline,
+               min_load_baseline,
+               avg_load_baseline,
+               invitation_cap,
+               subsidy_price,
+               deadline_time,
+               is_participate,
+               reply_cap,
+               reply_time,
+               reply_source,
+               invitation_round,
+               invitation_sequence,
+               exception_remark,
+               create_time,
+               create_user,
+               update_time,
+               update_user,
+               cal_time,
+               cal_status,
+               cal_exception,
+               eval_time,
+               eval_status,
+               eval_exception,
+               immediate_eval_time,
+               immediate_eval_status,
+               immediate_eval_exception,
+               sub_time,
+               sub_status,
+               sub_exception
+        from dr_event_invitation limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="DrEventInvitationMap">
+        select
+        invitation_id, event_id, cons_id, invitation_time, max_load_baseline, min_load_baseline, avg_load_baseline,
+        invitation_cap, subsidy_price, deadline_time, is_participate, reply_cap, reply_time, reply_source,
+        invitation_round, invitation_sequence, exception_remark, create_time, create_user, update_time, update_user,
+        cal_time, cal_status, cal_exception, eval_time, eval_status, eval_exception, immediate_eval_time,
+        immediate_eval_status, immediate_eval_exception, sub_time, sub_status, sub_exception
+        from dr_event_invitation
+        <where>
+            <if test="invitationId != null">
+                and invitation_id = #{invitationId}
+            </if>
+            <if test="eventId != null">
+                and event_id = #{eventId}
+            </if>
+            <if test="consId != null">
+                and cons_id = #{consId}
+            </if>
+            <if test="invitationTime != null">
+                and invitation_time = #{invitationTime}
+            </if>
+            <if test="maxLoadBaseline != null">
+                and max_load_baseline = #{maxLoadBaseline}
+            </if>
+            <if test="minLoadBaseline != null">
+                and min_load_baseline = #{minLoadBaseline}
+            </if>
+            <if test="avgLoadBaseline != null">
+                and avg_load_baseline = #{avgLoadBaseline}
+            </if>
+            <if test="invitationCap != null">
+                and invitation_cap = #{invitationCap}
+            </if>
+            <if test="subsidyPrice != null">
+                and subsidy_price = #{subsidyPrice}
+            </if>
+            <if test="deadlineTime != null">
+                and deadline_time = #{deadlineTime}
+            </if>
+            <if test="isParticipate != null and isParticipate != ''">
+                and is_participate = #{isParticipate}
+            </if>
+            <if test="replyCap != null">
+                and reply_cap = #{replyCap}
+            </if>
+            <if test="replyTime != null">
+                and reply_time = #{replyTime}
+            </if>
+            <if test="replySource != null and replySource != ''">
+                and reply_source = #{replySource}
+            </if>
+            <if test="invitationRound != null">
+                and invitation_round = #{invitationRound}
+            </if>
+            <if test="invitationSequence != null">
+                and invitation_sequence = #{invitationSequence}
+            </if>
+            <if test="exceptionRemark != null and exceptionRemark != ''">
+                and exception_remark = #{exceptionRemark}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="createUser != null">
+                and create_user = #{createUser}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="updateUser != null">
+                and update_user = #{updateUser}
+            </if>
+            <if test="calTime != null">
+                and cal_time = #{calTime}
+            </if>
+            <if test="calStatus != null and calStatus != ''">
+                and cal_status = #{calStatus}
+            </if>
+            <if test="calException != null and calException != ''">
+                and cal_exception = #{calException}
+            </if>
+            <if test="evalTime != null">
+                and eval_time = #{evalTime}
+            </if>
+            <if test="evalStatus != null and evalStatus != ''">
+                and eval_status = #{evalStatus}
+            </if>
+            <if test="evalException != null and evalException != ''">
+                and eval_exception = #{evalException}
+            </if>
+            <if test="immediateEvalTime != null">
+                and immediate_eval_time = #{immediateEvalTime}
+            </if>
+            <if test="immediateEvalStatus != null and immediateEvalStatus != ''">
+                and immediate_eval_status = #{immediateEvalStatus}
+            </if>
+            <if test="immediateEvalException != null and immediateEvalException != ''">
+                and immediate_eval_exception = #{immediateEvalException}
+            </if>
+            <if test="subTime != null">
+                and sub_time = #{subTime}
+            </if>
+            <if test="subStatus != null and subStatus != ''">
+                and sub_status = #{subStatus}
+            </if>
+            <if test="subException != null and subException != ''">
+                and sub_exception = #{subException}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="invitationId" useGeneratedKeys="true">
+        insert into dr_event_invitation(event_id, cons_id, invitation_time, max_load_baseline, min_load_baseline,
+                                        avg_load_baseline, invitation_cap, subsidy_price, deadline_time, is_participate,
+                                        reply_cap, reply_time, reply_source, invitation_round, invitation_sequence,
+                                        exception_remark, create_time, create_user, update_time, update_user, cal_time,
+                                        cal_status, cal_exception, eval_time, eval_status, eval_exception,
+                                        immediate_eval_time, immediate_eval_status, immediate_eval_exception, sub_time,
+                                        sub_status, sub_exception)
+        values (#{eventId}, #{consId}, #{invitationTime}, #{maxLoadBaseline}, #{minLoadBaseline}, #{avgLoadBaseline},
+                #{invitationCap}, #{subsidyPrice}, #{deadlineTime}, #{isParticipate}, #{replyCap}, #{replyTime},
+                #{replySource}, #{invitationRound}, #{invitationSequence}, #{exceptionRemark}, #{createTime},
+                #{createUser}, #{updateTime}, #{updateUser}, #{calTime}, #{calStatus}, #{calException}, #{evalTime},
+                #{evalStatus}, #{evalException}, #{immediateEvalTime}, #{immediateEvalStatus},
+                #{immediateEvalException}, #{subTime}, #{subStatus}, #{subException})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="invitationId" useGeneratedKeys="true">
+        insert into dr_event_invitation(event_id, cons_id, invitation_time, max_load_baseline,
+        min_load_baseline, avg_load_baseline, invitation_cap, subsidy_price, deadline_time, is_participate, reply_cap,
+        reply_time, reply_source, invitation_round, invitation_sequence, exception_remark, create_time, create_user,
+        update_time, update_user, cal_time, cal_status, cal_exception, eval_time, eval_status, eval_exception,
+        immediate_eval_time, immediate_eval_status, immediate_eval_exception, sub_time, sub_status, sub_exception)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.eventId}, #{entity.consId}, #{entity.invitationTime}, #{entity.maxLoadBaseline},
+            #{entity.minLoadBaseline}, #{entity.avgLoadBaseline}, #{entity.invitationCap}, #{entity.subsidyPrice},
+            #{entity.deadlineTime}, #{entity.isParticipate}, #{entity.replyCap}, #{entity.replyTime},
+            #{entity.replySource}, #{entity.invitationRound}, #{entity.invitationSequence}, #{entity.exceptionRemark},
+            #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser}, #{entity.calTime},
+            #{entity.calStatus}, #{entity.calException}, #{entity.evalTime}, #{entity.evalStatus},
+            #{entity.evalException}, #{entity.immediateEvalTime}, #{entity.immediateEvalStatus},
+            #{entity.immediateEvalException}, #{entity.subTime}, #{entity.subStatus}, #{entity.subException})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="invitationId" useGeneratedKeys="true">
+        insert into dr_event_invitation(event_id, cons_id, invitation_time, max_load_baseline,
+        min_load_baseline, avg_load_baseline, invitation_cap, subsidy_price, deadline_time, is_participate, reply_cap,
+        reply_time, reply_source, invitation_round, invitation_sequence, exception_remark, create_time, create_user,
+        update_time, update_user, cal_time, cal_status, cal_exception, eval_time, eval_status, eval_exception,
+        immediate_eval_time, immediate_eval_status, immediate_eval_exception, sub_time, sub_status, sub_exception)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.eventId}, #{entity.consId}, #{entity.invitationTime}, #{entity.maxLoadBaseline},
+            #{entity.minLoadBaseline}, #{entity.avgLoadBaseline}, #{entity.invitationCap}, #{entity.subsidyPrice},
+            #{entity.deadlineTime}, #{entity.isParticipate}, #{entity.replyCap}, #{entity.replyTime},
+            #{entity.replySource}, #{entity.invitationRound}, #{entity.invitationSequence}, #{entity.exceptionRemark},
+            #{entity.createTime}, #{entity.createUser}, #{entity.updateTime}, #{entity.updateUser}, #{entity.calTime},
+            #{entity.calStatus}, #{entity.calException}, #{entity.evalTime}, #{entity.evalStatus},
+            #{entity.evalException}, #{entity.immediateEvalTime}, #{entity.immediateEvalStatus},
+            #{entity.immediateEvalException}, #{entity.subTime}, #{entity.subStatus}, #{entity.subException})
+        </foreach>
+        on duplicate key update
+        event_id = values(event_id) , cons_id = values(cons_id) , invitation_time = values(invitation_time) ,
+        max_load_baseline = values(max_load_baseline) , min_load_baseline = values(min_load_baseline) ,
+        avg_load_baseline = values(avg_load_baseline) , invitation_cap = values(invitation_cap) , subsidy_price =
+        values(subsidy_price) , deadline_time = values(deadline_time) , is_participate = values(is_participate) ,
+        reply_cap = values(reply_cap) , reply_time = values(reply_time) , reply_source = values(reply_source) ,
+        invitation_round = values(invitation_round) , invitation_sequence = values(invitation_sequence) ,
+        exception_remark = values(exception_remark) , create_time = values(create_time) , create_user =
+        values(create_user) , update_time = values(update_time) , update_user = values(update_user) , cal_time =
+        values(cal_time) , cal_status = values(cal_status) , cal_exception = values(cal_exception) , eval_time =
+        values(eval_time) , eval_status = values(eval_status) , eval_exception = values(eval_exception) ,
+        immediate_eval_time = values(immediate_eval_time) , immediate_eval_status = values(immediate_eval_status) ,
+        immediate_eval_exception = values(immediate_eval_exception) , sub_time = values(sub_time) , sub_status =
+        values(sub_status) , sub_exception = values(sub_exception)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update dr_event_invitation
+        <set>
+            <if test="eventId != null">
+                event_id = #{eventId},
+            </if>
+            <if test="consId != null">
+                cons_id = #{consId},
+            </if>
+            <if test="invitationTime != null">
+                invitation_time = #{invitationTime},
+            </if>
+            <if test="maxLoadBaseline != null">
+                max_load_baseline = #{maxLoadBaseline},
+            </if>
+            <if test="minLoadBaseline != null">
+                min_load_baseline = #{minLoadBaseline},
+            </if>
+            <if test="avgLoadBaseline != null">
+                avg_load_baseline = #{avgLoadBaseline},
+            </if>
+            <if test="invitationCap != null">
+                invitation_cap = #{invitationCap},
+            </if>
+            <if test="subsidyPrice != null">
+                subsidy_price = #{subsidyPrice},
+            </if>
+            <if test="deadlineTime != null">
+                deadline_time = #{deadlineTime},
+            </if>
+            <if test="isParticipate != null and isParticipate != ''">
+                is_participate = #{isParticipate},
+            </if>
+            <if test="replyCap != null">
+                reply_cap = #{replyCap},
+            </if>
+            <if test="replyTime != null">
+                reply_time = #{replyTime},
+            </if>
+            <if test="replySource != null and replySource != ''">
+                reply_source = #{replySource},
+            </if>
+            <if test="invitationRound != null">
+                invitation_round = #{invitationRound},
+            </if>
+            <if test="invitationSequence != null">
+                invitation_sequence = #{invitationSequence},
+            </if>
+            <if test="exceptionRemark != null and exceptionRemark != ''">
+                exception_remark = #{exceptionRemark},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="calTime != null">
+                cal_time = #{calTime},
+            </if>
+            <if test="calStatus != null and calStatus != ''">
+                cal_status = #{calStatus},
+            </if>
+            <if test="calException != null and calException != ''">
+                cal_exception = #{calException},
+            </if>
+            <if test="evalTime != null">
+                eval_time = #{evalTime},
+            </if>
+            <if test="evalStatus != null and evalStatus != ''">
+                eval_status = #{evalStatus},
+            </if>
+            <if test="evalException != null and evalException != ''">
+                eval_exception = #{evalException},
+            </if>
+            <if test="immediateEvalTime != null">
+                immediate_eval_time = #{immediateEvalTime},
+            </if>
+            <if test="immediateEvalStatus != null and immediateEvalStatus != ''">
+                immediate_eval_status = #{immediateEvalStatus},
+            </if>
+            <if test="immediateEvalException != null and immediateEvalException != ''">
+                immediate_eval_exception = #{immediateEvalException},
+            </if>
+            <if test="subTime != null">
+                sub_time = #{subTime},
+            </if>
+            <if test="subStatus != null and subStatus != ''">
+                sub_status = #{subStatus},
+            </if>
+            <if test="subException != null and subException != ''">
+                sub_exception = #{subException},
+            </if>
+        </set>
+        where invitation_id = #{invitationId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from dr_event_invitation
+        where invitation_id = #{invitationId}
+    </delete>
+
+    <!-- 用户参与情况统计 -->
+    <select id="getEventUser" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationUser">
+        SELECT
+        dce.CONS_ID AS consId,
+        dc.CONS_NAME AS consName,
+        dce.join_user_type AS consType,
+        SUM( CASE de.RESPONSE_TYPE WHEN '1' THEN '1' WHEN '2' THEN '0' END) AS peakClippingTimes,
+        SUM( CASE de.RESPONSE_TYPE WHEN '1' THEN '0' WHEN '2' THEN '1' END) AS valleyFillingTimes,
+        COUNT( dce.CONS_ID ) AS responseTimes,
+        SUM( dce.actual_cap ) AS totalResponseLoad,
+        SUM( dce.actual_energy ) AS totalResponsePower,
+        SUM( dce.actual_cap ) / SUM( dce.reply_cap ) AS responseAccuracy,
+        SUM( drs.subsidy_amount ) AS incentiveAmount
+        FROM
+        dr_event de
+        INNER JOIN dr_cons_evaluation dce ON de.EVENT_ID = dce.EVENT_ID
+        INNER JOIN dr_cons dc ON dc.id = dce.CONS_ID
+        LEFT JOIN dr_cons_subsidy drs ON dc.id = drs.CONS_ID
+        AND de.EVENT_ID = drs.EVENT_ID
+        WHERE
+        dce.is_effective = 'Y'
+        AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+        AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+        <if test="eventId != null and eventId != '' ">
+           and de.EVENT_ID = #{eventId}
+        </if>
+        GROUP BY
+        dce.CONS_ID
+    </select>
+
+    <!-- 用户参与情况导出 -->
+    <select id="exprotEventUser" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationUser">
+        SELECT
+        dce.CONS_ID AS consId,
+        dc.CONS_NAME AS consName,
+        dcci.partic_type AS consType,
+        SUM( CASE dp.RESPONSE_TYPE WHEN '1' THEN '1' WHEN '2' THEN '0' END) AS peakClippingTimes,
+        SUM( CASE dp.RESPONSE_TYPE WHEN '1' THEN '0' WHEN '2' THEN '1' END) AS valleyFillingTimes,
+        COUNT( dce.CONS_ID ) AS responseTimes,
+        SUM( dce.actual_cap ) AS totalResponseLoad,
+        SUM( dce.actual_energy ) AS totalResponsePower,
+        SUM( dce.actual_cap ) / SUM( dce.reply_cap ) AS responseAccuracy,
+        SUM( drs.subsidy_amount ) AS incentiveAmount
+        FROM
+        dr_event de
+        INNER JOIN dr_cons_evaluation dce ON de.EVENT_ID = dce.EVENT_ID
+        INNER JOIN dr_cons dc ON dc.id = dce.CONS_ID
+        LEFT JOIN dr_cons_subsidy drs ON dc.id = drs.CONS_ID
+        AND de.EVENT_ID = drs.EVENT_ID
+        LEFT JOIN dr_cons_contract_info dcci on dc.id = dcci.CONS_ID
+        LEFT JOIN dr_plan dp on de.REGULATE_ID = dp.REGULATE_ID
+        WHERE
+        dce.is_effective = 'Y'
+        AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+        AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+        <if test="eventId != null and eventId != '' ">
+            and de.EVENT_ID = #{eventId}
+        </if>
+        GROUP BY
+        dce.CONS_ID
+    </select>
+
+    <!-- 业务运行统计 地市统计 -->
+    <select id="getEventBusiness" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationBusiness">
+        SELECT stpr.id as cityCode,stpr.name as cityName from sc_admin.t_pub_region stpr WHERE stpr.parent_id = #{provinceCode}
+        <if test="cityCode != null and cityCode != '' ">
+            and stpr.id = #{cityCode}
+        </if>
+    </select>
+
+    <!-- 业务运行统计  事件 -->
+    <select id="getEventBusinessEvent" resultType="Map">
+        SELECT
+        de.EVENT_ID,
+        de.EVENT_NAME,
+        de.REGULATE_RANGE,
+        dp.RESPONSE_TYPE
+        FROM
+        dr_event de
+        LEFT JOIN dr_plan dp ON de.REGULATE_ID = dp.REGULATE_ID
+        WHERE
+        date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+        AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+        <if test="eventType != null and eventType != '' ">
+            and dp.RESPONSE_TYPE = #{eventType}
+        </if>
+    </select>
+
+    <!-- 业务运行统计  负荷电量用户 -->
+    <select id="getCapEnergy" resultType="Map">
+        SELECT
+            dc.CITY_CODE AS cityCode,
+            SUM( dce.actual_cap ) AS actual_cap,
+            SUM( dce.actual_energy ) AS actual_energy,
+            COUNT( dce.evaluation_id ) AS evaluation_id
+        FROM
+            dr_cons_evaluation dce,
+            dr_cons dc,
+            dr_event de
+        WHERE
+            dce.CONS_ID = dc.ID
+            and dce.EVENT_ID = de.EVENT_ID
+            and date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+            AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+            <if test="eventId != null and eventId != '' ">
+                and dce.EVENT_ID = #{eventId}
+            </if>
+        GROUP BY
+            dc.CITY_CODE
+    </select>
+
+    <!-- 事件效果评估统计 -->
+    <select id="getEffectEval" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEval">
+        SELECT
+            de.EVENT_ID as eventId,
+            de.RANGE_TYPE rangeType,
+            de.REGULATE_RANGE as cityName,
+            de.REGULATE_DATE as responseDate,
+            de.START_TIME as startTime,
+            de.END_TIME as endTime,
+            de.REGULATE_CAP as regulateCap,
+            SUM( dce.actual_cap ) as actualResponseLoad,
+            SUM( dce.actual_energy ) as actualResponsePower,
+            SUM( dce.actual_cap ) / de.REGULATE_CAP as targetCompletionRate
+        FROM
+            dr_event de
+            LEFT JOIN dr_cons_evaluation dce ON de.EVENT_ID = dce.EVENT_ID
+        <where>
+            <if test="startDate != null and startDate != '' ">
+                and date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+            </if>
+            <if test="endDate != null and endDate != '' ">
+                AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+            </if>
+            <if test="eventId != null and eventId != '' ">
+                and de.EVENT_ID = #{eventId}
+            </if>
+            <if test="cityCode != null and cityCode != '' ">
+                and de.REGULATE_RANGE like  CONCAT('%',#{cityCode},'%')
+            </if>
+        </where>
+        GROUP BY
+        de.EVENT_ID
+    </select>
+
+    <!-- 事件效果评估统计 次日导出 -->
+    <select id="exprotffectEval" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEval">
+        SELECT
+        de.EVENT_ID as eventId,
+        de.RANGE_TYPE rangeType,
+        de.REGULATE_RANGE as cityName,
+        de.REGULATE_DATE as responseDate,
+        de.START_TIME as startTime,
+        de.END_TIME as endTime,
+        de.REGULATE_CAP as regulateCap,
+        SUM( dce.actual_cap ) as actualResponseLoad,
+        SUM( dce.actual_energy ) as actualResponsePower,
+        SUM( dce.actual_cap ) / de.REGULATE_CAP as targetCompletionRate
+        FROM
+        dr_event de
+        LEFT JOIN dr_cons_evaluation dce ON de.EVENT_ID = dce.EVENT_ID
+        <where>
+            <if test="startDate != null and startDate != '' ">
+                and date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+            </if>
+            <if test="endDate != null and endDate != '' ">
+                AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+            </if>
+            <if test="eventId != null and eventId != '' ">
+                and de.EVENT_ID = #{eventId}
+            </if>
+            <if test="cityCode != null and cityCode != '' ">
+                and de.REGULATE_RANGE like  CONCAT('%',#{cityCode},'%')
+            </if>
+        </where>
+        GROUP BY
+        de.EVENT_ID
+    </select>
+
+    <!-- 事件效果评估统计 当日-->
+    <select id="getEffectEvalImmediate" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEval">
+        SELECT
+        de.EVENT_ID as eventId,
+        de.RANGE_TYPE as rangeType,
+        de.REGULATE_RANGE as cityName,
+        de.REGULATE_DATE as responseDate,
+        de.START_TIME as startTime,
+        de.END_TIME as endTime,
+        de.REGULATE_CAP as regulateCap,
+        SUM( dce.actual_cap ) as actualResponseLoad,
+        SUM( dce.electricity_actual ) as actualResponsePower,
+        SUM( dce.actual_cap ) / de.REGULATE_CAP as targetCompletionRate
+        FROM
+        dr_event de
+        LEFT JOIN dr_cons_evaluation_immediate dce ON de.EVENT_ID = dce.EVENT_ID
+        <where>
+            <if test="startDate != null and startDate != '' ">
+                and date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+            </if>
+            <if test="endDate != null and endDate != '' ">
+                AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+            </if>
+            <if test="eventId != null and eventId != '' ">
+                and de.EVENT_ID = #{eventId}
+            </if>
+            <if test="cityCode != null and cityCode != '' ">
+                and de.REGULATE_RANGE like CONCAT('%',#{cityCode},'%')
+            </if>
+        </where>
+        GROUP BY
+        de.EVENT_ID
+    </select>
+
+    <!-- 事件效果评估统计 当日导出-->
+    <select id="exprotEffectEvalImmediate" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEval">
+        SELECT
+        de.EVENT_ID as eventId,
+        de.RANGE_TYPE as rangeType,
+        de.REGULATE_RANGE as cityName,
+        de.REGULATE_DATE as responseDate,
+        de.START_TIME as startTime,
+        de.END_TIME as endTime,
+        de.REGULATE_CAP as regulateCap,
+        SUM( dce.actual_cap ) as actualResponseLoad,
+        SUM( dce.electricity_actual ) as actualResponsePower,
+        SUM( dce.actual_cap ) / de.REGULATE_CAP as targetCompletionRate
+        FROM
+        dr_event de
+        LEFT JOIN dr_cons_evaluation_immediate dce ON de.EVENT_ID = dce.EVENT_ID
+        <where>
+            <if test="startDate != null and startDate != '' ">
+                and date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &gt;= date_format( #{startDate}, '%Y-%m-%d' )
+            </if>
+            <if test="endDate != null and endDate != '' ">
+                AND date_format( de.REGULATE_DATE, '%Y-%m-%d' ) &lt;= date_format( #{endDate}, '%Y-%m-%d' )
+            </if>
+            <if test="eventId != null and eventId != '' ">
+                and de.EVENT_ID = #{eventId}
+            </if>
+            <if test="cityCode != null and cityCode != '' ">
+                and de.REGULATE_RANGE like  CONCAT('%',#{cityCode},'%')
+            </if>
+        </where>
+        GROUP BY
+        de.EVENT_ID
+    </select>
+
+    <!-- 事件效果评估 实际用户分类统计 -->
+    <select id="getactualUsers" resultType="Map">
+        SELECT
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505702' THEN '1' END) AS actualIndustrialUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505703' THEN '1' END) AS actualBusinessUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505705' THEN '1' END) AS actualAgriculturalUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505701' THEN '1' END) AS actualResidentUser,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END) AS actualBusStation,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END) AS actualResidentialside,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508326' THEN '1' END) AS actualEnergyStorage
+        FROM
+            dr_event de,
+            dr_cons_invitation dci,
+            dr_cons dc
+        WHERE
+            de.EVENT_ID = dci.EVENT_ID
+            AND dci.CONS_ID = dc.id
+            AND dci.is_participate = 'Y'
+            AND de.EVENT_ID = #{eventId}
+    </select>
+
+    <!-- 事件效果评估 次日有效用户分类统计 -->
+    <select id="getEffectUsers" resultType="Map">
+        SELECT
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505702' THEN '1' END ) AS effectIndustrialUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505703' THEN '1' END ) AS effectBusinessUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505705' THEN '1' END ) AS effectAgriculturalUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505701' THEN '1' END ) AS effectResidentUser,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END ) AS effectBusStation,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END ) AS effectResidentialside,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508326' THEN '1' END ) AS effectEnergyStorage
+        FROM
+            dr_event de,
+            dr_cons_evaluation dce,
+            dr_cons dc
+        WHERE
+            de.EVENT_ID = dce.EVENT_ID
+            AND dce.CONS_ID = dc.id
+            AND dce.is_effective = 'Y'
+            AND de.EVENT_ID = #{eventId}
+    </select>
+
+    <!-- 事件效果评估 次日有效用户分类统计 当日 -->
+    <select id="getEffectUsersImmediate" resultType="Map">
+        SELECT
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505702' THEN '1' END ) AS effectIndustrialUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505703' THEN '1' END ) AS effectBusinessUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505705' THEN '1' END ) AS effectAgriculturalUsers,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0505701' THEN '1' END ) AS effectResidentUser,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END ) AS effectBusStation,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508325' THEN '1' END ) AS effectResidentialside,
+        COUNT( CASE dc.BIG_TRADE_CODE WHEN '0508326' THEN '1' END ) AS effectEnergyStorage
+        FROM
+        dr_event de,
+        dr_cons_evaluation_immediate dce,
+        dr_cons dc
+        WHERE
+        de.EVENT_ID = dce.EVENT_ID
+        AND dce.CONS_ID = dc.id
+        AND dce.is_effective = 'Y'
+        AND de.EVENT_ID = #{eventId}
+    </select>
+
+    <!-- 事件效果评估 次日明细  -->
+    <select id="getEffectUsersDetail" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEvalDetail">
+        SELECT
+            dce.EVENT_ID AS eventId,
+            dc.CITY_CODE AS cityName,
+            dc.COUNTY_CODE AS countyName,
+            dc.id AS consNo,
+            dc.CONS_NAME AS consName,
+            dce.reply_cap AS reply_cap,
+            dce.avg_load_baseline AS avgLoadBaseline,
+            dce.max_load_baseline AS maxLoadBaseline,
+            dce.avg_load_actual AS avgLoadActual,
+            dce.max_load_actual AS maxLoadActual,
+            dce.max_load_baseline - dce.max_load_actual AS min,
+            dce.actual_cap AS actualCap,
+            dce.is_effective AS isEffective
+        FROM
+            dr_cons_evaluation dce
+            LEFT JOIN dr_cons dc ON dce.CONS_ID = dc.id
+        where
+            dce.EVENT_ID = #{eventId}
+    </select>
+
+    <!-- 事件效果评估 当日明细  -->
+    <select id="getEffectUsersDetailImmediate" resultType="com.xqxy.dr.modular.event.entity.DrEventInvitationEffectEvalDetail">
+        SELECT
+            dce.EVENT_ID AS eventId,
+            dc.CITY_CODE AS cityName,
+            dc.COUNTY_CODE AS countyName,
+            dc.id AS consNo,
+            dc.CONS_NAME AS consName,
+            dce.reply_cap AS reply_cap,
+            dce.avg_load_baseline AS avgLoadBaseline,
+            dce.max_load_baseline AS maxLoadBaseline,
+            dce.avg_load_actual AS avgLoadActual,
+            dce.max_load_actual AS maxLoadActual,
+            dce.max_load_baseline - dce.max_load_actual AS min,
+            dce.actual_cap AS actualCap,
+            dce.is_effective AS isEffective
+        FROM
+            dr_cons_evaluation_immediate dce
+        LEFT JOIN dr_cons dc ON dce.CONS_ID = dc.id
+        where
+        dce.EVENT_ID = #{eventId}
+    </select>
+
+
+</mapper>
+

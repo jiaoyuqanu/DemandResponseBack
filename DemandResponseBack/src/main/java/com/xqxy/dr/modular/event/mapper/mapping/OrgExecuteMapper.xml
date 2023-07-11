@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.OrgExecuteMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.OrgExecute">
+        <id column="id" property="id" />
+        <result column="event_id" property="eventId" />
+        <result column="org_id" property="orgId" />
+        <result column="baseline_cap" property="baselineCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="real_time_cap" property="realTimeCap" />
+        <result column="execute_time" property="executeTime" />
+        <result column="execute_cap" property="executeCap" />
+        <result column="execute_rate" property="executeRate" />
+        <result column="is_out" property="isOut" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="max_execute_cap" property="maxExecuteCap" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, event_id, org_id, baseline_cap, max_load_baseline, reply_cap, real_time_cap, execute_time, execute_cap, execute_rate, is_out, is_qualified, create_time, create_user, update_time, update_user, max_execute_cap
+    </sql>
+
+
+    <select id="pageOrgExecute" resultType="com.xqxy.dr.modular.event.VO.OrgExecuteVO">
+        SELECT
+            org.org_id orgId,
+            org.org_name orgName,
+            eve.EVENT_ID eventId,
+            eve.START_TIME startTime,
+            eve.END_TIME endTime,
+            org.execute_time executeTime,
+            org.execute_cap executeCap,
+            org.execute_rate * 100 executeRate,
+            org.reply_cap/10000 replyCap
+        FROM
+            dr_org_execute org
+        LEFT JOIN dr_event eve ON org.event_id = eve.event_id
+        <where>
+            org.execute_time &lt; #{orgExecuteParam.date}
+            AND org.execute_time = (
+            SELECT
+                MAX(orgExecute.execute_time)
+            FROM
+                dr_org_execute orgExecute
+            WHERE
+                orgExecute.event_id = #{orgExecuteParam.eventId}
+            )
+            <if test="orgExecuteParam.eventId != null">
+                and org.event_id = #{orgExecuteParam.eventId}
+            </if>
+            <if test="orgExecuteParam.orgId != null and orgExecuteParam.orgId != '' ">
+                and org.org_id = #{orgExecuteParam.orgId}
+            </if>
+        </where>
+        GROUP BY org.event_id,org.org_id
+    </select>
+
+</mapper>

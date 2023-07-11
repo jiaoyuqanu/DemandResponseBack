@@ -1,0 +1,32 @@
+package com.xqxy.dr.modular.statistics.service;
+
+
+import com.xqxy.dr.modular.statistics.VO.ConsAreaStatisticsVO;
+import com.xqxy.sys.modular.cust.result.ConsStatisticsResult;
+import com.xqxy.sys.modular.cust.result.StatisticsByTypeResult;
+
+import java.util.List;
+import java.util.Map;
+
+public interface ConsAreaStatisticsService {
+
+    /**
+     *  签约用户的地区统计
+     * @return
+     */
+    Map<String,Integer> consAreaStatistics(Long projectId);
+
+
+    /**
+     *  各地市用户类型统计 --- 签约数据
+     * @return
+     */
+    List<ConsStatisticsResult> consCityStatistics(Long projectId);
+
+
+    /**
+     *  各地市用户类型统计 --- 所有 审核 数据
+     * @return
+     */
+    List<ConsStatisticsResult> consCityStatisticsAll(Long projectId);
+}

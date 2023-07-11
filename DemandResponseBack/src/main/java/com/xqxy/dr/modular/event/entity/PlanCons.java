@@ -1,0 +1,344 @@
+package com.xqxy.dr.modular.event.entity;
+
+import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import com.xqxy.sys.modular.cust.result.ConsResult;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+/**
+ * <p>
+ * 方案参与用户
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+@Data
+@EqualsAndHashCode(callSuper = false)
+@TableName("dr_plan_cons")
+public class PlanCons extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
+    /**
+     * 参与标识
+     */
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long particId;
+
+    /**
+     * 用户标识
+     */
+    @Excel(name = "电力户号",width = 10)
+    @TableField("CONS_ID")
+    private String consId;
+
+    /**
+     * 方案标识
+     */
+    @TableField("PLAN_ID")
+    private Long planId;
+
+    /**
+     * 基线负荷标识
+     */
+    private Long baselineCapId;
+
+    /**
+     * 可响应负荷
+     */
+    @Excel(name = "认约负荷(kW)",width = 10)
+    @TableField("DEMAND_CAP")
+    private BigDecimal demandCap;
+
+    /**
+     * 响应价格
+     */
+    private BigDecimal replyPrice;
+
+    /**
+     * 方案序位
+     */
+    private Integer sequenceNo;
+
+    /**
+     * 是否剔除
+     */
+    private String deleted;
+
+    /**
+     * 被剔除使用的规则
+     */
+    @TableField("del_rule")
+    private String delRule;
+
+    /**
+     * 是否参与事件
+     */
+    @Excel(name = "是否参与",width = 10)
+    private String involvedIn;
+
+    /**
+     * 用户信息
+     */
+    @TableField(exist = false)
+    private ConsResult consInfo;
+
+
+    /**
+     * 客户主键
+     */
+    private Long custId;
+
+    /**
+     * 用户名称
+     */
+    @Excel(name = "用户名称",width = 10)
+    @TableField(exist = false)
+    private String consName;
+
+    /**
+     * 用电地址
+     */
+    @TableField(exist = false)
+    private String elecAddr;
+
+    /**
+     * 行业类别名称
+     */
+    @TableField(exist = false)
+    private String bigTradeName;
+
+    /**
+     * 行业类别编码
+     */
+    @TableField(exist = false)
+    private String bigTradeCode;
+
+    /**
+     * 行业分类名称
+     */
+    @TableField(exist = false)
+    private String tradeName;
+
+    /**
+     * 行业分类编码
+     */
+    @TableField(exist = false)
+    private String tradeCode;
+
+    /**
+     * 日最大负荷（本月~去年同月）
+     */
+    @TableField(exist = false)
+    private BigDecimal dayMaxPower;
+
+
+    /**
+     * 运行容量
+     */
+    @TableField(exist = false)
+    private BigDecimal runCap;
+
+    /**
+     * 电源类型（专线、专变、公变）
+     */
+    @TableField(exist = false)
+    private String typeCode;
+
+    /**
+     * 供电单位名称
+     */
+    @Excel(name = "供电单位",width = 10)
+    @TableField(exist = false)
+    private String orgName;
+
+    /**
+     * 供电单位编码
+     */
+    @TableField(exist = false)
+    private String orgNo;
+
+    /**
+     * 省码
+     */
+
+    @TableField(exist = false)
+    private String provinceCode;
+
+    /**
+     * 市码
+     */
+    @Excel(name = "市级供电单位",width = 10)
+    @TableField(exist = false)
+    private String cityCode;
+
+    /**
+     * 区县码
+     */
+    @Excel(name = "县级供电单位",width = 10)
+    @TableField(exist = false)
+    private String countyCode;
+
+    /**
+     * 街道码（乡镇）
+     */
+    @TableField(exist = false)
+    private String streetCode;
+
+    /**
+     * 变电站名称
+     */
+    @TableField(exist = false)
+    private String subsName;
+
+    /**
+     * 变电站编码
+     */
+    @TableField(exist = false)
+    private String subsNo;
+
+    /**
+     * 线路名称
+     */
+    @TableField(exist = false)
+    private String lineName;
+
+    /**
+     * 线路编号
+     */
+    @TableField(exist = false)
+    private String lineNo;
+
+    /**
+     * 台区名称
+     */
+    @TableField(exist = false)
+    private String tgName;
+
+    /**
+     * 台区编号
+     */
+    @TableField(exist = false)
+    private String tgNo;
+
+    /**
+     * 第一联系人姓名
+     */
+    @TableField(exist = false)
+    private String firstContactName;
+
+    /**
+     * 第一联系人联系方式
+     */
+    @TableField(exist = false)
+    private String firstContactInfo;
+
+    /**
+     * 第二联系人姓名
+     */
+    @TableField(exist = false)
+    private String secondContactName;
+
+    /**
+     * 第二联系人联系方式
+     */
+    @TableField(exist = false)
+    private String secondContactInifo;
+
+    /**
+     * 1:正常，2：撤销
+     */
+    @TableField(exist = false)
+    private String state;
+
+    /**
+     * 是否参与执行，反馈后方案编制最终确认参与用户标志，字典yes_or_no
+     */
+    @TableField("IMPLEMENT")
+    private String implement;
+
+    @ApiModelProperty(value = "用户参与方式")
+    @TableField("join_user_type")
+    private String joinUserType;
+
+    /**
+     * 签约响应容量
+     */
+    @TableField("CONTRACT_CAP")
+    private BigDecimal contractCap;
+
+    @Excel(name = "反馈时间",width = 10)
+    @TableField(exist = false)
+    private String replyTime;
+
+    @Excel(name = "平均基线负荷",width = 10)
+    @TableField(exist = false)
+    private BigDecimal avgBaseline;
+
+    /**
+     * 平均基线负荷
+     */
+    @TableField(exist = false)
+    private BigDecimal baselineCap;
+
+    /**
+     * 最大基线负荷
+     */
+    @TableField(exist = false)
+    private BigDecimal maxBaselineCap;
+
+    /**
+     * 认约负荷
+     */
+    @TableField(exist = false)
+    private BigDecimal replyCap;
+
+    /**
+     * 执行时间
+     */
+    @TableField(exist = false)
+    private String executeTime;
+
+    /**
+     * 实际执行负荷
+     */
+    @TableField(exist = false)
+    private BigDecimal executeCap;
+
+    /**
+     * 实际执行负荷率
+     */
+    @TableField(exist = false)
+    private BigDecimal executeRate;
+
+    /**
+     * 实时负荷
+     */
+    @TableField(exist = false)
+    private BigDecimal realTimeCap;
+
+    /**
+     * 是否越界
+     */
+    @TableField(exist = false)
+    private String isOut;
+
+    /**
+     * 是否达标
+     */
+    @TableField(exist = false)
+    private String isQualified;
+
+
+
+}

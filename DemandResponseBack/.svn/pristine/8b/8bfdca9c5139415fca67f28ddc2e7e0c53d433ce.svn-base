@@ -1,0 +1,84 @@
+package com.xqxy.dr.modular.subsidy.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
+import java.io.Serializable;
+
+import com.xqxy.core.annotion.NeedSetValue;
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * <p>
+ * 补贴申诉
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-25
+ */
+@Data
+@EqualsAndHashCode(callSuper = false)
+@TableName("dr_subsidy_appeal")
+@ApiModel(value="SubsidyAppeal对象", description="补贴申诉")
+public class SubsidyAppeal extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID=1L;
+
+    @ApiModelProperty(value = "主键")
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
+
+    @ApiModelProperty(value = "关联评估ID")
+    private Long evaluationId;
+
+    @ApiModelProperty(value = "申诉原因（字典1基线最大负荷异议 2基线平均负荷异议 3响应效果认定异议）")
+    private String appealReason;
+
+    //原因
+    @ApiModelProperty(value = "原因说明")
+    private String remark;
+
+    //状态
+    @ApiModelProperty(value = "状态(01 保存 02 审核中 03 审核通过 04 审核不通过)")
+    private String status;
+
+    //文件id
+    @ApiModelProperty(value = "关联文件ID")
+    private String fileIds;
+
+    //文件名称
+    @TableField(exist = false)
+    @NeedSetValue(beanClass = com.xqxy.dr.modular.subsidy.service.SubsidyAppealService.class, method = "getFileName", params = {"fileIds"}, targetField = "fileName")
+    private String fileName;
+
+    //用户户号
+    @TableField(exist = false)
+    private String consId;
+
+    //用户名称
+    @TableField(exist = false)
+    private String consName;
+
+    //联系方式
+    @TableField(exist = false)
+    private String phone;
+
+    //事件编号
+    @TableField(exist = false)
+    private String eventNo;
+
+    //事件名称
+    @TableField(exist = false)
+    private String eventName;
+
+    //是否有效
+    @TableField(exist = false)
+    private String isEffective;
+
+}

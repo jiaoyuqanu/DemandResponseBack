@@ -1,0 +1,284 @@
+package com.xqxy.dr.modular.adjustable.entity;
+
+import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+
+/**
+ * <p>
+ * 用户级可调节潜力信息
+ * </p>
+ *
+ * @author liqirui
+ * @since 2021-11-06
+ */
+@Data
+@TableName("dr_cons_adjustable_potential")
+@ApiModel(value="DrConsAdjustablePotential对象", description="用户可调节潜力")
+public class DrConsAdjustablePotential implements Serializable {
+
+private static final long serialVersionUID=1L;
+
+    /**
+     * 主键
+     */
+    @TableId(value = "id", type = IdType.INPUT)
+    private String id;
+
+    /**
+     * 用户标识
+     */
+    @TableField("CONS_ID")
+    private String consId;
+
+    /**
+     * 用户名称
+     */
+    private String consName;
+
+    /**
+     * 合同容量
+     */
+    @TableField("CONTRACT_CAP")
+    private BigDecimal contractCap;
+
+    /**
+     * 用户大类
+     */
+    @TableField("BIG_CLASS_NAME")
+    private String bigClassName;
+
+    /**
+     * 用户大类编码
+     */
+    @TableField("BIG_CLASS_CODE")
+    private String bigClassCode;
+
+    /**
+     * 用户小类
+     */
+    @TableField("CLASS_NAME")
+    private String className;
+
+    /**
+     * 用户小类编码
+     */
+    @TableField("CLASS_CODE")
+    private String classCode;
+
+    /**
+     * 削峰响应准备时间
+     */
+    @TableField("DES_PREPARE_TIME")
+    private Integer desPrepareTime;
+
+    /**
+     * 削峰响应准备时间单位1、小时，2、分钟，3、秒
+     */
+    @TableField("DES_PREPARE_TIME_UNIT")
+    private Integer desPrepareTimeUnit;
+
+    /**
+     * 填谷响应准备时间
+     */
+    @TableField("RIS_PREPARE_TIME")
+    private Integer risPrepareTime;
+
+    /**
+     * 填谷响应准备时间单位1、小时，2、分钟，3、秒
+     */
+    @TableField("RIS_PREPARE_TIME_UNIT")
+    private Integer risPrepareTimeUnit;
+
+    /**
+     * 用户生产经营开始时间
+     */
+    @TableField("PROD_START_TIME")
+    private String prodStartTime;
+
+    /**
+     * 用户生产经营开始时间单位1、小时，2、分钟，3、秒
+     */
+    @TableField("PROD_START_TIME_UNIT")
+    private Integer prodStartTimeUnit;
+
+    /**
+     * 用户生产经营结束时间
+     */
+    @TableField("PROD_END_TIME")
+    private String prodEndTime;
+
+    /**
+     * 用户生产经营结束时间单位1、小时，2、分钟，3、秒
+     */
+    @TableField("PROD_END_TIME_UNIT")
+    private Integer prodEndTimeUnit;
+
+    /**
+     * 保安负荷
+     */
+    @TableField("SAFETY_LOAD")
+    private BigDecimal safetyLoad;
+
+    /**
+     * 日前约时申报可削峰响应最大负荷  可调节设备潜力*数量
+     */
+    @TableField("REPORT_DES_MAX_POWER")
+    private BigDecimal reportDesMaxPower;
+
+    /**
+     * 年可参与削峰响应次数
+     */
+    @TableField("PARTAKE_DES_NUM")
+    private Integer partakeDesNum;
+
+    /**
+     * 约时填谷可响应负荷
+     */
+    @TableField("REPORT_RIS_MAX_POWER")
+    private BigDecimal reportRisMaxPower;
+
+    /**
+     * 年可参与填谷响应次数
+     */
+    @TableField("PARTAKE_RIS_NUM")
+    private Integer partakeRisNum;
+
+    /**
+     * 约时削峰最小响应时长
+     */
+    @TableField("ONCE_REPONSE_TIME")
+    private Float onceReponseTime;
+
+    /**
+     * 单次响应时长单位：1、小时；2、分钟
+     */
+    @TableField("ONCE_REPONSE_TIME_UNIT")
+    private Integer onceReponseTimeUnit;
+
+    /**
+     * 期望削峰电价
+     */
+    @TableField("EXPECT_DES_PRICE")
+    private BigDecimal expectDesPrice;
+
+    /**
+     * 期望填谷电价
+     */
+    @TableField("EXPECT_RIS_PRICE")
+    private BigDecimal expectRisPrice;
+
+    /**
+     * 上年实际响应最大负荷
+     */
+    @TableField("LAST_YEAR_RESP_POWER")
+    private BigDecimal lastYearRespPower;
+
+    /**
+     * 去年参与削峰响应次数
+     */
+    @TableField("LAST_PART_DES_NUM")
+    private Integer lastPartDesNum;
+
+    /**
+     * 去年削峰累计削减负荷
+     */
+    @TableField("LAST_DES_SUM_POWER")
+    private BigDecimal lastDesSumPower;
+
+    /**
+     * 去年参与填谷响应次数
+     */
+    @TableField("LAST_PART_RIS_NUM")
+    private Integer lastPartRisNum;
+
+    /**
+     * 去年填谷累计消纳电量
+     */
+    @TableField("LAST_RIS_SUM_ENERGY")
+    private BigDecimal lastRisSumEnergy;
+
+    /**
+     * 户级削峰可调节潜力  该户所有的设备潜力*数量的总和
+     */
+    @TableField("CONS_DES_POWER")
+    private BigDecimal consDesPower;
+
+    /**
+     * 户级填谷可调节潜力  该户所有的设备潜力*数量的总和
+     */
+    @TableField("CONS_RIS_POWER")
+    private BigDecimal consRisPower;
+
+    /**
+     * 小时级削峰申报可削峰响应最大负荷
+     */
+    @TableField("HOUR_REPORT_DES_MAX_POWER")
+    private BigDecimal hourReportDesMaxPower;
+
+    /**
+     * 实时削峰分钟级申报可削峰响应最大负荷
+     */
+    @TableField("MIN_REPORT_DES_MAX_POWER")
+    private BigDecimal minReportDesMaxPower;
+
+    /**
+     * 实时削峰秒级申报可削峰响应最大负荷
+     */
+    @TableField("SEC_REPORT_DES_MAX_POWER")
+    private BigDecimal secReportDesMaxPower;
+
+    /**
+     * ,实时削峰最小响应时长
+     */
+    @TableField("REAL_ONCE_REPONSE_TIME")
+    private Integer realOnceReponseTime;
+
+    /**
+     * 约时填谷最小响应时长
+     */
+    @TableField("RIS_REPONSE_TIME")
+    private Integer risReponseTime;
+
+    /**
+     * 普查年度
+     */
+    @TableField("YEAR")
+    private BigDecimal year;
+
+    /**
+     * 省电力公司码
+     */
+    @TableField("PROVINCE_ELE_CODE")
+    private String provinceEleCode;
+
+    /**
+     * 省电力公司名称
+     */
+    @TableField("PROVINCE_ELE_NAME")
+    private String provinceEleName;
+
+    /**
+     * 市电力公司名称
+     */
+    @TableField("CITY_ELE_NAME")
+    private String cityEleName;
+
+    /**
+     * 市电力公司码
+     */
+    @TableField("CITY_ELE_CODE")
+    private String cityEleCode;
+
+
+}

@@ -1,0 +1,757 @@
+package com.xqxy.executor.service.jobhandler;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.log.Log;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xqxy.core.client.SystemClientService;
+import com.xqxy.core.enums.YesOrNotEnum;
+import com.xqxy.dr.modular.baseline.entity.BaseLine;
+import com.xqxy.dr.modular.baseline.service.BaseLineService;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.device.entity.SysOrgs;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.entity.EventPowerBase;
+import com.xqxy.dr.modular.event.entity.EventPowerDay;
+import com.xqxy.dr.modular.event.entity.Plan;
+import com.xqxy.dr.modular.event.mapper.EventPowerMapper;
+import com.xqxy.dr.modular.event.mapper.PlanConsMapper;
+import com.xqxy.dr.modular.event.service.EventPowerBaseService;
+import com.xqxy.dr.modular.event.service.EventPowerDayService;
+import com.xqxy.dr.modular.event.service.EventService;
+import com.xqxy.dr.modular.event.service.PlanService;
+import com.xqxy.dr.modular.event.utils.OrgUtils;
+import com.xqxy.dr.modular.eventEvaluation.entity.EventEvaluation;
+import com.xqxy.dr.modular.eventEvaluation.service.EventEvaluationService;
+import com.xqxy.dr.modular.project.entity.Project;
+import com.xqxy.dr.modular.project.service.ProjectService;
+import com.xqxy.dr.modular.strategy.Utils.StrategyUtils;
+import com.xqxy.sys.modular.dict.param.DictTypeParam;
+import com.xqxy.sys.modular.dict.service.DictTypeService;
+import com.xqxy.sys.modular.utils.JSONObjectToEntityUtils;
+import com.xxl.job.core.biz.model.ReturnT;
+import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.log.XxlJobLogger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+
+/**
+ * @Description 事件基线任务
+ * @ClassName EventJob
+ * @Author lqr
+ * @date 2021.05.11 14:35
+ */
+@Component
+public class DrEventBaseLineJob {
+    private static final Log log = Log.get();
+
+    @Resource
+    private EventPowerMapper eventPowerMapper;
+
+    @Autowired
+    private EventPowerBaseService eventPowerBaseService;
+
+    @Autowired
+    private PlanService planService;
+
+    @Autowired
+    private BaseLineService baseLineService;
+
+    @Autowired
+    private EventService eventService;
+
+    @Resource
+    private SystemClientService systemClientService;
+
+    @Resource
+    private DictTypeService dictTypeService;
+
+    @Resource
+    private EventPowerDayService eventPowerDayService;
+
+    @Resource
+    private EventEvaluationService eventEvaluationService;
+
+    @Resource
+    private PlanConsMapper planConsMapper;
+
+    @Resource
+    private ProjectService projectService;
+
+    private final DateTimeFormatter simpleDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @XxlJob("eventBaseLine")
+    public ReturnT<String> eventBaseLine(String param) throws Exception{
+        XxlJobLogger.log("事件基线计算开始");
+        this.saveEventBaseLine(param);
+        return ReturnT.SUCCESS;
+    }
+
+    @XxlJob("eventEvaluation")
+    public ReturnT<String> eventEvaluation(String param) throws Exception{
+        XxlJobLogger.log("事件效果评估开始");
+        this.saveEventEvaluation(param);
+        return ReturnT.SUCCESS;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveEventBaseLine(String param) {
+        Map<Integer, Method> consMethodMap = new HashMap<>();
+        Map<Integer, Method> consMethodMap2 = new HashMap<>();
+        Map<Integer, Method> consMethodMap3 = new HashMap<>();
+        try{
+            for (int j=1; j<=96; j++){
+                consMethodMap.put(j, EventPowerBase.class.getMethod("setP"+j, BigDecimal.class));
+                consMethodMap2.put(j, ConsCurve.class.getMethod("getP"+j));
+                consMethodMap3.put(j, ConsCurve.class.getMethod("setP"+j, BigDecimal.class));
+            }
+        } catch (Exception e) {
+            e.getMessage();
+        }
+        List<EventPowerBase> eventPowerResults = new ArrayList<>();
+        List<EventPowerBase> eventPowerUpdates = new ArrayList<>();
+        LocalDate localDate = LocalDate.now();
+        String date = null;
+        if(null!=param && !"".equals(param)) {
+            if (StrategyUtils.isDate(param)) {
+                date = param;
+            } else {
+                date = simpleDateFormat.format(localDate);
+            }
+        } else {
+            date = simpleDateFormat.format(localDate);
+        }
+        Event event = eventPowerMapper.getEvent(date);
+        if(null==event) {
+            log.info("没有可计算事件!");
+            return;
+        }
+        LambdaQueryWrapper<EventPowerBase> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(EventPowerBase::getEventId,event.getEventId());
+        List<EventPowerBase> eventPowerBases = eventPowerBaseService.list(lambdaQueryWrapper);
+        Plan plan = planService.getByEventId(event.getEventId());
+        if(null==plan) {
+            Integer num = event.getBaselineNum();
+            if(null==num) {
+                num = 0;
+            }
+            num = num+1;
+            event.setBaselineNum(num);
+            eventService.updateById(event);
+            log.info("没有方案信息!");
+            return;
+        }
+        Long baselinId = plan.getBaselinId();
+        BaseLine baseLine = baseLineService.getById(baselinId);
+        String sampleDates = null;
+        String startTime = null;
+        String endTime = null;
+        if(null!=baseLine) {
+            sampleDates = baseLine.getSimplesDate();
+            startTime = baseLine.getStartPeriod();
+            endTime = baseLine.getEndPeriod();
+        } else {
+            Integer num = event.getBaselineNum();
+            if(null==num) {
+                num = 0;
+            }
+            num = num+1;
+            event.setBaselineNum(num);
+            eventService.updateById(event);
+            log.info("基线库为空");
+            return;
+        }
+        //开始下标
+        int startIndex = 0;
+        int endIndex = 0;
+        if (null != startTime && !"".equals(startTime)) {
+            startIndex = CurveUtil.covDateTimeToPoint(startTime);
+        }
+        //结束下标
+        if (null != endTime && !"".equals(endTime)) {
+            endIndex = CurveUtil.covDateTimeToPoint(endTime);
+        }
+        //样本日期
+        List<String> sampleDateList = Arrays.asList(sampleDates.split(","));
+        if(null==sampleDateList || sampleDateList.size()==0) {
+            Integer num = event.getBaselineNum();
+            if(null==num) {
+                num = 0;
+            }
+            num = num+1;
+            event.setBaselineNum(num);
+            eventService.updateById(event);
+            log.info("样本日期为空");
+            return;
+        }
+        //获取所有组织机构
+        JSONObject result = systemClientService.queryAllOrg();
+        List<SysOrgs> orgsListDate = new ArrayList<>();
+        //获取市级组织机构
+        List<SysOrgs> orgsList = null;
+        //获取省级组织机构
+        List<SysOrgs> orgsProvinceList = null;
+        JSONArray data = null;
+        try {
+            if ("000000".equals(result.getString("code"))) {
+                data = result.getJSONArray("data");
+                if (null != data && data.size() > 0) {
+                    for (Object object : data) {
+                        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(object);
+                        SysOrgs sysOrgs = JSONObjectToEntityUtils.JSONObjectToSysOrg(jsonObject);
+                        orgsListDate.add(sysOrgs);
+                    }
+                } else {
+                    Integer num = event.getBaselineNum();
+                    if (null == num) {
+                        num = 0;
+                    }
+                    num = num + 1;
+                    event.setBaselineNum(num);
+                    eventService.updateById(event);
+                    log.warn("组织机构为空");
+                    return;
+                }
+                orgsProvinceList = orgsListDate.stream().filter(n -> "1".equals(n.getOrgTitle())).collect(Collectors.toList());
+                orgsList = orgsListDate.stream().filter(n -> "2".equals(n.getOrgTitle())).collect(Collectors.toList());
+            } else {
+                Integer num = event.getBaselineNum();
+                if (null == num) {
+                    num = 0;
+                }
+                num = num + 1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("组织机构不存在");
+                return;
+            }
+            if (null == orgsProvinceList || orgsProvinceList.size() == 0) {
+                Integer num = event.getBaselineNum();
+                if (null == num) {
+                    num = 0;
+                }
+                num = num + 1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("无省级机构");
+                return;
+            }
+            Map<String, Object> map = new HashMap<>();
+            map.put("eventId", event.getEventId());
+            //根据事件累加用户基线
+            List<ConsCurve> consCurveListProvince = eventPowerMapper.getCurveHistory(map);
+            consCurveListProvince.removeAll(Collections.singleton(null));
+            if (null == consCurveListProvince || consCurveListProvince.size() == 0) {
+                Integer num = event.getBaselineNum();
+                if (null == num) {
+                    num = 0;
+                }
+                num = num + 1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("无用户基线");
+                return;
+            }
+            //计算省级事件基线
+            List<BigDecimal> validSamplePowerList2 = new ArrayList<>();
+            for (int i = startIndex; i <= endIndex; i++) {
+                for (ConsCurve consCurve : consCurveListProvince) {
+                    //去除0值和null值数据
+                    try {
+                        BigDecimal consCurveHis = (BigDecimal) consMethodMap2.get(i).invoke(consCurve);
+                        if (null != consCurveHis) {
+                            //validSamplePowerList.add((BigDecimal) ReflectUtil.getFieldValue(consCurve, "p" + i));
+                            validSamplePowerList2.add(consCurveHis);
+
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            EventPowerBase consCurveBase2 = new EventPowerBase();
+            consCurveBase2.setEventId(event.getEventId());
+            consCurveBase2.setDataDate(LocalDate.parse(date));
+            consCurveBase2.setOrgNo(orgsProvinceList.get(0).getId());
+            if (validSamplePowerList2.size() > 0) {
+                BigDecimal sumSamplePower2 = validSamplePowerList2.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal avgSamplePower2 = NumberUtil.div(sumSamplePower2, validSamplePowerList2.size());
+                //负荷基线
+                consCurveBase2.setMaxLoadBaseline(CollectionUtil.max(validSamplePowerList2));
+                consCurveBase2.setMinLoadBaseline(CollectionUtil.min(validSamplePowerList2));
+                consCurveBase2.setAvgLoadBaseline(avgSamplePower2);
+                //设置事件基线值
+                for (int i = startIndex; i <= endIndex; i++) {
+                    try {
+                        BigDecimal point = (BigDecimal)consMethodMap2.get(i).invoke(consCurveListProvince.get(0));
+                        consMethodMap.get(i).invoke(consCurveBase2, point);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(null!=eventPowerBases && eventPowerBases.size()>0) {
+                    List<EventPowerBase> eventPowerBases1 = eventPowerBases.stream().filter(baseLineDetail -> baseLineDetail.getOrgNo().equals(consCurveBase2.getOrgNo())
+                    ).collect(Collectors.toList());
+                    if(null!=eventPowerBases1 && eventPowerBases1.size()>0) {
+                        consCurveBase2.setDataId(eventPowerBases1.get(0).getDataId());
+                        eventPowerUpdates.add(consCurveBase2);
+                    } else {
+                        eventPowerResults.add(consCurveBase2);
+                    }
+                } else {
+                    eventPowerResults.add(consCurveBase2);
+                }
+            } else {
+                Integer num = event.getBaselineNum();
+                if (null == num) {
+                    num = 0;
+                }
+                num = num + 1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("省级无有效基线");
+                return;
+            }
+            //计算市级事件基线
+            if (null != orgsList && orgsList.size() > 0) {
+                OrgUtils orgUtils = new OrgUtils();
+                for (SysOrgs org : orgsList) {
+                    List<String> orgs = orgUtils.getData(data, org.getId(), new ArrayList<>());
+                    orgs.add(org.getId());
+                    map.put("orgs", orgs);
+                    //根据事件和组织机构查询市级用户基线累加
+                    List<ConsCurve> consCurveList = eventPowerMapper.getCurveHistory(map);
+                    consCurveList.removeAll(Collections.singleton(null));
+                    if (null == consCurveList || consCurveList.size() == 0) {
+                        continue;
+                    }
+                    List<BigDecimal> validSamplePowerList = new ArrayList<>();
+                    for (int i = startIndex; i <= endIndex; i++) {
+                        for (ConsCurve consCurve : consCurveList) {
+                            //去除0值和null值数据
+                            try {
+                                BigDecimal consCurveHis = (BigDecimal) consMethodMap2.get(i).invoke(consCurve);
+                                if (null != consCurveHis) {
+                                    //validSamplePowerList.add((BigDecimal) ReflectUtil.getFieldValue(consCurve, "p" + i));
+                                    validSamplePowerList.add(consCurveHis);
+
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    EventPowerBase consCurveBase = new EventPowerBase();
+                    //设置市级事件基线
+                    consCurveBase.setEventId(event.getEventId());
+                    consCurveBase.setDataDate(LocalDate.parse(date));
+                    consCurveBase.setOrgNo(org.getId());
+                    if (validSamplePowerList.size() > 0) {
+                        BigDecimal sumSamplePower = validSamplePowerList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                        BigDecimal avgSamplePower = NumberUtil.div(sumSamplePower, validSamplePowerList.size());
+                        //负荷基线
+                        consCurveBase.setMaxLoadBaseline(CollectionUtil.max(validSamplePowerList));
+                        consCurveBase.setMinLoadBaseline(CollectionUtil.min(validSamplePowerList));
+                        consCurveBase.setAvgLoadBaseline(avgSamplePower);
+                        //设置事件基线值
+                        for (int i = startIndex; i <= endIndex; i++) {
+                            try {
+                                BigDecimal point = (BigDecimal)consMethodMap2.get(i).invoke(consCurveList.get(0));
+                                consMethodMap.get(i).invoke(consCurveBase, point);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if(null!=eventPowerBases && eventPowerBases.size()>0) {
+                            List<EventPowerBase> eventPowerBases1 = eventPowerBases.stream().filter(baseLineDetail -> baseLineDetail.getOrgNo().equals(consCurveBase.getOrgNo())
+                            ).collect(Collectors.toList());
+                            if(null!=eventPowerBases1 && eventPowerBases1.size()>0) {
+                                consCurveBase.setDataId(eventPowerBases1.get(0).getDataId());
+                                eventPowerUpdates.add(consCurveBase);
+                            } else {
+                                eventPowerResults.add(consCurveBase);
+                            }
+                        } else {
+                            eventPowerResults.add(consCurveBase);
+                        }
+                    } else {
+                        log.info("无有效基线负荷");
+                    }
+
+                }
+            } else {
+                Integer num = event.getBaselineNum();
+                if (null == num) {
+                    num = 0;
+                }
+                num = num + 1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("市级机构为空");
+                return;
+            }
+            //保存事件曲线
+            if(eventPowerResults.size()>0) {
+                eventPowerBaseService.saveBatch(eventPowerResults);
+                log.info("保存事件基线:"+eventPowerResults.size()+"条");
+            } else {
+                Integer num = event.getBaselineNum();
+                if(null==num) {
+                    num = 0;
+                }
+                num = num+1;
+                event.setBaselineNum(num);
+                eventService.updateById(event);
+                log.warn("无可新增样本负荷");
+            }
+
+            if(eventPowerUpdates.size()>0) {
+                eventPowerBaseService.updateBatchById(eventPowerUpdates);
+                log.info("更新事件基线:"+eventPowerUpdates.size()+"条");
+            } else {
+                log.info("无可更新样本");
+            }
+            //更新事件状态
+            event.setBaselineStatus("Y");
+            eventService.updateById(event);
+            log.info("事件基线计算完成，事件id:"+event.getEventId());
+        } catch (Exception e) {
+            Integer num = event.getBaselineNum();
+            if(null==num) {
+                num = 0;
+            }
+            num = num+1;
+            event.setBaselineNum(num);
+            eventService.updateById(event);
+            log.warn("程序异常");
+            e.printStackTrace();
+            return;
+        }
+    }
+
+    public void saveEventEvaluation(String param) {
+        log.info(">>> 事件效果评估任务开始");
+        Map<Integer, Method> consMethodMap = new HashMap<>();
+        Map<Integer, Method> consMethodMap2 = new HashMap<>();
+        try {
+            for (int j=1; j<=96; j++){
+                consMethodMap.put(j, EventPowerDay.class.getMethod("getP"+j));
+                consMethodMap2.put(j, EventPowerBase.class.getMethod("getP"+j));
+            }
+
+            LocalDate lastDay = LocalDate.now().minusDays(1);
+            // 1.查询昨天调度的事件
+            if(null!=param && !"".equals(param)) {
+                if(StrategyUtils.isDate(param)) {
+                    lastDay = LocalDate.parse(param);
+                }
+            }
+            //查询事件信息
+            LambdaQueryWrapper<Event> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(Event::getRegulateDate, lastDay);
+            lambdaQueryWrapper.eq(Event::getTimeType, "1");
+            lambdaQueryWrapper.eq(Event::getEventStatus,"04");
+            List<Event> eventList = eventService.list(lambdaQueryWrapper);
+            if(null!=eventList && eventList.size()>0) {
+                List<EventEvaluation> insertList = new ArrayList<>();
+                List<EventEvaluation> updateList = new ArrayList<>();
+                //查询省级编码
+                String provinceCode = "";
+                DictTypeParam dictTypeParam3 = new DictTypeParam();
+                dictTypeParam3.setCode("province_code");
+                List<Dict> list3 = dictTypeService.dropDown(dictTypeParam3);
+                Object value2 = null;
+                if(null!=list3 && list3.size()>0) {
+                    for(Dict dict : list3) {
+                        if("anhui_org_code".equals(dict.get("code"))) {
+                            value2 = dict.get("value");
+                        }
+                    }
+                    if (null != value2) {
+                        provinceCode = (String) value2;
+                    }
+                } else {
+                    provinceCode = "34101";
+                    log.error("未配置省级供电单位编码!");
+                }
+                //获取市级组织机构
+                List<SysOrgs> orgsList = null;
+                JSONArray datas = null;
+                List<SysOrgs> orgsListDate = new ArrayList<>();
+                JSONObject result = systemClientService.queryAllOrg();
+                if ("000000".equals(result.getString("code"))) {
+                    datas = result.getJSONArray("data");
+                    if (null != datas && datas.size() > 0) {
+                        for (Object object : datas) {
+                            JSONObject jsonObject = (JSONObject) JSONObject.toJSON(object);
+                            SysOrgs sysOrgs = JSONObjectToEntityUtils.JSONObjectToSysOrg(jsonObject);
+                            orgsListDate.add(sysOrgs);
+                        }
+                    } else {
+                        log.warn("组织机构为空");
+                        return;
+                    }
+                    orgsList = orgsListDate.stream().filter(n -> "2".equals(n.getOrgTitle())).collect(Collectors.toList());
+                } else {
+                    log.warn("组织机构不存在");
+                    return;
+                }
+                List<Long> eventIds = new ArrayList<>();
+                for(Event event : eventList) {
+                    eventIds.add(event.getEventId());
+                }
+                //查询省级事件基线
+                LambdaQueryWrapper<EventPowerBase> powerBaseLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                powerBaseLambdaQueryWrapper.in(EventPowerBase::getEventId, eventIds);
+                List<EventPowerBase> eventPowerBases = eventPowerBaseService.list(powerBaseLambdaQueryWrapper);
+                //查询事件日冻结曲线
+                LambdaQueryWrapper<EventPowerDay> baseLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                baseLambdaQueryWrapper.in(EventPowerDay::getEventId, eventIds);
+                List<EventPowerDay> eventPowerDays = eventPowerDayService.list(baseLambdaQueryWrapper);
+                SysOrgs sysOrgs = new SysOrgs();
+                sysOrgs.setId(provinceCode);
+                orgsList.add(sysOrgs);
+                for(Event event : eventList) {
+                    if(null!=orgsList && orgsList.size()>0) {
+                        OrgUtils orgUtils = new OrgUtils();
+                        for (SysOrgs org : orgsList) {
+                            String orgId = org.getId();
+                            List<String> orgs = null;
+                            if(!provinceCode.equals(orgId)) {
+                                orgs = orgUtils.getData(datas, orgId, new ArrayList<>());
+                            }
+                            int startP = CurveUtil.covDateTimeToPoint(event.getStartTime());
+                            int endP = CurveUtil.covDateTimeToPoint(event.getEndTime());
+                            int hour = (endP-startP)*15;
+                            //省级
+                            List<BigDecimal> samplePowerList = new ArrayList<>();
+                            Long eventId = event.getEventId();
+                            LambdaQueryWrapper<Plan> queryWrapperPlan = new LambdaQueryWrapper<>();
+                            queryWrapperPlan.eq(Plan::getRegulateId, eventId);
+                            List<Plan> planList = planService.list(queryWrapperPlan);
+                            if (null == planList || planList.size() == 0) {
+                                log.info("无方案信息");
+                                return;
+                            }
+                            LambdaQueryWrapper<Project> projectLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                            projectLambdaQueryWrapper.eq(Project::getProjectId, event.getProjectId());
+                            List<Project> projects = projectService.list(projectLambdaQueryWrapper);
+                            if (null == projects || projects.size() == 0) {
+                                log.info("项目为空！");
+                                continue;
+                            }
+                            BigDecimal replyCap = planConsMapper.getSumDemandCapByPlanId(planList.get(0).getPlanId(),orgs);
+                            EventEvaluation eventEvaluation = new EventEvaluation();
+                            eventEvaluation.setEventId(eventId);
+                            eventEvaluation.setReplyCap(replyCap);
+                            eventEvaluation.setOrgNo(orgId);
+                            BigDecimal avgBaseLine = null;
+                            BigDecimal maxBaseLine = null;
+                            List<BigDecimal> forecastList = new ArrayList<>();
+                            List<EventPowerBase> eventPowerBaseList = null;
+                            if (null != eventPowerBases && eventPowerBases.size() > 0) {
+                                eventPowerBaseList = eventPowerBases.stream().filter(eventPowerBase -> eventPowerBase.getEventId().equals(eventId) &&
+                                        eventPowerBase.getOrgNo().equals(orgId)
+                                ).collect(Collectors.toList());
+                            }
+                            List<EventPowerDay> eventPowerDayList = null;
+                            if(null!=eventPowerDays && eventPowerDays.size()>0) {
+                                eventPowerDayList = eventPowerDays.stream().filter(eventPowerBase -> eventPowerBase.getEventId().equals(eventId) &&
+                                        eventPowerBase.getOrgNo().equals(orgId)
+                                ).collect(Collectors.toList());
+                            }
+                            if (null != eventPowerBaseList && eventPowerBaseList.size() > 0) {
+                                EventPowerBase eventPowerBase = eventPowerBaseList.get(0);
+                                avgBaseLine = eventPowerBase.getAvgLoadBaseline();
+                                maxBaseLine = eventPowerBase.getMaxLoadBaseline();
+                                eventEvaluation.setMaxLoadBaseline(maxBaseLine);
+                                eventEvaluation.setMinLoadBaseline(eventPowerBase.getMinLoadBaseline());
+                                eventEvaluation.setAvgLoadBaseline(avgBaseLine);
+                            }
+                            //计算最大、最小实际负荷及其对应时间点
+                            if (null != eventPowerBaseList && eventPowerBaseList.size() > 0 && null != eventPowerDayList && eventPowerDayList.size() > 0) {
+                                BigDecimal consCurveHis = null;
+                                BigDecimal consCurveHis2 = null;
+                                Map<String,Object> tempMax = new HashMap<>();
+                                Map<String,Object> tempMin = new HashMap<>();
+                                BigDecimal point = null;
+                                for (int i = startP; i <= endP; i++) {
+                                    try {
+                                        consCurveHis = (BigDecimal) consMethodMap2.get(i).invoke(eventPowerBaseList.get(0));
+                                        consCurveHis2 = (BigDecimal) consMethodMap.get(i).invoke(eventPowerDayList.get(0));
+                                        point = NumberUtil.sub(consCurveHis,consCurveHis2);
+                                        if(null!=consCurveHis && null!=consCurveHis2) {
+                                            forecastList.add(consCurveHis);
+                                            samplePowerList.add(consCurveHis2);
+                                            //计算最大点
+                                            if(tempMax.containsKey("key")) {
+                                                BigDecimal value = (BigDecimal) tempMax.get("value");
+                                                if(point.compareTo(value)>0) {
+                                                    tempMax.put("key","p"+i);
+                                                    tempMax.put("value",point);
+                                                }
+                                            } else {
+                                                tempMax.put("key","p"+i);
+                                                tempMax.put("value",point);
+                                            }
+
+                                            //计算最小点
+                                            if(tempMin.containsKey("key")) {
+                                                BigDecimal value = (BigDecimal) tempMin.get("value");
+                                                if(point.compareTo(value)<0) {
+                                                    tempMin.put("key","p"+i);
+                                                    tempMin.put("value",point);
+                                                }
+                                            } else {
+                                                tempMin.put("key","p"+i);
+                                                tempMin.put("value",point);
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if(tempMax.containsKey("key")) {
+                                    //最大压降
+                                    BigDecimal value = (BigDecimal) tempMax.get("value");
+                                    String key = (String) tempMax.get("key");
+                                    String timePeroid = CurveUtil.covCurvePointToDateTime(key);
+                                    if(null!=value) {
+                                        eventEvaluation.setActualMaxCap(value);
+                                    }
+                                    eventEvaluation.setMaxTime(timePeroid);
+                                }
+
+                                if(tempMin.containsKey("key")) {
+                                    //最小压降
+                                    BigDecimal value = (BigDecimal) tempMin.get("value");
+                                    String key = (String) tempMin.get("key");
+                                    String timePeroid = CurveUtil.covCurvePointToDateTime(key);
+                                    if(null!=value) {
+                                        eventEvaluation.setActualMinCap(value);
+                                    }
+                                    eventEvaluation.setMinTime(timePeroid);
+                                }
+                            }
+                            BigDecimal avgSamplePower = null;
+                            BigDecimal maxSamplePower = null;
+                            if (samplePowerList.size() > 0) {
+                                BigDecimal sumSamplePower = samplePowerList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                                avgSamplePower = NumberUtil.div(sumSamplePower, samplePowerList.size());
+                                maxSamplePower = CollectionUtil.max(samplePowerList);
+                                BigDecimal minSamplePower = CollectionUtil.min(samplePowerList);
+                                //负荷基线
+                                eventEvaluation.setMaxLoadActual(maxSamplePower);
+                                eventEvaluation.setMinLoadActual(minSamplePower);
+                                eventEvaluation.setAvgLoadActual(avgSamplePower);
+                            }
+                            if(forecastList.size()>0) {
+                                BigDecimal sumSamplePower = forecastList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                                avgBaseLine = NumberUtil.div(sumSamplePower, forecastList.size());
+                            }
+                            if (null != avgSamplePower && null != replyCap && null != avgBaseLine) {
+                                StrategyUtils strategyUtils = new StrategyUtils();
+                                BigDecimal actualCap = null;
+                                if ("1".equals(event.getResponseType())) {
+                                    //削峰
+                                    actualCap = NumberUtil.sub(avgBaseLine, avgSamplePower);
+                                    eventEvaluation.setEffectiveTime(hour);
+                                } else {
+                                    //填谷
+                                    actualCap = NumberUtil.sub(avgSamplePower, avgBaseLine);
+                                    eventEvaluation.setEffectiveTime(hour);
+                                }
+                                eventEvaluation.setActualCap(actualCap);
+                                if (null != actualCap) {
+                                    //计算电量
+                                    BigDecimal hourtime = new BigDecimal(hour);
+                                    hourtime = NumberUtil.div(hourtime,60);
+                                    eventEvaluation.setActualEnergy(NumberUtil.mul(hourtime,actualCap));
+                                    eventEvaluation = strategyUtils.judgeEeffectiveEventOfRule(eventEvaluation, projects.get(0).getValidityJudgment(), event);
+                                    //eventEvaluation.setIsEffective(strategyUtils.judgeEeffectiveEventOfRule(eventEvaluation, projects.get(0).getValidityJudgment(), event) ? YesOrNotEnum.Y.getCode() : YesOrNotEnum.N.getCode());
+                                }
+                                //负荷响应量为实际负荷占反馈响应量百分比
+                                if (null == replyCap || replyCap.compareTo(BigDecimal.ZERO) == 0) {
+                                    eventEvaluation.setExecuteRate(BigDecimal.ZERO);
+                                } else {
+                                    eventEvaluation.setExecuteRate(NumberUtil.div(actualCap, replyCap));
+                                }
+                                //核定响应量
+                                if (eventEvaluation.getIsEffective().equals(YesOrNotEnum.Y.getCode())) {
+                                    //如果实际响应量大于1.2倍反馈响应量，取1.2倍反馈响应量，否则取实际响应量
+                                    BigDecimal temp = strategyUtils.getConfirmCap(replyCap, actualCap);
+                                    eventEvaluation.setConfirmCap(temp);
+                                    //设置是否达标
+                                    eventEvaluation.setIsQualified(YesOrNotEnum.Y.getCode());
+                                } else {
+                                    eventEvaluation.setConfirmCap(BigDecimal.ZERO);
+                                    eventEvaluation.setIsQualified(YesOrNotEnum.N.getCode());
+                                }
+                                if (null != maxSamplePower && null != maxBaseLine) {
+                                    if ("1".equals(event.getResponseType())) {
+                                        boolean isOut = NumberUtil.sub(maxBaseLine, maxSamplePower).compareTo(replyCap) < 0;
+                                        if (isOut) {
+                                            eventEvaluation.setIsOut("Y");
+                                        } else {
+                                            eventEvaluation.setIsOut("N");
+                                        }
+                                    } else {
+                                        boolean isOut = NumberUtil.sub(maxSamplePower, maxBaseLine).compareTo(replyCap) < 0;
+                                        if (isOut) {
+                                            eventEvaluation.setIsOut("Y");
+                                        } else {
+                                            eventEvaluation.setIsOut("N");
+                                        }
+                                    }
+                                }
+                            }
+                            LambdaQueryWrapper<EventEvaluation> evaluationLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                            evaluationLambdaQueryWrapper.eq(EventEvaluation::getEventId, eventId);
+                            evaluationLambdaQueryWrapper.eq(EventEvaluation::getOrgNo,orgId);
+                            List<EventEvaluation> eventEvaluationList = eventEvaluationService.list(evaluationLambdaQueryWrapper);
+                            if (null != eventEvaluationList && eventEvaluationList.size() > 0) {
+                                eventEvaluation.setId(eventEvaluationList.get(0).getId());
+                                eventEvaluation.setUpdateTime(new Date());
+                                updateList.add(eventEvaluation);
+                            } else {
+                                eventEvaluation.setCreateTime(new Date());
+                                insertList.add(eventEvaluation);
+                            }
+                        }
+                    } else{
+                        continue;
+                    }
+                }
+                //更新事件效果评估
+                if(updateList.size()>0) {
+                    eventEvaluationService.updateBatchById(updateList);
+                }
+                log.info("更新事件效果评估数据：" + updateList.size() + "条");
+                //新增事件效果评估
+                if(insertList.size()>0) {
+                    eventEvaluationService.saveBatch(insertList);
+                }
+                log.info("新增事件效果评估数据：" + insertList.size() + "条");
+            } else {
+                log.info("无事件信息!");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

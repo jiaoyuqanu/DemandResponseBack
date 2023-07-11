@@ -1,0 +1,108 @@
+package com.xqxy.dr.modular.event.mapper;
+
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.dr.modular.event.entity.ConsInvitation;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.param.ConsInvitationParam;
+import com.xqxy.dr.modular.event.result.EventCountVo;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * <p>
+ * 用户邀约 Mapper 接口
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-09
+ */
+public interface ConsInvitationMapper extends BaseMapper<ConsInvitation> {
+    Page<Event> page(Page<Object> defaultPage, @Param("consInvitationParam") ConsInvitationParam consInvitationParam);
+    Page<ConsInvitation> selectPageVo(Page<Object> defaultPage, @Param(Constants.WRAPPER) Wrapper queryWrapper);
+
+    Page<ConsInvitation> proxyPageVo(Page<Object> defaultPage,  @Param(Constants.WRAPPER) QueryWrapper<Object> queryWrapper);
+
+    /**
+    * 根据事件id获取用户邀约的用户信息(直接参与用户)
+    * @param eventId
+    * @return java.util.List<com.xqxy.sys.modular.cust.entity.Cons>
+    * @since 10/26/2021 15:50
+    * @author Caoj
+    */
+    List<Cons> listInvitationConsumer(String eventId);
+
+    /**
+     * 获取未反馈用户
+     * @param eventId
+     * @return
+     */
+    List<Cons> listInvitationConsumerNoReply(String eventId);
+
+    /**
+     * @description: 获取邀约用户的最大反馈截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 14:58
+     */
+    LocalDateTime getMaxDeadlineTimeByEventId(@Param("eventId") Long eventId);
+
+    /**
+     * @description: 获取邀约用户的最大反馈截止时间
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/30 14:58
+     */
+    LocalDateTime getMaxDeadlineTimeByEventIdAndState(Long eventId,String synchToPlan);
+
+    List<Event> getMaxDeadlineTimeByCon(@Param("eventList") List<Event> eventList);
+
+    @Select("select sum(reply_cap) from dr_cons_invitation where event_id = #{eventId}")
+    BigDecimal totalReplyCap(Long eventId);
+
+    @Select("select max(reply_time) from dr_cons_invitation where event_id = #{eventId}")
+    LocalDateTime lastReplyTime(Long eventId);
+
+    /**
+     * 用户“我的响应”主页面
+     *
+     * @param page MP分页参数
+     * @param consInvitationParam 用户邀约参数
+     * @return com.baomidou.mybatisplus.extension.plugins.pagination.Page<com.xqxy.dr.modular.event.entity.Event>
+     * @date 2022/1/20 17:02
+     */
+    Page<Event> invitationPage(Page<?> page, ConsInvitationParam consInvitationParam);
+
+    Map<String,Object> getConsCount(Map<String,Object> map);
+
+    EventCountVo getConsCount2(Map<String,Object> map);
+
+    List<ConsInvitation> getPartCons(ConsInvitationParam consInvitationParam);
+
+    List<ConsInvitation> getConsInfoByEvent(long eventId);
+
+    List<ConsInvitation> getConsInfoByEventAndConsId(@Param("eventId") long eventId,@Param("consId") String consId);
+
+    List<ConsInvitation> getConsInfoByEvents(@Param("eventIds") List<Event> eventIds);
+
+    List<ConsInvitation> getConsInfoByEvents2(@Param("eventIds") List<Event> eventIds);
+
+    BigDecimal getReplyCapTotalByEvent(ConsInvitationParam consInvitationParam);
+
+    Page<ConsInvitation> getReplyPageCons(Page<Object> defaultPage, @Param(Constants.WRAPPER) Wrapper queryWrapper);
+
+    //查询用户邀约表的部分字段
+    List<ConsInvitation> getConsInvitationOne(@Param("eventId") String eventId,@Param("consId") String consId);
+}

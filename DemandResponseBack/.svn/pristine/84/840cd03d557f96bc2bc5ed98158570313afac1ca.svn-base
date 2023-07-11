@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.SettlementRecMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.SettlementRec">
+        <id column="id" property="id"/>
+        <result column="settlement_id" property="settlementId"/>
+        <result column="begin_date" property="beginDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="settled_amount" property="settledAmount"/>
+        <result column="settlement_desc" property="settlementDesc"/>
+        <result column="state" property="state"/>
+        <result column="project_id" property="projectId"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        , settlement_id, begin_date, end_date, subsidy_amount, settlement_desc, state, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="settlementRecPage" resultMap="BaseResultMap">
+        select
+        *
+        from
+        dr_settlement_rec
+        <where>
+            1 = 1
+            <if test="map.year != null and map.year != ''">
+                and (substr(begin_date, 1, 4) = #{map.year} or substr(end_date, 1, 4) = #{map.year})
+            </if>
+
+            <if test="map.state != null and map.state != ''">
+                and state = #{map.state}
+            </if>
+        </where>
+    </select>
+
+    <select id="isRepeatSettlementRecWeek" resultMap="BaseResultMap">
+        select id
+        from dr_settlement_rec
+        where
+        project_id = #{projectId}
+        and
+        (begin_date between #{beginDate} and #{endDate}
+           or end_date between #{beginDate} and #{endDate})
+    </select>
+
+    <select id="custSettlementRecPage" resultMap="BaseResultMap">
+        SELECT
+        sr.*,
+        sum(csd.settled_amount) as settled_amount
+        FROM
+        dr_settlement_rec sr
+        LEFT JOIN dr_cust_subsidy_daily csd ON csd.settlement_no = sr.settlement_id
+        <where>
+            1 = 1
+            <if test="map.year != null and map.year != ''">
+                and (substr(sr.begin_date, 1, 4) = #{map.year} or substr(sr.end_date, 1, 4) = #{map.year})
+            </if>
+
+            <if test="map.state != null and map.state != ''">
+                and sr.state = #{map.state}
+            </if>
+            <if test="map.custId != null and map.custId != ''">
+                and csd.cust_id = #{map.custId}
+            </if>
+            group by csd.settlement_no
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.adjustable.mapper.DrConsAdjustablePotentialMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.adjustable.entity.DrConsAdjustablePotential">
+        <id column="id" property="id" />
+        <result column="CONS_ID" property="consId" />
+        <result column="cons_name" property="consName" />
+        <result column="CONTRACT_CAP" property="contractCap" />
+        <result column="BIG_CLASS_NAME" property="bigClassName" />
+        <result column="BIG_CLASS_CODE" property="bigClassCode" />
+        <result column="CLASS_NAME" property="className" />
+        <result column="CLASS_CODE" property="classCode" />
+        <result column="DES_PREPARE_TIME" property="desPrepareTime" />
+        <result column="DES_PREPARE_TIME_UNIT" property="desPrepareTimeUnit" />
+        <result column="RIS_PREPARE_TIME" property="risPrepareTime" />
+        <result column="RIS_PREPARE_TIME_UNIT" property="risPrepareTimeUnit" />
+        <result column="PROD_START_TIME" property="prodStartTime" />
+        <result column="PROD_START_TIME_UNIT" property="prodStartTimeUnit" />
+        <result column="PROD_END_TIME" property="prodEndTime" />
+        <result column="PROD_END_TIME_UNIT" property="prodEndTimeUnit" />
+        <result column="SAFETY_LOAD" property="safetyLoad" />
+        <result column="REPORT_DES_MAX_POWER" property="reportDesMaxPower" />
+        <result column="PARTAKE_DES_NUM" property="partakeDesNum" />
+        <result column="REPORT_RIS_MAX_POWER" property="reportRisMaxPower" />
+        <result column="PARTAKE_RIS_NUM" property="partakeRisNum" />
+        <result column="ONCE_REPONSE_TIME" property="onceReponseTime" />
+        <result column="ONCE_REPONSE_TIME_UNIT" property="onceReponseTimeUnit" />
+        <result column="EXPECT_DES_PRICE" property="expectDesPrice" />
+        <result column="EXPECT_RIS_PRICE" property="expectRisPrice" />
+        <result column="LAST_YEAR_RESP_POWER" property="lastYearRespPower" />
+        <result column="LAST_PART_DES_NUM" property="lastPartDesNum" />
+        <result column="LAST_DES_SUM_POWER" property="lastDesSumPower" />
+        <result column="LAST_PART_RIS_NUM" property="lastPartRisNum" />
+        <result column="LAST_RIS_SUM_ENERGY" property="lastRisSumEnergy" />
+        <result column="CONS_DES_POWER" property="consDesPower" />
+        <result column="CONS_RIS_POWER" property="consRisPower" />
+        <result column="HOUR_REPORT_DES_MAX_POWER" property="hourReportDesMaxPower" />
+        <result column="MIN_REPORT_DES_MAX_POWER" property="minReportDesMaxPower" />
+        <result column="SEC_REPORT_DES_MAX_POWER" property="secReportDesMaxPower" />
+        <result column="REAL_ONCE_REPONSE_TIME" property="realOnceReponseTime" />
+        <result column="RIS_REPONSE_TIME" property="risReponseTime" />
+        <result column="YEAR" property="year" />
+        <result column="PROVINCE_ELE_CODE" property="provinceEleCode" />
+        <result column="PROVINCE_ELE_NAME" property="provinceEleName" />
+        <result column="CITY_ELE_NAME" property="cityEleName" />
+        <result column="CITY_ELE_CODE" property="cityEleCode" />
+    </resultMap>
+
+    <select id="pageConsAdjustable" parameterType="String" resultType="com.xqxy.dr.modular.adjustable.VO.DrConsAdjustablePotentialVO">
+        SELECT
+            adjustable.id id,
+            adjustable.CONS_NAME consName,
+            adjustable.CONTRACT_CAP contractCap,
+            adjustable.CONS_ID consId,
+            adjustable.BIG_CLASS_CODE bigClassCode,
+            adjustable.BIG_CLASS_NAME bigClassName,
+            adjustable.CLASS_CODE classCode,
+            adjustable.CLASS_NAME className,
+            adjustable.DES_PREPARE_TIME desPrepareTime,
+            adjustable.DES_PREPARE_TIME_UNIT desPrepareTimeUnit,
+            adjustable.RIS_PREPARE_TIME risPrepareTime,
+            adjustable.RIS_PREPARE_TIME_UNIT risPrepareTimeUnit,
+            adjustable.PROD_START_TIME prodStartTime,
+            adjustable.PROD_START_TIME_UNIT prodStartTimeUnit,
+            adjustable.PROD_END_TIME prodEndTime,
+            adjustable.PROD_END_TIME_UNIT prodEndTimeUnit,
+            adjustable.SAFETY_LOAD safetyLoad,
+            adjustable.REPORT_DES_MAX_POWER reportDesMaxPower,
+            adjustable.PARTAKE_DES_NUM partakeDesNum,
+            adjustable.REPORT_RIS_MAX_POWER reportRisMaxPower,
+            adjustable.PARTAKE_RIS_NUM partakeRisNum,
+            adjustable.ONCE_REPONSE_TIME onceReponseTime,
+            adjustable.ONCE_REPONSE_TIME_UNIT onceReponseTimeUnit,
+            adjustable.EXPECT_DES_PRICE expectDesPrice,
+            adjustable.EXPECT_RIS_PRICE expectRisPrice,
+            adjustable.LAST_YEAR_RESP_POWER lastYearRespPower,
+            adjustable.LAST_PART_DES_NUM lastPartDesNum,
+            adjustable.LAST_DES_SUM_POWER lastDesSumPower,
+            adjustable.LAST_PART_RIS_NUM lastPartRisNum,
+            adjustable.LAST_RIS_SUM_ENERGY lastRisSumEnergy,
+            adjustable.CONS_DES_POWER consDesPower,
+            adjustable.CONS_RIS_POWER consRisPower,
+            adjustable.HOUR_REPORT_DES_MAX_POWER hourReportDesMaxPower,
+            adjustable.MIN_REPORT_DES_MAX_POWER minReportDesMaxPower,
+            adjustable.SEC_REPORT_DES_MAX_POWER secReportDesMaxPower,
+            adjustable.REAL_ONCE_REPONSE_TIME realOnceReponseTime,
+            adjustable.RIS_REPONSE_TIME risReponseTime,
+            adjustable.YEAR year,
+            adjustable.PROVINCE_ELE_CODE provinceEleCode,
+            adjustable.PROVINCE_ELE_NAME provinceEleName,
+            adjustable.CITY_ELE_NAME cityEleName,
+            adjustable.CITY_ELE_CODE cityEleCode
+        FROM
+            dr_cons_adjustable_potential adjustable
+        <where>
+            <if test="consAdjustablePotentialDTO.orgIds != null">
+                IFNULL(CITY_ELE_CODE, PROVINCE_ELE_CODE) IN
+                <foreach collection="consAdjustablePotentialDTO.orgIds" item="orgId" separator="," open="(" close=")">
+                    #{orgId}
+                </foreach>
+            </if>
+            <if test="consAdjustablePotentialDTO.consId != null and consAdjustablePotentialDTO.consId != '' ">
+                and adjustable.CONS_ID like concat(concat("%",#{consAdjustablePotentialDTO.consId}),"%")
+            </if>
+            <if test="consAdjustablePotentialDTO.consName != null and consAdjustablePotentialDTO.consName != '' ">
+                and adjustable.CONS_NAME like concat(concat("%",#{consAdjustablePotentialDTO.consName}),"%")
+            </if>
+            <if test="consAdjustablePotentialDTO.year != null and consAdjustablePotentialDTO.year != '' ">
+                and adjustable.YEAR = #{consAdjustablePotentialDTO.year}
+            </if>
+        </where>
+    </select>
+
+    <select id="pageUserConsAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.DrConsAdjustablePotentialVO">
+        SELECT
+        adjustable.id id,
+        adjustable.CONS_NAME consName,
+        adjustable.CONTRACT_CAP contractCap,
+        adjustable.CONS_ID consId,
+        adjustable.BIG_CLASS_CODE bigClassCode,
+        adjustable.BIG_CLASS_NAME bigClassName,
+        adjustable.CLASS_CODE classCode,
+        adjustable.CLASS_NAME className,
+        adjustable.DES_PREPARE_TIME desPrepareTime,
+        adjustable.DES_PREPARE_TIME_UNIT desPrepareTimeUnit,
+        adjustable.RIS_PREPARE_TIME risPrepareTime,
+        adjustable.RIS_PREPARE_TIME_UNIT risPrepareTimeUnit,
+        adjustable.PROD_START_TIME prodStartTime,
+        adjustable.PROD_START_TIME_UNIT prodStartTimeUnit,
+        adjustable.PROD_END_TIME prodEndTime,
+        adjustable.PROD_END_TIME_UNIT prodEndTimeUnit,
+        adjustable.SAFETY_LOAD safetyLoad,
+        adjustable.REPORT_DES_MAX_POWER reportDesMaxPower,
+        adjustable.PARTAKE_DES_NUM partakeDesNum,
+        adjustable.REPORT_RIS_MAX_POWER reportRisMaxPower,
+        adjustable.PARTAKE_RIS_NUM partakeRisNum,
+        adjustable.ONCE_REPONSE_TIME onceReponseTime,
+        adjustable.ONCE_REPONSE_TIME_UNIT onceReponseTimeUnit,
+        adjustable.EXPECT_DES_PRICE expectDesPrice,
+        adjustable.EXPECT_RIS_PRICE expectRisPrice,
+        adjustable.LAST_YEAR_RESP_POWER lastYearRespPower,
+        adjustable.LAST_PART_DES_NUM lastPartDesNum,
+        adjustable.LAST_DES_SUM_POWER lastDesSumPower,
+        adjustable.LAST_PART_RIS_NUM lastPartRisNum,
+        adjustable.LAST_RIS_SUM_ENERGY lastRisSumEnergy,
+        adjustable.CONS_DES_POWER consDesPower,
+        adjustable.HOUR_REPORT_DES_MAX_POWER hourReportDesMaxPower,
+        adjustable.MIN_REPORT_DES_MAX_POWER minReportDesMaxPower,
+        adjustable.SEC_REPORT_DES_MAX_POWER secReportDesMaxPower,
+        adjustable.REAL_ONCE_REPONSE_TIME realOnceReponseTime,
+        adjustable.RIS_REPONSE_TIME risReponseTime,
+        adjustable.YEAR year,
+        adjustable.PROVINCE_ELE_CODE provinceEleCode,
+        adjustable.PROVINCE_ELE_NAME provinceEleName,
+        adjustable.CITY_ELE_NAME cityEleName,
+        adjustable.CITY_ELE_CODE cityEleCode
+        FROM
+        dr_cons_adjustable_potential adjustable
+        <where>
+            <if test="consIds != null and consIds.size > 0">
+                and adjustable.CONS_ID in
+                <foreach collection="consIds" item="consId" separator="," open="(" close=")">
+                    #{consId}
+                </foreach>
+            </if>
+            <if test="consIds != null or consIds.size = 0">
+                and 1=0
+            </if>
+            <if test="consAdjustablePotentialDTO.orgId != null and consAdjustablePotentialDTO.orgId != '' ">
+                and IFNULL(CITY_ELE_CODE, PROVINCE_ELE_CODE) = #{consAdjustablePotentialDTO.orgId}
+            </if>
+            <if test="consAdjustablePotentialDTO.consId != null and consAdjustablePotentialDTO.consId != '' ">
+                and adjustable.CONS_ID like concat(concat("%",#{consAdjustablePotentialDTO.consId}),"%")
+            </if>
+            <if test="consAdjustablePotentialDTO.consName != null and consAdjustablePotentialDTO.consName != '' ">
+                and adjustable.CONS_NAME like concat(concat("%",#{consAdjustablePotentialDTO.consName}),"%")
+            </if>
+            <if test="consAdjustablePotentialDTO.year != null and consAdjustablePotentialDTO.year != '' ">
+                and adjustable.YEAR = #{consAdjustablePotentialDTO.year}
+            </if>
+            <if test="consAdjustablePotentialDTO.bigClassCode != null and consAdjustablePotentialDTO.bigClassCode != '' ">
+                and adjustable.BIG_CLASS_CODE = #{consAdjustablePotentialDTO.bigClassCode}
+            </if>
+            <if test="consAdjustablePotentialDTO.cityCode != null and consAdjustablePotentialDTO.cityCode != '' ">
+                and adjustable.CITY_ELE_CODE = #{consAdjustablePotentialDTO.cityCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="groupCityAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupCityAdjustVO">
+        SELECT
+            adjustable.id id,
+            cons.CITY_CODE cityCode,
+            cons.PROVINCE_CODE provinceCode,
+            adjustable.`YEAR` year,
+            SUM(adjustable.LAST_YEAR_RESP_POWER) lastYearRespPower,
+            SUM(adjustable.REPORT_DES_MAX_POWER) + SUM(adjustable.REPORT_RIS_MAX_POWER) capacitySum,
+            COUNT(cons.ID) countHouse
+        FROM
+            dr_cons cons
+        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+        where adjustable.`YEAR` = #{consAdjustablePotentialDTO.year}
+        <if test="consAdjustablePotentialDTO.cityCode != null and consAdjustablePotentialDTO.cityCode != '' ">
+            and cons.CITY_CODE = #{consAdjustablePotentialDTO.cityCode}
+        </if>
+        GROUP BY cons.CITY_CODE
+    </select>
+
+    <select id="groupConsTypeAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupConsTypeAdjustVO">
+            select
+                t.BIG_CLASS_NAME,
+                SUM(t.desCapacitySum) desCapacitySum,
+                SUM(t.desCount ) desCount,
+                SUM(t.risCapacitySum) risCapacitySum,
+                SUM(t.risCount) risCount
+                from
+                (
+                        SELECT
+				            adjustable.id,
+                            adjustable.BIG_CLASS_NAME,
+                            SUM(adjustable.REPORT_DES_MAX_POWER) desCapacitySum,
+                            COUNT(cons.ID) desCount,
+                            '' risCount,
+                            '' risCapacitySum
+                        FROM
+                            dr_cons cons
+                        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+                        where adjustable.`YEAR` = #{consAdjustablePotentialDTO.year} and cons.CITY_CODE = #{consAdjustablePotentialDTO.cityCode} and adjustable.REPORT_DES_MAX_POWER IS NOT NULL
+						GROUP BY adjustable.BIG_CLASS_CODE
+                UNION
+                        SELECT
+				            adjustable.id,
+                            adjustable.BIG_CLASS_NAME,
+                            '' desCapacitySum,
+                            '' desCount,
+                            COUNT(cons.ID) risCount,
+                            SUM(adjustable.REPORT_RIS_MAX_POWER) risCapacitySum
+                        FROM
+                            dr_cons cons
+                        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+                        where adjustable.`YEAR` = #{consAdjustablePotentialDTO.year} and cons.CITY_CODE = #{consAdjustablePotentialDTO.cityCode} and adjustable.REPORT_RIS_MAX_POWER IS NOT NULL
+						GROUP BY adjustable.BIG_CLASS_CODE
+                ) t
+                GROUP BY
+                t.BIG_CLASS_NAME
+    </select>
+    <select id="exportConsAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.DrConsAdjustablePotentialVO">
+        SELECT
+            adjustable.id id,
+            cons.CONS_NAME consName,
+            adjustable.CONS_ID consId,
+            adjustable.BIG_CLASS_CODE bigClassCode,
+            adjustable.BIG_CLASS_NAME bigClassName,
+            adjustable.CLASS_CODE classCode,
+            adjustable.CLASS_NAME className,
+            adjustable.DES_PREPARE_TIME desPrepareTime,
+            adjustable.DES_PREPARE_TIME_UNIT desPrepareTimeUnit,
+            adjustable.RIS_PREPARE_TIME risPrepareTime,
+            adjustable.RIS_PREPARE_TIME_UNIT risPrepareTimeUnit,
+            adjustable.PROD_START_TIME prodStartTime,
+            adjustable.PROD_START_TIME_UNIT prodStartTimeUnit,
+            adjustable.PROD_END_TIME prodEndTime,
+            adjustable.PROD_END_TIME_UNIT prodEndTimeUnit,
+            adjustable.SAFETY_LOAD safetyLoad,
+            adjustable.REPORT_DES_MAX_POWER reportDesMaxPower,
+            adjustable.PARTAKE_DES_NUM partakeDesNum,
+            adjustable.REPORT_RIS_MAX_POWER reportRisMaxPower,
+            adjustable.PARTAKE_RIS_NUM partakeRisNum,
+            adjustable.ONCE_REPONSE_TIME onceReponseTime,
+            adjustable.ONCE_REPONSE_TIME_UNIT onceReponseTimeUnit,
+            adjustable.EXPECT_DES_PRICE expectDesPrice,
+            adjustable.EXPECT_RIS_PRICE expectRisPrice,
+            adjustable.LAST_YEAR_RESP_POWER lastYearRespPower,
+            adjustable.LAST_PART_DES_NUM lastPartDesNum,
+            adjustable.LAST_DES_SUM_POWER lastDesSumPower,
+            adjustable.LAST_PART_RIS_NUM lastPartRisNum,
+            adjustable.LAST_RIS_SUM_ENERGY lastRisSumEnergy,
+            adjustable.CONS_DES_POWER consDesPower,
+            adjustable.CONS_RIS_POWER consRisPower
+        FROM
+        dr_cons_adjustable_potential adjustable
+        LEFT JOIN dr_cons cons ON cons.id = adjustable.CONS_ID
+        <where>
+            <if test="consId != null and consId != '' ">
+                and adjustable.CONS_ID like concat(concat("%",#{consId}),"%")
+            </if>
+            <if test="consName != null and consName != '' ">
+                and cons.CONS_NAME like concat(concat("%",#{consName}),"%")
+            </if>
+        </where>
+    </select>
+    <select id="exportConsTypeAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupConsTypeAdjustVO">
+        select
+                t.BIG_CLASS_NAME,
+                SUM(t.desCapacitySum) desCapacitySum,
+                SUM(t.desCount ) desCount,
+                SUM(t.risCapacitySum) risCapacitySum,
+                SUM(t.risCount) risCount
+                from
+                (
+                        SELECT
+                            adjustable.BIG_CLASS_NAME,
+                            SUM(adjustable.REPORT_DES_MAX_POWER) desCapacitySum,
+                            COUNT(cons.ID) desCount,
+                            '' risCount,
+                            '' risCapacitySum
+                        FROM
+                            dr_cons cons
+                        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+                        where adjustable.`YEAR` = #{year} and cons.CITY_CODE = #{cityCode} and adjustable.REPORT_DES_MAX_POWER IS NOT NULL
+						GROUP BY adjustable.BIG_CLASS_CODE
+                UNION
+                        SELECT
+                            adjustable.BIG_CLASS_NAME,
+                            '' desCapacitySum,
+                            '' desCount,
+                            COUNT(cons.ID) risCount,
+                            SUM(adjustable.REPORT_RIS_MAX_POWER) risCapacitySum
+                        FROM
+                            dr_cons cons
+                        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+                        where adjustable.`YEAR` = #{year} and cons.CITY_CODE = #{cityCode} and adjustable.REPORT_RIS_MAX_POWER IS NOT NULL
+						GROUP BY adjustable.BIG_CLASS_CODE
+                ) t
+                GROUP BY
+                t.BIG_CLASS_NAME
+    </select>
+
+    <select id="exportCityAdjustable" resultType="com.xqxy.dr.modular.adjustable.VO.GroupCityAdjustVO">
+        SELECT
+        adjustable.id id,
+        cons.CITY_CODE cityCode,
+        cons.PROVINCE_CODE provinceCode,
+        adjustable.`YEAR` year,
+        SUM(adjustable.LAST_YEAR_RESP_POWER) lastYearRespPower,
+        SUM(adjustable.REPORT_DES_MAX_POWER) + SUM(adjustable.REPORT_RIS_MAX_POWER) capacitySum,
+        COUNT(cons.ID) countHouse
+        FROM
+        dr_cons cons
+        LEFT JOIN dr_cons_adjustable_potential adjustable ON cons.id = adjustable.CONS_ID
+        where adjustable.`YEAR` = #{year}
+        <if test="cityCode != null and cityCode != '' ">
+            and cons.CITY_CODE = #{cityCode}
+        </if>
+        GROUP BY cons.CITY_CODE
+    </select>
+
+    <select id="getWorkCityYearAdjust" resultType="com.xqxy.dr.modular.adjustable.VO.WorkCityYearAdjustVo" >
+        SELECT
+            count( 0 ) as total,
+            IFNULL( SUM( REPORT_DES_MAX_POWER ), 0 ) AS 'dayDesMaxPower',
+                IFNULL( SUM( HOUR_REPORT_DES_MAX_POWER ), 0 ) AS 'hourDesMaxPower',
+                IFNULL( SUM( MIN_REPORT_DES_MAX_POWER ), 0 ) AS 'minusDesMaxPower',
+                IFNULL( SUM( SEC_REPORT_DES_MAX_POWER ), 0 ) AS 'secondDesMaxPower',
+                IFNULL( SUM( REPORT_RIS_MAX_POWER ), 0 ) AS 'risMaxPower'
+        FROM
+            dr_cons_adjustable_potential cap
+        WHERE
+            ( PROVINCE_ELE_CODE = #{orgNo} OR CITY_ELE_CODE = #{orgNo} )
+          AND `YEAR` = #{year};
+    </select>
+
+
+</mapper>

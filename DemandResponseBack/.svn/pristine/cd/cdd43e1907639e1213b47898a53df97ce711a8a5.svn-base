@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.evaluation.mapper.ConsEvaluationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.evaluation.entity.ConsEvaluation">
+        <id column="evaluation_id" property="evaluationId" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="CONS_ID" property="consId" />
+        <result column="invitation_cap" property="invitationCap" />
+        <result column="reply_cap" property="replyCap" />
+        <result column="max_load_baseline" property="maxLoadBaseline" />
+        <result column="min_load_baseline" property="minLoadBaseline" />
+        <result column="avg_load_baseline" property="avgLoadBaseline" />
+        <result column="max_load_actual" property="maxLoadActual" />
+        <result column="min_load_actual" property="minLoadActual" />
+        <result column="avg_load_actual" property="avgLoadActual" />
+        <result column="actual_cap" property="actualCap" />
+        <result column="actual_energy" property="actualEnergy" />
+        <result column="confirm_cap" property="confirmCap" />
+        <result column="is_effective" property="isEffective" />
+        <result column="effective_time" property="effectiveTime" />
+        <result column="is_qualified" property="isQualified" />
+        <result column="is_out" property="isOut" />
+        <result column="remark" property="remark" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+<!--        <association property="consInfo" javaType="com.xqxy.sys.modular.cust.entity.Cons">-->
+            <result column="cons_name" property="consName"/>
+            <result column="elec_addr" property="elecAddr"/>
+            <result column="big_trade_name" property="bigTradeName"/>
+            <result column="big_trade_code" property="bigTradeCode"/>
+            <result column="day_max_power" property="dayMaxPower"/>
+            <result column="contract_cap" property="contractCap"/>
+            <result column="run_cap" property="runCap"/>
+            <result column="org_name" property="orgName"/>
+            <result column="org_no" property="orgNo"/>
+            <result column="province_code" property="provinceCode"/>
+            <result column="city_code" property="cityCode"/>
+            <result column="county_code" property="countyCode"/>
+            <result column="first_contact_name" property="firstContactName"/>
+            <result column="first_contact_info" property="firstContactInfo"/>
+<!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        evaluation_id, EVENT_ID, CONS_ID, invitation_cap, reply_cap, max_load_baseline, min_load_baseline, avg_load_baseline, max_load_actual, min_load_actual, avg_load_actual, actual_cap, actual_energy, confirm_cap, is_effective, effective_time, is_qualified, is_out, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="selectPageVo" resultMap="BaseResultMap">
+        SELECT
+            eva.*,
+            c.cons_name,
+            c.elec_addr,
+            c.big_trade_name,
+            c.big_trade_code,
+            c.day_max_power,
+            c.contract_cap,
+            c.run_cap,
+            c.org_name,
+            c.org_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.first_contact_name,
+            c.first_contact_info
+        FROM
+            dr_cons_evaluation eva
+            LEFT JOIN dr_cons c ON eva.cons_id = c.ID
+        ${ew.customSqlSegment}
+    </select>
+    <select id="pageProxy" resultMap="BaseResultMap">
+        SELECT
+            eva.*,
+            c.cons_name,
+            c.elec_addr,
+            c.big_trade_name,
+            c.big_trade_code,
+            c.day_max_power,
+            c.contract_cap,
+            c.run_cap,
+            c.org_name,
+            c.org_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.first_contact_name,
+            c.first_contact_info
+        FROM
+            dr_cust cu
+            LEFT JOIN dr_user_cons_rela uc ON cu.id = uc.cust_id
+            LEFT JOIN dr_cons c ON uc.cons_no = c.id
+            left join dr_cons_evaluation eva on c.id = eva.CONS_ID
+         ${ew.customSqlSegment}
+    </select>
+
+    <select id="immediateList" resultMap="BaseResultMap">
+        SELECT
+            eva.*,
+            c.cons_name,
+            c.elec_addr,
+            c.big_trade_name,
+            c.big_trade_code,
+            c.day_max_power,
+            c.contract_cap,
+            c.run_cap,
+            c.org_name,
+            c.org_no,
+            c.province_code,
+            c.city_code,
+            c.county_code,
+            c.first_contact_name,
+            c.first_contact_info
+        FROM
+            dr_cons_evaluation eva
+            LEFT JOIN dr_cons c ON eva.cons_id = c.ID
+        ${ew.customSqlSegment}
+    </select>
+    <select id="sespStats" resultType="com.xqxy.dr.modular.evaluation.po.SespStatsPo">
+        SELECT
+            e.REGULATE_DATE as regulateDate,
+            e.START_TIME AS beginResponseTime,
+            e.END_TIME AS endResponseTime,
+            ce.reply_cap AS cumRespCapacity,
+            e.EVENT_NAME AS eventName,
+            e.EVENT_NO AS eventNo,
+            e.RESPONSE_TYPE as responseType,
+            e.TIME_TYPE as timeType,
+            e.advance_notice_time as advanceNoticeTime,
+            1 AS isPartake,
+            c.CITY_ORG_NO AS orgNo,
+            c.ORG_NAME AS orgName,
+            c.ID AS sConsNo,
+            c.CONS_NAME AS sConsName,
+            DATE_FORMAT( now(), '%Y-%m-%d' ) AS statisYmd,
+            eg.EVENT_RL as eventRl,
+            eg.TARGET_RESP_CAPACITY as targetRespCapacity
+        FROM
+            dr_cons_evaluation ce
+                LEFT JOIN dr_event e ON e.EVENT_ID = ce.EVENT_ID
+                LEFT JOIN dr_cons c ON c.ID = ce.CONS_ID
+                LEFT JOIN ( SELECT EVENT_ID, sum( reply_cap ) AS EVENT_RL, sum( actual_cap ) AS TARGET_RESP_CAPACITY
+                            FROM dr_cons_evaluation where CREATE_TIME BETWEEN #{start} and #{end} GROUP BY EVENT_ID ) eg ON eg.EVENT_ID = ce.EVENT_ID
+        where ce.CREATE_TIME BETWEEN #{start} and #{end}
+    </select>
+
+</mapper>

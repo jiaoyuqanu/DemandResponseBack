@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.device.mapper.SysOrgsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.device.entity.SysOrgs">
+        <id column="id" property="id" />
+        <result column="parent_id" property="parentId" />
+        <result column="is_leaf" property="isLeaf" />
+        <result column="name" property="name" />
+        <result column="simple_name" property="simpleName" />
+        <result column="region_id" property="regionId" />
+        <result column="description" property="description" />
+        <result column="org_title" property="orgTitle" />
+        <result column="fact_id" property="factId" />
+        <result column="unit_type" property="unitType" />
+        <result column="service_type" property="serviceType" />
+        <result column="type" property="type" />
+        <result column="pic_url" property="picUrl" />
+        <result column="link_name" property="linkName" />
+        <result column="link_phone" property="linkPhone" />
+        <result column="addres_desc" property="addresDesc" />
+        <result column="longitude" property="longitude" />
+        <result column="latitude" property="latitude" />
+        <result column="deleted" property="deleted" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_time" property="updatedTime" />
+        <result column="created_by" property="createdBy" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="man_reg_id" property="manRegId" />
+        <result column="order_num" property="orderNum" />
+        <result column="status" property="status" />
+        <result column="tax_no" property="taxNo" />
+        <result column="bank_no" property="bankNo" />
+        <result column="alter_tel" property="alterTel" />
+        <result column="fax" property="fax" />
+        <result column="org_no" property="orgNo" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, parent_id, is_leaf, name, simple_name, region_id, description, org_title, fact_id, unit_type, service_type, type, pic_url, link_name, link_phone, addres_desc, longitude, latitude, deleted, created_time, updated_time, created_by, updated_by, man_reg_id, order_num, status, tax_no, bank_no, alter_tel, fax, org_no
+    </sql>
+
+</mapper>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.cust.mapper.ConsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.sys.modular.cust.entity.Cons">
+        <id column="ID" property="id" />
+        <result column="CUST_ID" property="custId" />
+        <result column="CONS_NAME" property="consName" />
+        <result column="ELEC_ADDR" property="elecAddr" />
+        <result column="BIG_TRADE_NAME" property="bigTradeName" />
+        <result column="BIG_TRADE_CODE" property="bigTradeCode" />
+        <result column="TRADE_NAME" property="tradeName" />
+        <result column="TRADE_CODE" property="tradeCode" />
+        <result column="DAY_MAX_POWER" property="dayMaxPower" />
+        <result column="CONTRACT_CAP" property="contractCap" />
+        <result column="RUN_CAP" property="runCap" />
+        <result column="TYPE_CODE" property="typeCode" />
+        <result column="ORG_NAME" property="orgName" />
+        <result column="ORG_NO" property="orgNo" />
+        <result column="PROVINCE_CODE" property="provinceCode" />
+        <result column="CITY_CODE" property="cityCode" />
+        <result column="COUNTY_CODE" property="countyCode" />
+        <result column="STREET_CODE" property="streetCode" />
+        <result column="SUBS_NAME" property="subsName" />
+        <result column="SUBS_NO" property="subsNo" />
+        <result column="LINE_NAME" property="lineName" />
+        <result column="LINE_NO" property="lineNo" />
+        <result column="TG_NAME" property="tgName" />
+        <result column="TG_NO" property="tgNo" />
+        <result column="first_contact_name" property="firstContactName" />
+        <result column="first_contact_info" property="firstContactInfo" />
+        <result column="second_contact_name" property="secondContactName" />
+        <result column="second_contact_inifo" property="secondContactInifo" />
+        <result column="STATE" property="state" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, CUST_ID, CONS_NO, CONS_NAME, ELEC_ADDR, BIG_TRADE_NAME, BIG_TRADE_CODE, TRADE_NAME, TRADE_CODE, DAY_MAX_POWER, CONTRACT_CAP, RUN_CAP, TYPE_CODE, ORG_NAME, ORG_NO, PROVINCE_CODE, CITY_CODE, COUNTY_CODE, STREET_CODE, SUBS_NAME, SUBS_NO, LINE_NAME, LINE_NO, TG_NAME, TG_NO, first_contact_name, first_contact_info, second_contact_name, second_contact_inifo, STATE, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+    <select id="pageProxyConsList" resultType="com.xqxy.sys.modular.cust.entity.Cons" parameterType="com.xqxy.sys.modular.cust.param.ConsParam">
+        SELECT
+            cons.*
+        FROM
+            dr_cons cons
+            LEFT JOIN dr_user_cons_rela rela ON cons.ID = rela.cons_no
+        WHERE
+            rela.cust_id = #{consParam.custId}
+            <if test="consParam.id != null and consParam.id != ''">
+                AND cons.ID LIKE CONCAT ("%", #{consParam.id}, "%")
+            </if>
+            <if test="consParam.consName != null and consParam.consName != ''">
+                AND cons.cons_name LIKE CONCAT ("%", #{consParam.consName}, "%")
+            </if>
+    </select>
+
+    <select id="getConInfo" resultType="com.xqxy.sys.modular.cust.entity.Cons">
+        SELECT id,CONS_NAME as consName from dr_cons
+    </select>
+
+    <select id="groupConsBigClassCode" resultType="com.xqxy.dr.modular.statistics.VO.ConsBigClassCodeVO">
+        SELECT
+            BIG_TRADE_CODE,
+            count(*) consCount
+        FROM
+            dr_cons
+        GROUP BY
+            BIG_TRADE_CODE
+    </select>
+
+    <select id="contractStatistics" resultType="com.xqxy.sys.modular.cust.result.ConsStatisticsResult">
+        SELECT
+            cons.CITY_CODE regionCode,
+            count(info.contract_id) totalCount,
+            count(BIG_TRADE_CODE = 300 OR NULL) residentCount,
+            count(BIG_TRADE_CODE = 100 OR NULL) industrialCount,
+            count(BIG_TRADE_CODE = 200 OR NULL) buildingCount,
+            count(BIG_TRADE_CODE = 400 OR NULL) emergingLoadUser,
+            count(BIG_TRADE_CODE = 500 OR NULL) agriculCount,
+            count(BIG_TRADE_CODE = 600 OR NULL) otherCount
+        FROM
+            (
+                SELECT
+                    *
+                FROM
+                    dr_cons_contract_info
+                WHERE
+                    check_status = #{checkStatus}
+                AND project_id = #{projectId}
+                GROUP BY
+                    CONS_ID
+            ) info
+        LEFT JOIN dr_cons cons ON info.CONS_ID = cons.ID
+        WHERE
+            cons.CITY_CODE IS NOT NULL
+        GROUP BY
+            cons.CITY_CODE
+    </select>
+
+    <select id="consStatisticsDetail" resultType="com.xqxy.sys.modular.cust.entity.Cons">
+        SELECT
+            cons.*
+        FROM
+            (
+                SELECT
+                    *
+                FROM
+                    dr_cons_contract_info
+                WHERE check_status = #{consParam.checkStatus}
+                  AND project_id = #{consParam.projectId}
+                GROUP BY CONS_ID) info
+                LEFT JOIN dr_cons cons ON info.CONS_ID = cons.ID
+        WHERE cons.CITY_CODE = #{consParam.cityCode}
+    </select>
+    <select id="getHouseholds" resultType="java.lang.Integer">
+        SELECT
+        count( dc.id )
+        FROM
+        dr_cons dc
+        LEFT JOIN dr_cons_contract_info dcci ON dc.id = dcci.CONS_ID
+        LEFT JOIN dr_cons_contract_detail dccd ON dcci.contract_id = dccd.contract_id
+        LEFT JOIN dr_project_detail dpd ON dccd.PROJECT_DETAIL_ID = dpd.DETAIL_ID
+        <where>
+            dccd.CONTRACT_CAP IS NOT NULL
+            AND dpd.project_id = #{projectId}
+            AND dpd.RESPONSE_TYPE = #{responseType}
+            AND dpd.TIME_TYPE = #{timeType}
+            AND dpd.advance_notice_time = #{advanceNoticeTime}
+            AND dcci.check_status = '3'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dc.ORG_NO in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!--    查询单个行业用户数-->
+    <select id="customerTypeCount" resultType="java.lang.Integer">
+        SELECT
+        ifnull( count( dc.ID ), 0 )
+        FROM
+        dr_cons dc
+        LEFT JOIN dr_cons_contract_info dcci ON dc.ID = dcci.CONS_ID
+        <where>
+            dc.BIG_TRADE_CODE = #{customerType1}
+            AND dcci.check_status = '3'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dc.ORG_NO in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!--    除传入的两个行业类型剩下的用户数-->
+    <select id="customerTypeCount1" resultType="java.lang.Integer">
+        SELECT
+        ifnull( count( dc.ID ), 0 )
+        FROM
+        dr_cons dc
+        LEFT JOIN dr_cons_contract_info dcci ON dc.ID = dcci.CONS_ID
+        <where>
+            dc.BIG_TRADE_CODE NOT IN (#{customerType1},#{customerType2})
+            AND dcci.check_status = '3'
+            <if test="orgNoList !=null and orgNoList.size >0">
+                AND dc.ORG_NO in
+                <foreach collection="orgNoList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

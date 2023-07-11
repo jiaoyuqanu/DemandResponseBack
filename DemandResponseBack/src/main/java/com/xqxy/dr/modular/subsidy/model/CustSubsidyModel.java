@@ -1,0 +1,80 @@
+package com.xqxy.dr.modular.subsidy.model;
+
+import cn.afterturn.easypoi.excel.annotation.Excel;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.xqxy.core.pojo.base.entity.BaseEntity;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+@Data
+public class CustSubsidyModel extends BaseEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @ApiModelProperty(value = "补贴标识")
+    private Long subsidyId;
+
+    @ApiModelProperty(value = "事件标识")
+    private Long eventId;
+
+    @ApiModelProperty(value = "本实体记录的唯一标识，产生规则为流水号")
+    private Long custId;
+
+    @ApiModelProperty(value = "是否集成商")
+    private String integrator;
+
+    @ApiModelProperty(value = "异常描述")
+    private String remark;
+
+    @ApiModelProperty(value = "实际响应电量")
+    private BigDecimal actualEnergy;
+
+    @ApiModelProperty(value = "签约价格")
+    private BigDecimal contractPrice;
+
+    @ApiModelProperty(value = "计算规则，1，2，3")
+    private String calRule;
+
+    @ApiModelProperty(value = "调控时间系数")
+    private BigDecimal timeCoefficient;
+
+    @ApiModelProperty(value = "负荷响应率系数")
+    private BigDecimal rateCoefficient;
+
+    /**
+     * 集成商名称
+     */
+    @Excel(name = "客户名称")
+    private String legalName;
+
+
+    /**
+     * 信用统一代码
+     */
+    @Excel(name = "统一社会信用代码", width = 25)
+    private String creditCode;
+
+
+    /**
+     * 是否有效:N 无效；Y 有效
+     */
+    @Excel(name = "是否有效")
+    private String isEffective;
+
+    /**
+     * 实际负荷
+     */
+    @Excel(name = "实际负荷(单位：kW)", width = 20)
+    private BigDecimal actualCap;
+
+    /**
+     * 激励金额
+     */
+    @Excel(name = "实得补贴（元）", width = 20)
+    private BigDecimal subsidyAmount;
+}

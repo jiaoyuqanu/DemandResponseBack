@@ -1,0 +1,62 @@
+package com.xqxy.core.client;
+
+import com.xqxy.sys.modular.sms.entity.SysSmsSend;
+import com.xqxy.sys.modular.sms.param.SmsSendParam;
+import net.sf.json.JSONObject;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
+@FeignClient(name = "znyd-sms-service")
+//@FeignClient(name="znyd-sms-service")
+@Component
+public interface SmsSendCilent {
+
+    /**
+     * 批量入库
+     *
+     * @param smsSendList
+     * @return
+     */
+    @PostMapping("/sms/saveBatch")
+    JSONObject saveBatch(@RequestBody List<SysSmsSend> smsSendList);
+
+    /**
+     * 批量发送
+     *
+     * @param smsSendParam
+     * @return
+     */
+    @PostMapping("/sms/issueBatch")
+    JSONObject issueSms(@RequestBody SmsSendParam smsSendParam);
+
+    /**
+     * 查询短信  分页
+     *
+     * @param smsSendParam
+     * @return
+     */
+    @PostMapping("/sms/getSmsByBusinessByCon")
+    JSONObject getSmsByBusiness(@RequestBody SmsSendParam smsSendParam);
+
+    /**
+     * 查询短信  不分页
+     *
+     * @param smsSendParam
+     * @return
+     */
+    @PostMapping("/sms/getAllSmsByBusiness")
+    JSONObject getAllSmsByBusiness(@RequestBody SmsSendParam smsSendParam);
+
+    /**
+     * 未发送短信修改
+     *
+     * @param smsSendParam
+     * @return
+     */
+    @PostMapping("/sms/updateTemplate")
+    JSONObject updateTemplate(@RequestBody SmsSendParam smsSendParam);
+}

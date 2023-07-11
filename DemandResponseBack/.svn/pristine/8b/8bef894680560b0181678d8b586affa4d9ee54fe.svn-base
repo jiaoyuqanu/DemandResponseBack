@@ -1,0 +1,130 @@
+package com.xqxy.dr.modular.newloadmanagement.controller;
+
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.newloadmanagement.param.*;
+import com.xqxy.dr.modular.newloadmanagement.service.DemandService;
+import com.xqxy.dr.modular.newloadmanagement.vo.UserLastExecInfoVo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/demandResp")
+public class DemandController {
+
+    @Autowired
+    private DemandService userService;
+
+    //1.1 获取需求响应用户档案
+    @PostMapping(value = "userConsProfile")
+    public ResponseData userConsProfile(@RequestBody UserConsProfileParam userConsProfileParam) {
+        return ResponseData.success(userService.userConsProfile(userConsProfileParam));
+    }
+
+    //1.2 根据区域ID获取需求响应户数及签约负荷
+    @PostMapping(value = "regionContractInfo")
+    public ResponseData getRegionContractInfo(@RequestBody RegionContractInfoParam regionContractInfoParam) {
+        return ResponseData.success(userService.getRegionContractInfo(regionContractInfoParam));
+    }
+
+    //1.3 获取需求响应效果评估
+    @PostMapping(value = "demandEvaluation")
+    public ResponseData getDemandEvaluation(@RequestBody DemandEvaluationParam demandEvaluationParam) {
+        return ResponseData.success(userService.getDemandEvaluation(demandEvaluationParam));
+    }
+
+    //1.4 获取需求响应区域96点数据
+    @PostMapping("orgDemand64Point")
+    public ResponseData getOrgDemand64Point(@RequestBody OrgDemand64PointParam orgDemand64PointParam) {
+        return ResponseData.success(userService.getOrgDemand64Point(orgDemand64PointParam));
+    }
+
+    //1.1用户基础档案
+    @PostMapping(value = "/userBaseProfile")
+    public ResponseData userBaseProfile(@RequestBody UserBaseProfileParam userBaseProfileParam) {
+        System.out.println("DemandController is userBaseProfile starting...");
+        System.out.println(userBaseProfileParam.getCreateTime());
+        return ResponseData.success(userService.userBaseProfile(userBaseProfileParam.getCreateTime()));
+    }
+
+    //1.2需求响应可调节潜力
+    @PostMapping(value = "/adjustablePotential")
+    public ResponseData adjustablePotential(@RequestBody AdjustablePotentialParam adjustablePotential) {
+        System.out.println("DemandController is adjustablePotential starting...");
+        System.out.println(adjustablePotential);
+        return ResponseData.success(userService.adjustablePotential(adjustablePotential));
+    }
+
+    //1.3负荷调控指令信息
+    @PostMapping(value = "/orderInformation")
+    public ResponseData orderInformation(@RequestBody DemandParam demandParam) {
+        log.info("DemandController is orderInformation starting,demandParam=[{}]",demandParam);
+        try {
+            userService.orderInformation(demandParam);
+        } catch (Exception e) {
+            return ResponseData.fail("-1",e.getMessage(),null);
+        }
+        return ResponseData.success();
+    }
+
+    //1.4方案用户清单  传实体类结构体 去调用新型负控
+    @PostMapping(value = "/userRecord")
+    public ResponseData userRecord(@RequestBody List<UserRecordParam> list) {
+
+        System.out.println("DemandController is userRecord starting...");
+        System.out.println(list);
+        String value = userService.userRecord(list);
+        return ResponseData.success(value);
+    }
+
+    //1.6未到位用户清单
+    @PostMapping(value = "/outUserList")
+    public ResponseData outUserList(@RequestBody OutUserListParam outUserListParam) {
+        System.out.println("DemandController is outUserList starting...");
+        System.out.println(outUserListParam.getRegulateId());
+        return ResponseData.success(userService.outUserList(outUserListParam.getRegulateId()));
+    }
+
+    //1.7方案执行效果
+    @PostMapping(value = "/planExecutionEffect")
+    public ResponseData planExecutionEffect(@RequestBody PlanExecutionEffectParam planExecutionEffectParam) {
+        System.out.println("DemandController is planExecutionEffect starting...");
+        System.out.println(planExecutionEffectParam.getRegulateId());
+        return ResponseData.success(userService.planExecutionEffect(planExecutionEffectParam.getRegulateId()));
+    }
+
+    //1.8方案执行曲线
+    @PostMapping(value = "/planExecutionCurve")
+    public ResponseData planExecutionCurve(@RequestBody PlanExecutionCurveParam planExecutionCurveParam) {
+        System.out.println("DemandController is planExecutionCurve starting...");
+        System.out.println(planExecutionCurveParam.getRegulateId());
+        return ResponseData.success(userService.planExecutionCurve(planExecutionCurveParam.getRegulateId()));
+    }
+
+    //1.9用户执行曲线
+    @PostMapping(value = "/userExecutionCurve")
+    public ResponseData userExecutionCurve(@RequestBody UserExecutionCurveParam userExecutionCurve) {
+        System.out.println("DemandController is userExecutionCurve starting...");
+        System.out.println(userExecutionCurve.getConsId() + "," + userExecutionCurve.getDataDate());
+        return ResponseData.success(userService.userExecutionCurve(userExecutionCurve));
+    }
+
+    @PostMapping(value = "/userLastExecInfo")
+    public ResponseData<List<UserLastExecInfoVo>> userLastExecInfo(@RequestBody UserLastExecInfoParam userLastExecInfoParam) {
+        return ResponseData.success(userService.userLastExecInfo(userLastExecInfoParam));
+    }
+
+    //2.1 负荷调控指令终止
+    @PostMapping(value = "/termination")
+    public ResponseData termination(@RequestBody DemandParam demandParam) {
+        try {
+            userService.termination(demandParam);
+        } catch (Exception e) {
+            return ResponseData.fail("500", e.getMessage(), e.getMessage());
+        }
+        return ResponseData.success("撤回成功！");
+    }
+}

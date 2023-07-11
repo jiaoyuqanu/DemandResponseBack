@@ -1,0 +1,115 @@
+package com.xqxy.sys.modular.sms.controller;
+
+
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.sys.modular.sms.param.SmsSendTemplateParam;
+import com.xqxy.sys.modular.sms.service.SmsSendTemplateService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+
+/**
+ * <p>
+ * 短信发送模板 前端控制器
+ * </p>
+ *
+ * @author xiao jun
+ * @since 2021-03-11
+ */
+
+@Api(tags="短信模板api接口")
+@RestController
+@RequestMapping("/sms/sms-send-template")
+public class SmsSendTemplateController {
+
+    @Resource
+    private SmsSendTemplateService smsSendTemplateService;
+
+
+    /**
+     * @description: 短信模板分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/4 21:22
+     */
+    @ApiOperation(value="短信模板分页查询", notes="短信模板分页查询", produces="application/json")
+    @PostMapping("/page")
+    public ResponseData<?> page(@RequestBody SmsSendTemplateParam templateParam) {
+        return ResponseData.success(smsSendTemplateService.page(templateParam));
+    }
+
+    /**
+     * @description: 短信模板添加
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:55
+     */
+    @ApiOperation(value="短信模板添加", notes="短信模板添加", produces="application/json")
+    @PostMapping("/add")
+    public ResponseData<?> add(@RequestBody SmsSendTemplateParam templateParam) {
+        return ResponseData.success(smsSendTemplateService.add(templateParam));
+    }
+
+    /**
+     * @description: 短信模板删除
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:55
+     */
+    @ApiOperation(value="短信模板删除", notes="短信模板删除", produces="application/json")
+    @PostMapping("/delete")
+    public ResponseData<?> delete(@RequestBody @Validated(SmsSendTemplateParam.delete.class) SmsSendTemplateParam templateParam) {
+        smsSendTemplateService.delete(templateParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 短信模板编辑
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 8:55
+     */
+    @ApiOperation(value="短信模板编辑", notes="短信模板编辑", produces="application/json")
+    @PostMapping("/edit")
+    public ResponseData<?> edit(@RequestBody @Validated(SmsSendTemplateParam.edit.class) SmsSendTemplateParam templateParam) {
+        smsSendTemplateService.edit(templateParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 短信模板详情
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/5 9:15
+     */
+    @ApiOperation(value="短信模板详情", notes="短信模板详情", produces="application/json")
+    @PostMapping("/detail")
+    public ResponseData<?> detail(@RequestBody @Validated(SmsSendTemplateParam.detail.class) SmsSendTemplateParam templateParam) {
+        return ResponseData.success(smsSendTemplateService.detail(templateParam));
+    }
+
+    /**
+     * @description: 通过模板类型获取短信模板信息
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/7 23:17
+     */
+    @ApiOperation(value="通过模板类型获取短信模板信息", notes="通过模板类型获取短信模板信息", produces="application/json")
+    @PostMapping("/getTemplateByType")
+    public ResponseData<?> getTemplateByType(@RequestBody SmsSendTemplateParam templateParam) {
+        return ResponseData.success(smsSendTemplateService.getTemplateByType(templateParam));
+    }
+}
+

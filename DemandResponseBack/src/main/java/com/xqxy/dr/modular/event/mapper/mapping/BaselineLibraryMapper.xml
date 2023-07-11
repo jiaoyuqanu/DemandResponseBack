@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.BaselineLibraryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.BaselineLibrary">
+        <id column="baselin_id" property="baselinId" />
+        <result column="descr" property="descr" />
+        <result column="generate_date" property="generateDate" />
+        <result column="start_period" property="startPeriod" />
+        <result column="end_period" property="endPeriod" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="simples_date" property="simplesDate" />
+        <result column="cal_rule" property="calRule" />
+        <result column="baseline_type" property="baselineType" />
+        <result column="生成方式" property="生成方式" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        baselin_id, descr, generate_date, start_period, end_period, create_time, create_user, update_time, update_user, simples_date, cal_rule, baseline_type, 生成方式
+    </sql>
+    <select id="getByDateAndPeriod" resultType="com.xqxy.dr.modular.event.entity.BaselineLibrary">
+        SELECT
+        *
+        FROM
+        dr_baseline_library
+        WHERE
+        generate_date = #{regulateDate}
+        AND start_period <![CDATA[ >= ]]> #{startTime}
+        AND end_period <![CDATA[<= ]]> #{endTime}
+    </select>
+
+    <select id="getByBaselinId" parameterType="java.lang.String"
+            resultType="com.xqxy.dr.modular.event.entity.BaselineLibrary">
+        SELECT
+        descr,
+        CONCAT(start_period,"-",end_period) timeQuantum,
+        start_period startPeriod,
+        end_period endPeriod
+        FROM
+        dr_baseline_library
+        WHERE
+        baselin_id=#{baselinId}
+    </select>
+</mapper>

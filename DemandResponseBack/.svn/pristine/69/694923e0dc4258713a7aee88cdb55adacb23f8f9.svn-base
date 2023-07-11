@@ -1,0 +1,82 @@
+package com.xqxy.dr.modular.data.controller;
+
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.data.param.WorkProjectParam;
+import com.xqxy.dr.modular.data.param.WorkUserParam;
+import com.xqxy.dr.modular.data.result.WorkProjectInfoResult;
+import com.xqxy.dr.modular.data.result.WorkUserStatsResult;
+import com.xqxy.dr.modular.event.service.EventService;
+import com.xqxy.dr.modular.project.entity.ConsContractDetail;
+import com.xqxy.dr.modular.project.service.ConsContractDetailService;
+import com.xqxy.dr.modular.project.service.ProjectService;
+import com.xqxy.dr.modular.workbench.entity.LoadCurve;
+import com.xqxy.dr.modular.workbench.param.WorkbenchParam;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+
+@RestController
+@RequestMapping(value = {"/workPage"})
+@Api(tags = "工作台接口")
+public class WorkController {
+
+    @Resource
+    private ConsService consService;
+
+    @Resource
+    private ProjectService projectService;
+
+    @Autowired
+    private EventService eventService;
+
+    @Autowired
+    private ConsContractDetailService consContractDetailService;
+
+    @ApiOperation(value = "获取工作台用户统计信息")
+    @RequestMapping(value = { "/stats/user"})
+    public ResponseData<WorkUserStatsResult> getUserDetail(@RequestBody WorkUserParam workUserParam) {
+        return ResponseData.success(consService.getWorkUserDetail(workUserParam));
+    }
+
+    @ApiOperation(value = "获取工作台项目统计信息")
+    @RequestMapping("/stats/project")
+    public ResponseData<WorkProjectInfoResult> getWorkProjectDetail(@RequestBody WorkProjectParam workProjectParam) {
+        return ResponseData.success(projectService.getWorkProjectDetail(workProjectParam));
+    }
+
+    @ApiOperation(value = "工作台事件信息")
+    @GetMapping("/eventDetail")
+    public ResponseData eventDetail(@RequestParam("eventId") Long eventId) {
+        return ResponseData.success(eventService.eventDetail(eventId));
+    }
+
+    @ApiOperation(value = "工作台项目签约信息")
+    @PostMapping("/contractProjecttDetail")
+    public ResponseData contractProjecttDetail(@RequestBody WorkbenchParam workbenchParam) {
+        return ResponseData.success(consContractDetailService.contractProjecttDetail(workbenchParam));
+    }
+
+    /**
+     * 事件统计详情
+     * @param projectId
+     * @return
+     */
+    @ApiOperation(value = "事件统计详情")
+    @GetMapping("/eventDetailByProject")
+    public ResponseData<LoadCurve> eventDetailByProject(@RequestParam("projectId") Long projectId){
+        return ResponseData.success(consContractDetailService.eventDetailByProject(projectId));
+    }
+
+    /**
+     * 提供给第三方 全省的审核通过的签约用户数和每个项目明细的签约负荷
+     */
+    @ApiOperation(value = "提供给第三方 全省的审核通过的签约用户数和每个项目明细的签约负荷")
+    @RequestMapping("/stats/groupConsContractCap")
+    public ResponseData groupConsContractCap(@RequestBody WorkProjectParam workProjectParam) {
+        return ResponseData.success(projectService.groupConsContractCap(workProjectParam));
+    }
+}

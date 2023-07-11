@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.newloadmanagement.mapper.CitiesInvitedMapper">
+
+    <select id="queryGoal" resultType="BigDecimal">
+       select goal from dr_org_demand where
+          org_id=#{param1} and REGULATE_ID = (
+          select  REGULATE_ID from dr_event where EVENT_ID=#{param2}
+          )
+    </select>
+
+
+    <select id="query3Condition" resultType="com.xqxy.dr.modular.newloadmanagement.entity.Drevent">
+       select RESPONSE_TYPE,TIME_TYPE,advance_notice_time from dr_event where
+          EVENT_ID =#{eventId}
+    </select>
+
+    <select id="queryProjectId" resultType="Long">
+       select project_id from dr_project_detail where
+          RESPONSE_TYPE = #{drevent.responseType} and TIME_TYPE =#{drevent.timeType}
+          and advance_notice_time = #{drevent.advanceNoticeTime}
+    </select>
+
+
+
+    <select id="rangeType" resultType="String">
+        select RANGE_TYPE from dr_event where
+       EVENT_ID=#{eventid}
+    </select>
+
+
+    <select id="userSignalCount" resultType="Integer">
+        select count(CONS_ID) from dr_cons_contract_info where
+        project_id in (
+        <foreach collection="projectIds" item="projectid" separator=",">
+            #{projectid}
+        </foreach>
+        ) and status =2 and CONS_ID in (
+        <foreach collection="consIds" item="consid" separator=",">
+            #{consid}
+        </foreach>
+        ) and check_status=3
+    </select>
+
+
+    <select id="userSignal" resultType="String">
+        select CONS_ID from dr_cons_contract_info where
+        project_id in (
+        <foreach collection="projectIds" item="projectid" separator=",">
+            #{projectid}
+        </foreach>
+        ) and status =2 and CONS_ID in (
+        <foreach collection="consIds" item="consid" separator=",">
+            #{consid}
+        </foreach>
+        )
+    </select>
+
+
+    <select id="userSignalInfo" resultType="com.xqxy.dr.modular.newloadmanagement.vo.UserSignalDetailVo">
+       select   a.CONS_NAME,CONS_ID,(case when is_participate='Y' then  '参与' when is_participate='N' then '不参与' else '未反馈' end) is_participate ,
+       (case when no_reply_reason='0' then  '邀约时间截止' when no_reply_reason='1' then  '超出调控停止响应量'  else '' end) no_reply_reason,
+       reply_cap,b.UPDATE_TIME,a.ORG_NAME,a.ORG_NO from dr_cons_invitation b left join dr_cons  a
+       on b.CONS_ID = a.ID where EVENT_ID=#{eventid}
+       and CONS_ID in(
+        <foreach collection="consIds" item="consid" separator=",">
+            #{consid}
+        </foreach>
+     )
+    </select>
+
+
+
+
+    <select id="eventInfo" resultType="com.xqxy.dr.modular.event.entity.Event">
+        select * from dr_event where
+       EVENT_ID=#{eventid}
+    </select>
+
+
+</mapper>

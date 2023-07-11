@@ -1,0 +1,23 @@
+package com.xqxy.dr.modular.event.service.impl;
+
+import cn.hutool.log.Log;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.dr.modular.event.entity.EventPowerBase;
+import com.xqxy.dr.modular.event.mapper.EventPowerBaseMapper;
+import com.xqxy.dr.modular.event.service.EventPowerBaseService;
+import org.springframework.stereotype.Service;
+
+/**
+ * <p>
+ * 事件执行曲线 服务实现类
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-26
+ */
+@Service
+public class EventPowerBaseServiceImpl extends ServiceImpl<EventPowerBaseMapper, EventPowerBase> implements EventPowerBaseService {
+    private static final Log log = Log.get();
+
+
+}

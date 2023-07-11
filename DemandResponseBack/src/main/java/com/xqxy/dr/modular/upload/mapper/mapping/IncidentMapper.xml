@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.upload.mapper.IncidentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="IncidentMap" type="com.xqxy.dr.modular.upload.entity.ContractInfo">
+        <id column="contract_id" property="contractId" />
+        <result column="CONS_ID" property="consId" />
+        <result column="project_id" property="projectId" />
+        <result column="partic_type" property="particType" />
+        <result column="EXTRACT_RATIO" property="extractRatio" />
+        <result column="first_contact_name" property="firstContactName" />
+        <result column="first_contact_info" property="firstContactInfo" />
+        <result column="second_contact_name" property="secondContactName" />
+        <result column="second_contact_inifo" property="secondContactInifo" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="check_status" property="checkStatus" />
+        <result column="status" property="status" />
+        <result column="file_name" property="fileName" />
+        <result column="file_id" property="fileId" />
+        <result column="file_type" property="fileType" />
+        <association property="Detail" javaType="com.xqxy.dr.modular.upload.entity.ContractDetail">
+            <result column="DETAIL_ID" property="detailId"></result>
+            <result column="contract_id" property="contractId"></result>
+            <result column="RESPONSE_TYPE" property="responseType"></result>
+            <result column="TIME_TYPE" property="timeType"></result>
+            <result column="RESPONSE_CAP" property="responseCap"></result>
+            <result column="CONTRACT_CAP" property="contractCap"></result>
+            <result column="START_TIME" property="startTime"></result>
+            <result column="END_TIME" property="endTime"></result>
+            <result column="CONTRACT_PRICE" property="contractPrice"></result>
+            <result column="EXTRACT_RATIO" property="extractRatio"></result>
+            <result column="CREATE_TIME" property="createTime"></result>
+            <result column="CREATE_USER" property="createUser"></result>
+            <result column="UPDATE_TIME" property="updateTime"></result>
+            <result column="UPDATE_USER" property="updateUser"></result>
+            <result column="PROJECT_DETAIL_ID" property="projectDetailId"></result>
+        </association>
+    </resultMap>
+
+    <select id="getIncident" resultType="com.xqxy.dr.modular.upload.entity.ContractInfo">
+       SELECT
+       dr_cons.CITY_CODE,
+       dr_cons.COUNTY_CODE,
+       dr_cons_contract_info.UPDATE_USER,
+       dr_cons_contract_detail.START_TIME,
+       dr_cons_contract_detail.CONTRACT_CAP,
+       dr_cons_contract_detail.END_TIME,
+       dr_cons_contract_info.CREATE_TIME,
+       dr_cons_contract_info.contract_id,
+       dr_cons_contract_detail.PROJECT_DETAIL_ID,
+       dr_cons_contract_detail.RESPONSE_TYPE,
+       dr_cons_contract_detail.TIME_TYPE,
+       dr_cons_contract_info.check_status
+       FROM dr_cons_contract_info
+       LEFT JOIN dr_cons on dr_cons.ID=dr_cons_contract_info.CONS_ID
+       LEFT JOIN dr_cons_contract_detail on dr_cons_contract_info.contract_id=dr_cons_contract_detail.contract_id
+    </select>
+
+</mapper>

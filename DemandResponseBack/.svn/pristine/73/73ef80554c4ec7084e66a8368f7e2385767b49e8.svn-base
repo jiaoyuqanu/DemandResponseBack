@@ -1,0 +1,76 @@
+package com.xqxy.dr.modular.baseline.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.dr.modular.baseline.entity.BaseLine;
+import com.xqxy.dr.modular.baseline.entity.BaseLineDetail;
+import com.xqxy.dr.modular.baseline.entity.BaseLineDetailData;
+import com.xqxy.dr.modular.baseline.entity.BaseLineSend;
+import com.xqxy.dr.modular.baseline.param.BaseLineDetailParam;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+/**
+ * <p>
+ * 基线管理详情 Mapper 接口
+ * </p>
+ *
+ * @author chen zhi jun
+ * @since 2021-10-19
+ */
+public interface BaseLineDetailMapper extends BaseMapper<BaseLineDetail> {
+    /**
+     * 查询基线详情
+     * @param baseLineDetailParam
+     * @return
+     */
+    List<BaseLineDetail> getBaseLineDetailPage(Page<BaseLineDetail> page,@Param("param") BaseLineDetailParam baseLineDetailParam);
+
+    /**
+     * 查询集成商基线详情
+     * @param baseLineDetailParam
+     * @return
+     */
+    List<BaseLineDetail> getBaseLineDetailCustPage(Page<BaseLineDetail> page,@Param("param")BaseLineDetailParam baseLineDetailParam);
+
+    /**
+     * 统计总记录数
+     * @param baseLineDetailParam
+     * @return
+     */
+    Integer getCount(BaseLineDetailParam baseLineDetailParam);
+
+    /**
+     * 获取时间段基线详情96个点
+     * @param id
+     * @return
+     */
+    List<BaseLineDetailData> getDetailData(Long id);
+
+    List<BaseLineDetail> getConsIdAndBaselineLibId(Long id);
+
+    /**
+     * 获取基线详情96个点
+     * @param baselineLibId
+     * @param consId
+     * @return
+     */
+    List<BaseLineDetailData> getDetailData2(@Param("baselineLibId") Long baselineLibId, @Param("consId")String consId);
+
+    /**
+     * 获取基线详情96个点
+     * @param id
+     * @return
+     */
+    BaseLineDetailData getDetailDataCust(Long id);
+
+    /**
+     * 负控基线推送
+     * @param baselineLibId
+     * @param consId
+     * @return
+     */
+    List<BaseLineSend> baselineSendList(@Param("baselineLibId") Long baselineLibId, @Param("consIds")List<String> consId);
+
+}

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.ConsSubsidyDailyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        <id column="id" property="id" />
+        <result column="cons_id" property="consId" />
+        <result column="subsidy_date" property="subsidyDate" />
+        <result column="settled_amount" property="settledAmount" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user" property="createUser" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user" property="updateUser" />
+        <result column="sub_time" property="subTime" />
+        <result column="sub_status" property="subStatus" />
+        <result column="sub_exception" property="subException" />
+        <result column="cac_rule" property="cacRule" />
+        <result column="event_ids" property="eventIds" />
+        <result column="settlement_no" property="settlementNo" />
+        <result column="event_num" property="eventNum" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, cons_id, subsidy_date, settled_amount, status, create_time, create_user, update_time, update_user, sub_time, sub_status, sub_exception, cac_rule, event_ids, settlement_no, event_num
+    </sql>
+
+    <select id="getConsDailySubsidy" resultType="com.xqxy.dr.modular.subsidy.result.DailySubsidyInfo">
+        select d.id subsidyId, c.cust_id custId, d.cons_id consId, c.cons_name consName, c.first_contact_info tel, d.subsidy_date subsidyDate, d.settled_amount settledAmount, d.status, d.event_ids eventIds
+        from dr_cons_subsidy_daily d, dr_cons c
+        <where> d.cons_id = c.id
+          <if test="custId != '' and custId != null"> and c.cust_id = #{custId} </if>
+          <if test="consId != '' and consId != null"> and d.cons_id = #{consId} </if>
+          <if test="startDate != '' and startDate != null"> and subsidy_date >= #{startDate} </if>
+          <if test="endDate != '' and endDate != null"> and subsidy_date &lt;= #{endDate} </if>
+          and c.org_no in
+          <foreach collection="orgIds" item="item" separator="," open="(" close=")">
+              #{item}
+          </foreach>
+        </where>
+        order by consId asc, subsidyDate desc
+    </select>
+
+    <select id="getConsDaily" resultType="com.xqxy.dr.modular.subsidy.result.DailySubsidyInfo">
+        select d.id subsidyId, c.cust_id custId, d.cons_id consId, c.cons_name consName, c.first_contact_info tel, d.subsidy_date subsidyDate, d.settled_amount settledAmount, d.status, d.event_ids eventIds
+        from dr_cons_subsidy_daily d, dr_cons c
+        <where> d.cons_id = c.id
+            <if test="map.custId != '' and map.custId != null"> and c.cust_id = #{map.custId} </if>
+            <if test="map.consId != '' and map.consId != null"> and d.cons_id = #{map.consId} </if>
+            <if test="map.startDate != '' and map.startDate != null"> and subsidy_date >= #{map.startDate} </if>
+            <if test="map.endDate != '' and map.endDate != null"> and subsidy_date &lt;= #{map.endDate} </if>
+            <if test="map.consName != '' and map.consName != null"> and c.cons_name like concat(concat("%",#{map.consName}),"%")  </if>
+            <if test="map.orgIds != null">
+                and c.org_no in
+                <foreach collection="map.orgIds" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by consId asc, subsidyDate desc
+    </select>
+
+    <select id="consCountAmount" resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        select
+            sum(settled_amount) settledAmount
+        from
+            dr_cons_subsidy_daily
+        where
+            subsidy_date between #{subsidyStartDate} and #{subsidyEndDate}
+            and project_id = #{projectId}
+    </select>
+
+    <update id="setConsSubsidyDailySettlementNo">
+        update dr_cons_subsidy_daily set settlement_no = #{settlementNo} where subsidy_date between #{subsidyStartDate} and #{subsidyEndDate}
+        and project_id=#{projectId}
+    </update>
+
+    <select id="getConsAmountBySettlementNo" resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        select
+            cons_id consId, sum(settled_amount) settledAmount, settlement_no settlementNo, sum(event_num) eventNum
+        from
+            dr_cons_subsidy_daily
+        where
+            settlement_no = #{settlementNo}
+        group by cons_id
+    </select>
+
+    <select id="getConsSubsidyDailiesByConsIdAndSettlementNo" resultMap="BaseResultMap">
+        select
+            *
+        from
+            dr_cons_subsidy_daily
+        <where>
+            1 = 1
+            <if test="consId != null and consId != ''">
+                and cons_id = #{consId}
+            </if>
+
+            <if test="settlementNo != null and settlementNo != ''">
+                and settlement_no = #{settlementNo}
+            </if>
+        </where>
+    </select>
+
+    <select id="consMySubsidy" resultType="com.xqxy.dr.modular.subsidy.result.MySubsidyInfo">
+        select
+            ev.eventId,
+        ev.subsidyPub,ev.eventNo, ev.eventName, ev.subsidyDate, ev.legalName, ev.creditCode,
+        CASE
+        ev.subsidyPub
+        WHEN '1' THEN
+        es.subsidyAmount ELSE '补贴计算中，请耐心等待' END AS subsidyAmount
+        from
+            (select
+                 event_no eventNo,IFNULL(subsidy_pub,0) subsidyPub, regulate_date subsidyDate, event_name eventName, event_id eventId, cust.legal_name legalName, cust.credit_code creditCode
+             from
+                 dr_event, dr_cust cust
+             <where>
+                 cust.id = #{map.custId}
+                 <if test="map.eventNo != null and map.eventNo != ''">
+                     and event_no like concat('%', #{map.eventNo}, '%')
+                 </if>
+                 <if test="map.subsidyDate != null">
+                     and regulate_date = #{map.subsidyDate}
+                 </if>
+             </where>
+            ) ev,
+            (select
+                 event_id eventId, sum(subsidy_amount) subsidyAmount
+             from
+                 dr_cons_subsidy
+             where
+                 cons_id in (select id from dr_cons where cust_id = #{map.custId})
+             group by
+                 event_id
+            ) es
+        where
+            ev.eventId = es.eventId
+        order by
+            ev.subsidyDate desc
+    </select>
+
+    <select id="getSubsidyDailyTotal" parameterType="String" resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        SELECT
+        a.cons_id consId,
+        sum( a.subsidy_amount ) settledAmount,
+        b.REGULATE_DATE subsidyDate,
+        b.project_id projectId,
+        '1' as status,
+        '2' as cacRule,
+        '2' as subStatus
+    FROM
+        dr_cons_subsidy a
+        LEFT JOIN dr_event b ON a.event_id = b.event_id
+        where b.REGULATE_DATE=#{subsidyDate} and a.subsidy_amount>0
+        GROUP BY a.cons_id,b.project_id
+    </select>
+
+    <select id="getSubsidyDailyTotalByCondition"  resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        SELECT
+        a.cons_id consId,
+        sum( a.subsidy_amount ) settledAmount,
+        b.REGULATE_DATE subsidyDate,
+        b.project_id projectId,
+        '1' as status,
+        '2' as cacRule,
+        '2' as subStatus
+    FROM
+        dr_cons_subsidy a
+        LEFT JOIN dr_event b ON a.event_id = b.event_id
+        where b.REGULATE_DATE=#{subsidyDate} and a.cons_id = #{consId} and a.subsidy_amount>0
+        GROUP BY a.cons_id,b.project_id
+    </select>
+
+    <select id="getAllSubsidyDailyByDate" parameterType="String" resultType="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyDaily">
+        SELECT
+            b.EVENT_ID eventId,
+            b.project_id projectId,
+            a.cons_id consId
+        FROM
+            dr_cons_subsidy a
+            RIGHT JOIN dr_event b ON a.event_id = b.event_id
+        WHERE
+            b.REGULATE_DATE = #{subsidyDate}
+            AND a.subsidy_amount > 0
+    </select>
+
+</mapper>

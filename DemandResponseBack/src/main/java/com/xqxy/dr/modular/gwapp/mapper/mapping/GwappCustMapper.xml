@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.gwapp.mapper.GwappCustMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.gwapp.entity.GwappCust">
+        <id column="ID" property="id" />
+        <result column="tel" property="tel" />
+        <result column="CREDIT_CODE" property="creditCode" />
+        <result column="integrator" property="integrator" />
+        <result column="legal_name" property="legalName" />
+        <result column="legal_no" property="legalNo" />
+        <result column="legal_card_type" property="legalCardType" />
+        <result column="apply_no" property="applyNo" />
+        <result column="apply_card_type" property="applyCardType" />
+        <result column="apply_name" property="applyName" />
+        <result column="CUST_NO" property="custNo" />
+        <result column="CUST_NAME" property="custName" />
+        <result column="PROVINCE_CODE" property="provinceCode" />
+        <result column="CITY_CODE" property="cityCode" />
+        <result column="COUNTY_CODE" property="countyCode" />
+        <result column="STREET_CODE" property="streetCode" />
+        <result column="CUST_ADDR" property="custAddr" />
+        <result column="check_status" property="checkStatus" />
+        <result column="state" property="state" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="ALLOW_CHANGE" property="allowChange" />
+        <result column="ORG_NO" property="orgNo" />
+        <result column="ORG_NAME" property="orgName" />
+        <result column="approval_comments" property="approvalComments" />
+    </resultMap>
+
+</mapper>

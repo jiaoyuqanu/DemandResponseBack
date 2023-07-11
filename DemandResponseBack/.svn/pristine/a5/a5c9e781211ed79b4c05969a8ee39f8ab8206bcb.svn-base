@@ -1,0 +1,259 @@
+package com.xqxy.dr.modular.project.controller;
+
+
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.event.param.EventParam;
+import com.xqxy.dr.modular.project.VO.DrOrgGoalVO;
+import com.xqxy.dr.modular.project.entity.DrOrgGoal;
+import com.xqxy.dr.modular.project.params.DrOrgGoalParam;
+import com.xqxy.dr.modular.project.params.ExamineParam;
+import com.xqxy.dr.modular.project.params.ProjectParam;
+import com.xqxy.dr.modular.project.service.ProjectService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+/**
+ * <p>
+ * 需求响应项目 前端控制器
+ * </p>
+ *
+ * @author PengChuqing
+ * @since 2021-10-11
+ */
+@Api(tags = "需求响应项目API接口")
+@RestController
+@RequestMapping("/project/project")
+public class ProjectController {
+
+    @Resource
+    private ProjectService projectService;
+
+    /**
+     * @description: 需求响应项目新增
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 15:03
+     */
+//    @BusinessLog(title = "需求响应项目新增", opType = LogAnnotionOpTypeEnum.ADD)
+    @ApiOperation(value = "需求响应项目新增", notes = "需求响应项目新增", produces = "application/json")
+    @PostMapping("/add")
+    public ResponseData add(@RequestBody @Validated(ProjectParam.add.class) ProjectParam projectParam) {
+        projectService.add(projectParam);
+        return ResponseData.success();
+    }
+
+
+    /**
+     * @description: 需求响应项目删除
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:13
+     */
+//    @BusinessLog(title = "需求响应项目删除", opType = LogAnnotionOpTypeEnum.DELETE)
+    @ApiOperation(value = "需求响应项目删除", notes = "需求响应项目删除", produces = "application/json")
+    @PostMapping("/delete")
+    public ResponseData delete(@RequestBody @Validated(ProjectParam.delete.class) ProjectParam projectParam) {
+        projectService.delete(projectParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 需求响应项目编辑
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:14
+     */
+//    @BusinessLog(title = "需求响应项目编辑", opType = LogAnnotionOpTypeEnum.EDIT)
+    @ApiOperation(value = "需求响应项目编辑", notes = "需求响应项目编辑", produces = "application/json")
+    @PostMapping("/edit")
+    public ResponseData edit(@RequestBody @Validated(EventParam.delete.class) ProjectParam projectParam) {
+        projectService.edit(projectParam);
+        return ResponseData.success();
+    }
+
+
+    /**
+     * @description: 需求响应项目分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:38
+     */
+//    @BusinessLog(title = "需求响应项目分页查询", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "需求响应项目分页查询", notes = "需求响应项目分页查询", produces = "application/json")
+    @PostMapping("/page")
+    public ResponseData page(@RequestBody ProjectParam projectParam) {
+        return ResponseData.success(projectService.page(projectParam));
+    }
+
+    /**
+     * @description: 需求响应项目分页查询
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/11 18:38
+     */
+//    @BusinessLog(title = "需求响应项目分页查询已经截止的项目", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "需求响应项目分页查询已经截止的项目", notes = "需求响应项目分页查询已经截止的项目", produces = "application/json")
+    @PostMapping("/pageByEndTime")
+    public ResponseData pageByEndTime(@RequestBody ProjectParam projectParam) {
+        return ResponseData.success(projectService.pageByEndTime(projectParam));
+    }
+
+    /**
+     * @description: 需求响应项目列表
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/26 19:32
+     */
+    @ApiOperation(value = "需求响应项目列表", notes = "需求响应项目列表", produces = "application/json")
+    @PostMapping("/list")
+    public ResponseData list(@RequestBody ProjectParam projectParam) {
+        return ResponseData.success(projectService.list(projectParam));
+    }
+
+    /**
+     * @description: 需求响应项目详情查看
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/12 9:27
+     */
+//    @BusinessLog(title = "需求响应项目详情查看", opType = LogAnnotionOpTypeEnum.DETAIL)
+    @ApiOperation(value = "需求响应项目详情查看", notes = "需求响应项目详情查看", produces = "application/json")
+    @PostMapping("/detail")
+    public ResponseData detail(@RequestBody @Validated(ProjectParam.detail.class) ProjectParam projectParam) {
+        return ResponseData.success(projectService.detail(projectParam));
+    }
+
+    /**
+     * @description: 需求响应项目提交审核
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/12 17:01
+     */
+//    @BusinessLog(title = "需求响应项目提交审核", opType = LogAnnotionOpTypeEnum.DETAIL)
+    @ApiOperation(value = "需求响应项目提交审核", notes = "需求响应项目提交审核", produces = "application/json")
+    @PostMapping("/submit")
+    public ResponseData submit(@RequestBody @Validated(ProjectParam.delete.class) ProjectParam projectParam) {
+        ResponseData responseData = projectService.submit(projectParam);
+        return responseData;
+    }
+
+    /**
+     * @description: 需求响应项目审核
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/13 9:31
+     */
+//    @BusinessLog(title = "需求响应项目审核", opType = LogAnnotionOpTypeEnum.DETAIL)
+    @ApiOperation(value = "需求响应项目审核", notes = "需求响应项目提交审核", produces = "application/json")
+    @PostMapping("/examine")
+    public ResponseData examine(@RequestBody @Validated(ExamineParam.add.class) ExamineParam examineParam) {
+        projectService.examine(examineParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 修改需求响应项目状态为已公示
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/13 16:37
+     */
+//    @BusinessLog(title = "修改需求响应项目状态为已公示", opType = LogAnnotionOpTypeEnum.EDIT)
+    @ApiOperation(value = "修改需求响应项目状态为已公示", notes = "修改需求响应项目状态为已公示", produces = "application/json")
+    @PostMapping("/publicity")
+    public ResponseData publicity(@RequestBody @Validated(EventParam.delete.class) ProjectParam projectParam) {
+        projectService.publicity(projectParam);
+        return ResponseData.success();
+    }
+
+    /**
+     * @description: 需求响应项目修改状态
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/10/13 17:15
+     */
+//    @BusinessLog(title = "需求响应项目修改状态", opType = LogAnnotionOpTypeEnum.EDIT)
+    @ApiOperation(value = "需求响应项目修改状态", notes = "需求响应项目修改状态", produces = "application/json")
+    @PostMapping("/editStatus")
+    public ResponseData editStatus(@RequestBody @Validated(EventParam.delete.class) ProjectParam projectParam) {
+        projectService.editStatus(projectParam);
+        return ResponseData.success();
+    }
+
+    //    @BusinessLog(title = "项目下拉选项", opType = LogAnnotionOpTypeEnum.QUERY)
+    @ApiOperation(value = "项目下拉选项", notes = "项目下拉选项", produces = "application/json")
+    @PostMapping("/selectProject")
+    public ResponseData<?> selectProject(@RequestBody ProjectParam projectParam) {
+        return ResponseData.success(projectService.selectProject(projectParam));
+    }
+
+
+    /**
+     * @description: 指标分解（保存）
+     * @param:
+     * @return:
+     * @author: lqr
+     * @date: 2022.01.11 10:03
+     */
+    @ApiOperation(value = "指标分解（保存/修改）", notes = "指标分解（保存/修改）", produces = "application/json")
+    @PostMapping("/addTarget")
+    public ResponseData addTarget(@RequestBody DrOrgGoalParam orgGoalParam) {
+        ResponseData responseData = projectService.addTarget(orgGoalParam);
+        return responseData;
+    }
+
+
+    /**
+     * @description: 指标分解（详情）
+     * @param:
+     * @return:
+     * @author: lqr
+     * @date: 2022.01.11 10:03
+     */
+    @ApiOperation(value = "指标分解（详情）", notes = "指标分解（详情）", produces = "application/json")
+    @GetMapping("/detailTarget")
+    public ResponseData detailTarget(@RequestParam("projectDetailId") Long projectDetailId) {
+        DrOrgGoalVO drOrgGoalVO = projectService.detailTarget(projectDetailId);
+        return ResponseData.success(drOrgGoalVO);
+    }
+
+    /**
+     * 根据事件返回项目的项目类型
+     *
+     * @param eventId
+     * @return
+     */
+    @ApiOperation(value = "根据事件返回项目的项目类型", notes = "根据事件返回项目的项目类型", produces = "application/json")
+    @GetMapping("/getprojectTypeByEventId")
+    public ResponseData detail(@RequestParam("eventId") Long eventId) {
+        return ResponseData.success(projectService.getprojectTypeByEventId(eventId));
+    }
+
+    /**
+     * 根据年份返回项目
+     *
+     * @param year
+     * @return
+     */
+    @ApiOperation(value = "根据年份返回项目", notes = "根据年份返回项目", produces = "application/json")
+    @GetMapping("/getProjectByYear")
+    public ResponseData getProjectByYear(@RequestParam("year") Integer year) {
+        return ResponseData.success(projectService.getProjectByYear(year));
+    }
+}
+

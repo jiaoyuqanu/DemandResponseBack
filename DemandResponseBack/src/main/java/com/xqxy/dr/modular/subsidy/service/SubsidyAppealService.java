@@ -1,0 +1,76 @@
+package com.xqxy.dr.modular.subsidy.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.project.params.ExamineParam;
+import com.xqxy.dr.modular.subsidy.entity.SubsidyAppeal;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.dr.modular.subsidy.param.SubsidyAppealAmendParam;
+import com.xqxy.dr.modular.subsidy.param.SubsidyAppealParam;
+
+/**
+ * <p>
+ * 补贴申诉 服务类
+ * </p>
+ *
+ * @author Shen
+ * @since 2021-10-25
+ */
+public interface SubsidyAppealService extends IService<SubsidyAppeal> {
+
+    /**
+     * 编辑异议工单
+     * @param subsidyAppealParam
+     * @author shen
+     * @date 2021-10-25 09:43
+     */
+    void update(SubsidyAppealParam subsidyAppealParam);
+
+    /**
+     * 提交审核
+     * @param subsidyAppealParam
+     * @author shen
+     * @date 2021-10-25 14:36
+     */
+    void sumbitCheck(SubsidyAppealParam subsidyAppealParam);
+
+
+    /**
+     * 异议工单审核
+     * @param examineParam
+     * @author shen
+     * @date 2021-10-25 15:37
+     */
+    void examine(ExamineParam examineParam);
+
+
+    /**
+     * 异议工单详情
+     * @param busId
+     * @return
+     * @author shen
+     * @date 2021-10-25 15:40
+     */
+    SubsidyAppeal detail(Long busId);
+
+
+    /**
+     * 异议工单分页查询
+     * @param subsidyAppealParam
+     * @return
+     * @author shen
+     * @date 2021-10-27 10:00
+     */
+    Page<SubsidyAppeal> page(SubsidyAppealParam subsidyAppealParam);
+
+    ResponseData amendSubsidy(SubsidyAppealAmendParam subsidyAppealParam);
+
+    String getFileName(String fileId);
+
+    Page<SubsidyAppeal> cityManagePage(SubsidyAppealParam subsidyAppealParam);
+
+    SubsidyAppeal appealDetail(long id);
+
+    ResponseData synSubsidy(SubsidyAppealAmendParam subsidyAppealParam);
+
+}

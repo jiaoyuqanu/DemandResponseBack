@@ -1,0 +1,59 @@
+package com.xqxy.dr.modular.dispatch.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+import lombok.Data;
+
+/**
+ * 调度指令分解
+ *
+ * @TableName dr_org_demand
+ */
+@TableName(value = "dr_org_demand")
+@Data
+public class OrgDemand implements Serializable {
+    /**
+     * 主键
+     */
+    @TableId(value = "id", type = IdType.AUTO)
+    private Integer id;
+
+    /**
+     * 调度指令标识
+     */
+    @TableField(value = "REGULATE_ID")
+    private Long regulateId;
+
+    /**
+     * 供电单位标识
+     */
+    @TableField(value = "org_id")
+    private String orgId;
+
+    /**
+     * 供电单位名称
+     */
+    @TableField(value = "org_name")
+    private String orgName;
+
+    /**
+     * 任务指标
+     */
+    @TableField(value = "goal")
+    private BigDecimal goal;
+
+    /**
+     * 年份
+     */
+    @TableField(value = "year")
+    private String year;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+}

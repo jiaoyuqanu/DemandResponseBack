@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.gwapp.mapper.GwappConsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.gwapp.entity.GwappCons">
+        <id column="ID" property="id" />
+        <result column="CUST_ID" property="custId" />
+        <result column="CONS_NAME" property="consName" />
+        <result column="ELEC_ADDR" property="elecAddr" />
+        <result column="BIG_TRADE_NAME" property="bigTradeName" />
+        <result column="BIG_TRADE_CODE" property="bigTradeCode" />
+        <result column="TRADE_NAME" property="tradeName" />
+        <result column="TRADE_CODE" property="tradeCode" />
+        <result column="DAY_MAX_POWER" property="dayMaxPower" />
+        <result column="CONTRACT_CAP" property="contractCap" />
+        <result column="RUN_CAP" property="runCap" />
+        <result column="TYPE_CODE" property="typeCode" />
+        <result column="ORG_NAME" property="orgName" />
+        <result column="ORG_NO" property="orgNo" />
+        <result column="PROVINCE_CODE" property="provinceCode" />
+        <result column="CITY_CODE" property="cityCode" />
+        <result column="COUNTY_CODE" property="countyCode" />
+        <result column="STREET_CODE" property="streetCode" />
+        <result column="SUBS_NAME" property="subsName" />
+        <result column="SUBS_NO" property="subsNo" />
+        <result column="LINE_NAME" property="lineName" />
+        <result column="LINE_NO" property="lineNo" />
+        <result column="TG_NAME" property="tgName" />
+        <result column="TG_NO" property="tgNo" />
+        <result column="first_contact_name" property="firstContactName" />
+        <result column="first_contact_info" property="firstContactInfo" />
+        <result column="second_contact_name" property="secondContactName" />
+        <result column="second_contact_inifo" property="secondContactInifo" />
+        <result column="STATE" property="state" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="VOLTCODE" property="voltcode" />
+        <result column="SAFETY_LOAD" property="safetyLoad" />
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,323 @@
+package com.xqxy.dr.modular.data.controller;
+
+
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import cn.afterturn.easypoi.handler.inter.IExcelExportServer;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mysql.cj.util.StringUtils;
+import com.xqxy.core.exception.SystemErrorType;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.core.util.PoiUtil;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.data.param.ConsAndDate;
+import com.xqxy.dr.modular.data.param.ConsCurveParam;
+import com.xqxy.dr.modular.data.service.ConsCurveService;
+import com.xqxy.dr.modular.strategy.DataAccessStrategy;
+import com.xqxy.dr.modular.strategy.DataAccessStrategyContext;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.entity.export.ExportCons;
+import com.xqxy.sys.modular.cust.entity.export.ExportConsCurve;
+import com.xqxy.sys.modular.cust.service.ConsService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * <p>
+ * 用户功率曲线 前端控制器
+ * </p>
+ *
+ * @author xiao jun
+ * @since 2021-03-11
+ */
+@Api(tags = "用户功率曲线")
+@RestController
+@RequestMapping("/data/cons-curve")
+public class ConsCurveController {
+
+    @Resource
+    private ConsCurveService consCurveService;
+
+    @Resource
+    private ConsService consService;
+
+    @Resource
+    private DataAccessStrategyContext dataAccessStrategyContext;
+
+    @Value("${dataAccessStrategy}")
+    private String dataStrategy;
+
+
+    /**
+     * 数据采集监测历史数据分页
+     *
+     * @author xiao jun
+     * @date 2021-03-11 15:49
+     */
+    @ApiOperation(value = "数据采集监测历史负荷分页", notes = "数据采集监测历史负荷分页", produces = "application/json")
+    @PostMapping("/page")
+    public ResponseData page(@RequestBody ConsAndDate consAndDate) {
+        if (ObjectUtil.isNotNull(consAndDate)) {
+            if (ObjectUtil.isEmpty(consAndDate.getDataDate())) {
+                String format = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
+                consAndDate.setDataDate(format);
+            }
+        }
+        Page<Cons> historicalCurve = consService.getHistoricalCurve(consAndDate);
+        return ResponseData.success(historicalCurve);
+    }
+
+    /**
+     * @description: 用户实时负荷
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/10/26 15:39
+     */
+    @ApiOperation(value = "数据采集监测用户实时负荷", notes = "数据采集监测用户实时负荷", produces = "application/json")
+    @PostMapping("/todayConsCurve")
+    public ResponseData todayConsCurve(@RequestBody ConsAndDate consAndDate) {
+        return ResponseData.success(consService.getTodayConsCurve(consAndDate));
+    }
+
+    /**
+     * 数据采集监测实时/历史负荷导出
+     * @param consAndDate
+     * @return
+     */
+    @ApiOperation(value = "数据采集监测实时/历史负荷导出", notes = "数据采集监测实时/历史负荷导出", produces = "application/json")
+    @PostMapping("/exportLoadConsCurve")
+    public void exportConsCurve(@RequestBody ConsAndDate consAndDate, HttpServletResponse response, HttpServletRequest request) {
+        List<ExportConsCurve> exportConsCurvesList = new ArrayList<>();
+        //如果传入的日期为空，则赋值当前日期
+        if (ObjectUtil.isNotNull(consAndDate) && ObjectUtil.isEmpty(consAndDate.getDataDate())) {
+            consAndDate.setDataDate(DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now()));
+        }
+        //查询出用户实时/历史曲线数据
+        List<Cons> curveList = consService.getTrueTimeOrHistoryCurveList(consAndDate);
+        for (Cons cons : curveList) {
+            ExportConsCurve exportConsCurve = new ExportConsCurve();
+            BeanUtils.copyProperties(cons,exportConsCurve);
+            exportConsCurvesList.add(exportConsCurve);
+        }
+
+        //大数据量excel导出
+        String fileName = consAndDate.isTodayData()?"数据采集监测实时负荷导出":"数据采集监测历史负荷导出";
+        PoiUtil.exportBigExcelWithStream(fileName,ExportConsCurve.class,exportConsCurvesList,PoiUtil.FIVE_THOUSAND);
+    }
+
+    /**
+     * @description: 用户历史负荷
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/01 15:39
+     */
+    @ApiOperation(value = "根据户号以及日期获取用户历史负荷", notes = "根据户号以及日期获取用户历史负荷", produces = "application/json")
+    @PostMapping("/getConsCurveByConsAndDate")
+    public ResponseData getConsCurveByConsAndDate(@RequestBody ConsAndDate consAndDate) {
+        ConsCurve todayConsCurve = consService.getConsCurveByConsAndDate(consAndDate);
+        return ResponseData.success(todayConsCurve);
+    }
+
+    /**
+     * @description: 单用户实时负荷
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/09 15:39
+     */
+    @ApiOperation(value = "单用户实时负荷", notes = "单用户实时负荷", produces = "application/json")
+    @PostMapping("/getTodayConsCurve")
+    public ResponseData getTodayConsCurve(@RequestBody ConsAndDate consAndDate) {
+        String format = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1));
+
+        if (ObjectUtil.isNotNull(consAndDate.getConsNo()) && ObjectUtil.isNotEmpty(consAndDate.getConsNo())) {
+            DataAccessStrategy getDataStrategy = dataAccessStrategyContext.strategySelect(dataStrategy);
+            List<ConsCurve> consCurveList = getDataStrategy.queryTodayCurveList(Arrays.asList(consAndDate.getConsNo()), format);
+            ConsCurve todayConsCurve = new ConsCurve();
+            if (CollectionUtil.isNotEmpty(consCurveList)) {
+                todayConsCurve = consCurveList.get(0);
+                todayConsCurve.setDataPointFlag("1");
+            }
+            return ResponseData.success(todayConsCurve);
+        } else {
+            return ResponseData.fail("用户编号不能为空");
+        }
+    }
+
+    /**
+     * @description: 单用户实时负荷
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/09 15:39
+     */
+    @ApiOperation(value = "负荷集成商实时负荷", notes = "负荷集成商实时负荷", produces = "application/json")
+    @PostMapping("/getAggTodayConsCurve")
+    public ResponseData getAggTodayConsCurve(@RequestBody ConsAndDate consAndDate) {
+        String format = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
+
+        if (ObjectUtil.isNotNull(consAndDate.getConsNo()) && ObjectUtil.isNotEmpty(consAndDate.getConsNo())) {
+            DataAccessStrategy getDataStrategy = dataAccessStrategyContext.strategySelect(dataStrategy);
+            String[] list = consAndDate.getConsNo().split(",");
+            List<ConsCurve> consCurveList = getDataStrategy.queryTodayCurveList(Arrays.asList(list), format);
+            if (CollectionUtil.isNotEmpty(consCurveList)) {
+                for (ConsCurve todayConsCurve : consCurveList)
+                    todayConsCurve.setDataPointFlag("1");
+            }
+            return ResponseData.success(consCurveList);
+        } else {
+            return ResponseData.fail("用户编号不能为空");
+        }
+    }
+
+
+    /**
+     * @description: 用户历史负荷
+     * @param:
+     * @return:
+     * @author: liqirui
+     * @date: 2021/11/0 13:39
+     */
+    @ApiOperation(value = "根据户号以及日期获取用户历史负荷 (集合)", notes = "根据户号以及日期获取用户历史负荷 (集合)", produces = "application/json")
+    @PostMapping("/queryConsCurveByConsAndDateList")
+    public ResponseData queryConsCurveByConsAndDateList(@RequestBody ConsAndDate consAndDate) {
+        // 参数必传
+        if (StringUtils.isNullOrEmpty(consAndDate.getEndDate()) || StringUtils.isNullOrEmpty(consAndDate.getStartDate()) || StringUtils.isNullOrEmpty(consAndDate.getConsNo())) {
+            return ResponseData.fail(SystemErrorType.PARAMETER_NULL);
+        }
+        List<ConsCurve> list = consCurveService.queryConsCurveByConsAndDateList(consAndDate);
+        return ResponseData.success(list);
+    }
+
+
+//    /**
+//     * @description: 数据监测每种用户监测到的点数
+//     * @param:
+//     * @return:
+//     * @author: PengChuqing
+//     * @date: 2021/4/11 15:17
+//     */
+//    @ApiOperation(value = "数据监测用户监测到的点数", notes = "数据监测用户监测到的点数", produces = "application/json")
+//    @PostMapping("/getPointPercent")
+//    public ResponseData getPointPercent(@RequestBody ConsAndDate consAndDate) {
+//        String statDate = consAndDate.getDataDate();
+//        if(StringUtils.isEmpty(statDate)){
+//            throw new ServiceException(ConsCurveExceptionEnum.NO_STATDATE);
+//        }
+//        /*DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        LocalDate parse = LocalDate.parse(statDate, dateTimeFormatter);*/
+//        List<PointGotten> pointPercent = consCurveService.getPointPercent(consAndDate);
+//        return ResponseData.success(pointPercent);
+//    }
+
+//    @ApiOperation(value = "实时监测用户拿到的点数", notes = "实时监测当前用户拿到的点数", produces = "application/json")
+//    @PostMapping("/getTodayPointPercent")
+//    public ResponseData getTodayPointPercent(@RequestBody ConsAndDate consAndDate) {
+//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        String formatDate = dateTimeFormatter.format(LocalDate.now());
+//        consAndDate.setDataDate(formatDate);
+//        List<PointGotten> pointPercent = consCurveService.getTodayPointPercent(consAndDate);
+//        return ResponseData.success(pointPercent);
+//    }
+
+
+//    /**
+//     * @description: 获取当前用户今日负荷
+//     * @param:
+//     * @return:
+//     * @author: PengChuqing
+//     * @date: 2021/4/11 15:18
+//     */
+//    @ApiOperation(value = "获取当前用户今日负荷", notes = "获取当前用户今日负荷", produces = "application/json")
+//    @PostMapping("/getTodayCurve")
+//    public ResponseData getTodayCurve(@RequestBody ConsCurveParam consCurveParam) {
+//        ConsCurve todayCurve = consCurveService.getTodayCurve(consCurveParam);
+//        return ResponseData.success(todayCurve);
+//    }
+
+    /**
+     * @description: 获取当前用户去年今日负荷
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/14 21:12
+     */
+//    @ApiOperation(value = "获取当前用户去年今日负荷", notes = "获取当前用户去年今日负荷", produces = "application/json")
+//    @PostMapping("/getLastyearTodayCurve")
+//    public ResponseData getLastyearTodayCurve() {
+//        return ResponseData.success(consCurveService.getLastyearTodayCurve());
+//    }
+
+    /**
+     * @description: 通过日期集合获取用户负荷曲线
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/4/14 19:51
+     */
+//    @ApiOperation(value = "通过日期集合获取用户负荷曲线", notes = "通过日期集合获取用户负荷曲线", produces = "application/json")
+//    @PostMapping("/getCurveByIdAndDateList")
+//    public ResponseData getCurveByIdAndDateList(@RequestBody ConsParam consParam) {
+//        List<ConsCurve> curveByIdAndDateList = consCurveService.getCurveByIdAndDateList(consParam);
+//        return ResponseData.success(curveByIdAndDateList);
+//    }
+
+
+    /**
+     * @description: 通过不同策略获取用户曲线
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/5/20 23:30
+     */
+    @ApiOperation(value = "通过不同策略获取用户曲线", notes = "通过不同策略获取用户曲线", produces = "application/json")
+    @PostMapping("/getCurveByConsIdAndDate")
+    public ResponseData getCurveByConsIdAndDate(@RequestBody ConsCurveParam consCurveParam) {
+        ConsCurve consCurve = consCurveService.getCurveByConsIdAndDate(consCurveParam);
+        return ResponseData.success(consCurve);
+    }
+
+    @ApiOperation(value = "根据条件获取负荷qu", notes = "根据条件获取负荷基线", produces = "application/json")
+    @PostMapping("/detail")
+    public ResponseData detail(@RequestBody ConsCurveParam consCurveParam) {
+        ConsCurve detail = consCurveService.detail(consCurveParam);
+        return ResponseData.success(detail);
+    }
+
+    /**
+     * @description: 通过不同策略获取用户曲线
+     * @param:
+     * @return:
+     * @author: shen
+     * @date: 2021-06-09
+     */
+//    @ApiOperation(value = "根据开始时间和结束时间查询历史负荷", notes = "根据开始时间和结束时间查询历史负荷", produces = "application/json")
+//    @PostMapping("/getHistoryCurveList")
+//    public ResponseData getHistoryCurveList(@RequestParam(name = "consId",required = false) String consId, @RequestParam(name = "startDate",required = false)  String startDate, @RequestParam(name = "endDate",required = false)  String endDate) {
+//        List<ConsCurve> consCurves = consCurveService.getHistoryCurveList(consId, startDate, endDate);
+//        return ResponseData.success(consCurves);
+//
+//    }
+
+}
+
+

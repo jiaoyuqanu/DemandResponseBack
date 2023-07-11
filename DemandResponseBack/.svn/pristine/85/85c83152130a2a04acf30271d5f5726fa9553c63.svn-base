@@ -1,0 +1,403 @@
+package com.xqxy.dr.modular.evaluation.service.impl;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xqxy.core.enums.YesOrNotEnum;
+import com.xqxy.core.exception.ServiceException;
+import com.xqxy.core.poi.POIExcelUtil;
+import com.xqxy.core.pojo.login.CurrenUserInfo;
+import com.xqxy.core.util.HttpServletUtil;
+import com.xqxy.core.util.OrganizationUtil;
+import com.xqxy.core.util.SecurityUtils;
+import com.xqxy.dr.modular.baseline.util.CurveUtil;
+import com.xqxy.dr.modular.evaluation.entity.ConsEvaluation;
+import com.xqxy.dr.modular.evaluation.entity.CustEvaluation;
+import com.xqxy.dr.modular.evaluation.entity.EventPowerExecute;
+import com.xqxy.dr.modular.evaluation.mapper.ConsEvaluationMapper;
+import com.xqxy.dr.modular.evaluation.param.ConsEvaluationParam;
+import com.xqxy.dr.modular.evaluation.param.CustEvaluationParam;
+import com.xqxy.dr.modular.evaluation.param.EventPowerExecuteParam;
+import com.xqxy.dr.modular.evaluation.service.ConsEvaluationService;
+import com.xqxy.dr.modular.evaluation.service.CustEvaluationService;
+import com.xqxy.dr.modular.evaluation.service.EventPowerExecuteService;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.event.enums.EventExceptionEnum;
+import com.xqxy.dr.modular.event.service.EventService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+
+/**
+ * <p>
+ * 用户执行效果评估 服务实现类
+ * </p>
+ *
+ * @author hu xingxing
+ * @since 2021-10-20
+ */
+@Service
+public class ConsEvaluationServiceImpl extends ServiceImpl<ConsEvaluationMapper, ConsEvaluation> implements ConsEvaluationService {
+
+    @Resource
+    private EventService eventService;
+
+    @Resource
+    private CustEvaluationService custEvaluationService;
+
+    @Resource
+    private EventPowerExecuteService eventPowerExecuteService ;
+
+    @Override
+    public Page<ConsEvaluation> page(ConsEvaluationParam evaluationParam) {
+        //数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new Page<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        //机构子集
+        List<String> list = new ArrayList<>();
+        List<String> list1 = null;
+        List<String> list2 = null;
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                //获取用户权限内所有组织机构集合
+                list1 = OrganizationUtil.getAllOrgByOrgNo();
+                if (null == list1 || list1.size() == 0) {
+                    return new Page<>();
+                }
+                //根据参数查询其所有子集
+                if (null != evaluationParam.getOrgNo()) {
+                    list2 = OrganizationUtil.getAllOrgByOrgNoPamarm(evaluationParam.getOrgNo());
+                    //筛选用户机构集合中包含参数的机构
+                    if (null != list1 && null != list2) {
+                        for (String s : list2) {
+                            if (list1.contains(s)) {
+                                list.add(s);
+                            }
+                        }
+                    }
+                    if (CollectionUtil.isEmpty(list)) {
+                        return new Page<>();
+                    }
+                } else {
+                    list = list1;
+                }
+            } else {
+                if (null != evaluationParam.getOrgNo()) {
+                    list = OrganizationUtil.getAllOrgByOrgNoPamarm(evaluationParam.getOrgNo());
+                }
+            }
+        } else {
+            return new Page<>();
+        }
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(evaluationParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(evaluationParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", evaluationParam.getEventId());
+            }
+            // 根据用户名称查询
+            if (ObjectUtil.isNotEmpty(evaluationParam.getConsName())) {
+                queryWrapper.like("c.cons_name", evaluationParam.getConsName());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(evaluationParam.getConsId())) {
+                queryWrapper.like("eva.cons_id", evaluationParam.getConsId());
+            }
+            // 根据是否有效查询
+            if (ObjectUtil.isNotEmpty(evaluationParam.getIsEffective())) {
+                queryWrapper.like("eva.is_effective", evaluationParam.getIsEffective());
+            }
+
+            //市级查询所有用户，省级查询直接用户
+            if (ObjectUtil.isNotNull(orgTitle) && "1".equals(orgTitle)) {
+                queryWrapper.eq("eva.join_user_type", "1");
+            }
+
+            // 机构等级
+            if (ObjectUtil.isNotEmpty(list)) {
+                queryWrapper.in("c.ORG_NO", list);
+            }
+
+            if (ObjectUtil.isNotNull(evaluationParam.getConsName()) && ObjectUtil.isNotEmpty(evaluationParam.getConsName())) {
+                queryWrapper.like("c.cons_name", evaluationParam.getConsName());
+            }
+        }
+
+        //根据排序升序排列，序号越小越在前
+        Map<String, String> sortKeyMap = new HashMap<>();
+        sortKeyMap.put("actualCap", "eva.actual_cap");
+        sortKeyMap.put("confirmCap", "eva.actual_cap");
+        sortKeyMap.put("maxLoadActual", "eva.max_load_actual");
+        sortKeyMap.put("minLoadActual", "eva.min_load_actual");
+        sortKeyMap.put("avgLoadActual", "eva.avg_load_actual");
+        sortKeyMap.put("electricityBaseline", "eva.electricity_baseline");
+        sortKeyMap.put("electricityActual", "eva.electricity_actual");
+        String sortColumn = sortKeyMap.getOrDefault(evaluationParam.getSortColumn(), "eva.create_time");
+        if ("asc".equals(evaluationParam.getOrder())) {
+            queryWrapper.orderByAsc(sortColumn);
+        } else {
+            queryWrapper.orderByDesc(sortColumn);
+        }
+        Page<ConsEvaluation> evaluationPage = getBaseMapper().selectPageVo(evaluationParam.getPage(), queryWrapper);
+        return evaluationPage;
+    }
+
+    @Override
+    public ConsEvaluation getConsEvaluationByEventIdAndConsId(long eventId, String consId) {
+
+        LambdaQueryWrapper<ConsEvaluation> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(eventId)) {
+            queryWrapper.eq(ConsEvaluation::getEventId, eventId);
+        }
+
+        if (ObjectUtil.isNotNull(consId)) {
+            queryWrapper.eq(ConsEvaluation::getConsId, consId);
+        }
+       List<ConsEvaluation> consEvaluations= this.list(queryWrapper);
+        if(consEvaluations.size()==0||CollectionUtil.isEmpty(consEvaluations))
+        {
+            ConsEvaluation consEvaluation=new ConsEvaluation();
+            return consEvaluation;
+        }
+        return consEvaluations.get(0);
+    }
+
+    @Override
+    public Object list(ConsEvaluationParam consEvaluationParam) {
+
+        LambdaQueryWrapper<ConsEvaluation> queryWrapper = new LambdaQueryWrapper<>();
+        if (ObjectUtil.isNotNull(consEvaluationParam)) {
+            if (ObjectUtil.isNotEmpty(consEvaluationParam.getEventId())) {
+                queryWrapper.eq(ConsEvaluation::getEventId, consEvaluationParam.getEventId());
+            }
+        }
+
+        queryWrapper.orderByAsc(ConsEvaluation::getConsId);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public ConsEvaluation detailByEventIdAndConsId(Long eventId, String consId) {
+        LambdaQueryWrapper<ConsEvaluation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ConsEvaluation::getEventId, eventId);
+        queryWrapper.eq(ConsEvaluation::getConsId, consId);
+        return this.getOne(queryWrapper);
+    }
+
+    @Override
+    public Page<ConsEvaluation> pageProxy(CustEvaluationParam custEvaluationParam) {
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(custEvaluationParam)) {
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationParam.getCustId())) {
+                queryWrapper.eq("cu.id", custEvaluationParam.getCustId());
+            }
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(custEvaluationParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", custEvaluationParam.getEventId());
+            }
+
+        }
+        //根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc("eva.create_time");
+        Page<ConsEvaluation> evaluationPage = getBaseMapper().pageProxy(custEvaluationParam.getPage(), queryWrapper);
+        return evaluationPage;
+    }
+
+    @Override
+    public void exportEvaluationImmediate(ConsEvaluationParam consEvaluationParam) {
+        Event event = eventService.getById(consEvaluationParam.getEventId());
+        if(ObjectUtil.isNull(event)) {
+            throw new ServiceException(EventExceptionEnum.EVENT_NOT_EXIST);
+        }
+        List<ConsEvaluation> evaluationCons = this.listWithCons(consEvaluationParam);
+        if(null==evaluationCons) {
+            evaluationCons = new ArrayList<>();
+        }
+        List<CustEvaluation> evaluationAggregate = custEvaluationService.list(consEvaluationParam);
+        if(null==evaluationAggregate) {
+            evaluationAggregate = new ArrayList<>();
+        }
+
+        // 当日效果评估的负荷曲线
+        EventPowerExecuteParam executeParam = new EventPowerExecuteParam();
+        executeParam.setEventId(consEvaluationParam.getEventId());
+        List<EventPowerExecute> curveList = eventPowerExecuteService.list(executeParam);
+        List<Map<String, Object>> sheetList = new ArrayList<>();
+        String sheetNameCons = "电力用户次日效果评估";
+        String sheetNameAggregate = "负荷集成商次日效果评估";
+        String excelName = event.getEventName() + "次日效果评估统计";
+        String titleNameCons = event.getEventName() + "电力用户次日效果评估统计";
+        String titleNameAggregate = event.getEventName() + "负荷集成商次日效果评估统计";
+        String[] titleRowCons = {"电力营销户号", "用户名称",  "认约负荷(kW)", "是否有效响应","实际响应负荷(kW)", "核定响应负荷(kW)", "实际最大负荷(kW)", "实际平均负荷(kW)", "最大基线负荷(kW)", "平均基线负荷(kW)"};
+        String[] titleRowAggregate = {"统一社会信用代码", "客户名称", "认约负荷(kW)", "是否有效响应","实际响应负荷(kW)", "核定响应负荷(kW)", "实际最大负荷(kW)", "实际平均负荷(kW)", "最大基线负荷(kW)", "平均基线负荷(kW)"};
+
+        List<String> titleLists = new ArrayList<>();
+        titleLists.add("数据日期");
+        for (int i = 1; i <= 96; i++) {
+            titleLists.add(CurveUtil.covPointToDateTime(i));
+        }
+        String[] titleRowsPoint = titleLists.toArray(new String[]{});
+        titleRowCons = ArrayUtil.addAll(titleRowCons, titleRowsPoint);
+        //titleRowAggregate = ArrayUtil.addAll(titleRowAggregate, titleRowsPoint);
+        String[][] dataRowsCons = new String[evaluationCons.size()][titleRowCons.length  + 97];
+        String[][] dataRowsAggregate = new String[evaluationAggregate.size()][titleRowAggregate.length];
+
+        Map<String, Object> consMap = new HashMap<>();
+        for (int i = 0; i < evaluationCons.size(); i++) {
+            ConsEvaluation evaluationImmediate = evaluationCons.get(i);
+            String effectiveName = "";
+            if(ObjectUtil.isNotNull(evaluationImmediate.getIsEffective())) {
+                effectiveName = evaluationImmediate.getIsEffective().equals(YesOrNotEnum.Y.getCode()) ? YesOrNotEnum.Y.getMessage() : YesOrNotEnum.N.getMessage();
+            }
+            dataRowsCons[i][0] = String.valueOf(evaluationImmediate.getConsId());
+            dataRowsCons[i][1] = evaluationImmediate.getConsName();
+           /* dataRowsCons[i][3] = evaluationImmediate.getCityName();
+            dataRowsCons[i][4] = evaluationImmediate.getCountyName();*/
+            dataRowsCons[i][2] = String.valueOf(Optional.ofNullable(evaluationImmediate.getReplyCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][3] = effectiveName;
+            dataRowsCons[i][4] = String.valueOf(Optional.ofNullable(evaluationImmediate.getActualCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][5] = String.valueOf(Optional.ofNullable(evaluationImmediate.getConfirmCap()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][6] = String.valueOf(Optional.ofNullable(evaluationImmediate.getMaxLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][7] = String.valueOf(Optional.ofNullable(evaluationImmediate.getAvgLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][8] = String.valueOf(Optional.ofNullable(evaluationImmediate.getMaxLoadBaseline()).orElse(BigDecimal.ZERO));
+            dataRowsCons[i][9] = String.valueOf(Optional.ofNullable(evaluationImmediate.getAvgLoadBaseline()).orElse(BigDecimal.ZERO));
+            if (CollectionUtil.isNotEmpty(curveList)) {
+                EventPowerExecute powerExecute = curveList.stream().filter(curve -> evaluationImmediate.getConsId().equals(curve.getConsId())).findFirst().orElse(new EventPowerExecute());
+                for (int j = 10; j <= 106; j++) {
+                    if (j == 10) {
+                        dataRowsCons[i][j] = event.getRegulateDate().toString();
+                        continue;
+                    }
+                    int point = j - 10;
+                    BigDecimal fieldValue = (BigDecimal) ReflectUtil.getFieldValue(powerExecute, "p" + point);
+                    if (ObjectUtil.isNull(fieldValue)) {
+                        dataRowsCons[i][j] = "";
+                    } else {
+                        dataRowsCons[i][j] = fieldValue.setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
+                    }
+                }
+            }
+        }
+        consMap.put("titleName", titleNameCons);
+        consMap.put("sheetName", sheetNameCons);
+        consMap.put("titleRow", titleRowCons);
+        consMap.put("dataRows", dataRowsCons);
+        sheetList.add(consMap);
+
+        Map<String, Object> aggregateMap = new HashMap<>();
+        for (int i = 0; i < evaluationAggregate.size(); i++) {
+            CustEvaluation custEvaluationImmediate = evaluationAggregate.get(i);
+            String effectiveName = "";
+            if(ObjectUtil.isNotNull(custEvaluationImmediate.getIsEffective())) {
+                effectiveName = custEvaluationImmediate.getIsEffective().equals(YesOrNotEnum.Y.getCode()) ? YesOrNotEnum.Y.getMessage() : YesOrNotEnum.N.getMessage();
+            }
+            dataRowsAggregate[i][0] = custEvaluationImmediate.getCreditCode();
+            dataRowsAggregate[i][1] = custEvaluationImmediate.getLegalName();
+            /*dataRowsAggregate[i][3] = evaluationImmediate.getCityName();
+            dataRowsAggregate[i][4] = evaluationImmediate.getCountyName();*/
+            dataRowsAggregate[i][2] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getReplyCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][3] = effectiveName;
+            dataRowsAggregate[i][4] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getActualCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][5] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getConfirmCap()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][6] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getMaxLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][7] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getAvgLoadActual()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][8] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getMaxLoadBaseline()).orElse(BigDecimal.ZERO));
+            dataRowsAggregate[i][9] = String.valueOf(Optional.ofNullable(custEvaluationImmediate.getAvgLoadBaseline()).orElse(BigDecimal.ZERO));
+        }
+        aggregateMap.put("titleName", titleNameAggregate);
+        aggregateMap.put("sheetName", sheetNameAggregate);
+        aggregateMap.put("titleRow", titleRowAggregate);
+        aggregateMap.put("dataRows", dataRowsAggregate);
+        sheetList.add(aggregateMap);
+
+        POIExcelUtil.generatorExcel(excelName, sheetList, HttpServletUtil.getResponse());
+    }
+
+    @Override
+    public List<ConsEvaluation> listWithCons(ConsEvaluationParam consEvaluationParam) {//数据权限
+        CurrenUserInfo currenUserInfo = SecurityUtils.getCurrentUserInfoUTF8();
+        if (null == currenUserInfo) {
+            return new ArrayList<>();
+        }
+        String orgNo = currenUserInfo.getOrgId();
+        String orgTitle = currenUserInfo.getOrgTitle();
+        //机构子集
+        List<String> list = new ArrayList<>();
+        if (null != orgNo && !"".equals(orgNo)) {
+            if (!"1".equals(orgTitle)) {
+                //获取所有组织机构集合
+                list = OrganizationUtil.getAllOrgByOrgNo();
+                if (CollectionUtil.isEmpty(list) ) {
+                    return new ArrayList<>();
+                }
+            }
+        } else {
+            return new ArrayList<>();
+        }
+
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        if (ObjectUtil.isNotNull(consEvaluationParam)) {
+            // 根据事件ID查询
+            if (ObjectUtil.isNotEmpty(consEvaluationParam.getEventId())) {
+                queryWrapper.eq("eva.event_id", consEvaluationParam.getEventId());
+            }
+            // 根据用户ID查询
+            if (ObjectUtil.isNotEmpty(consEvaluationParam.getConsId())) {
+                queryWrapper.eq("eva.cons_id", consEvaluationParam.getConsId());
+            }
+
+            // 机构等级
+            if (ObjectUtil.isNotEmpty(list)) {
+                queryWrapper.in("c.ORG_NO", list);
+            }
+
+            if (ObjectUtil.isNotNull(consEvaluationParam.getConsName()) && ObjectUtil.isNotEmpty(consEvaluationParam.getConsName())) {
+                queryWrapper.like("c.cons_name", consEvaluationParam.getConsName());
+            }
+            // 查询聚合商用户下的所有代理用户
+            /*if(ObjectUtil.isNotEmpty(evaluationImmediateParam.getAggregateConsId())) {
+                queryWrapper.eq("dcd.aggregate_cons_id",evaluationImmediateParam.getAggregateConsId());
+            }*/
+        }
+
+
+
+        //根据排序升序排列，序号越小越在前
+        queryWrapper.orderByAsc("eva.create_time");
+        List<ConsEvaluation> emmediatesList = getBaseMapper().immediateList(queryWrapper);
+        return emmediatesList;
+    }
+
+   @Override
+   public EventPowerExecute implementCurve(ConsEvaluationParam consEvaluationParam)
+   {
+       Event event=eventService.getById(consEvaluationParam.getEventId());
+       if(ObjectUtil.isNull(event))
+       {
+           throw  new ServiceException(EventExceptionEnum.EVENT_NOT_EXIST);
+       }
+       LambdaQueryWrapper<EventPowerExecute> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+       lambdaQueryWrapper.eq(EventPowerExecute::getConsId,consEvaluationParam.getConsId());
+       lambdaQueryWrapper.eq(EventPowerExecute::getEventId,consEvaluationParam.getEventId());
+       List<EventPowerExecute> curveByConsIdAndDate = eventPowerExecuteService.list(lambdaQueryWrapper);
+       EventPowerExecute eventPowerExecute = null;
+       if(null!=curveByConsIdAndDate && curveByConsIdAndDate.size()>0) {
+           eventPowerExecute = curveByConsIdAndDate.get(0);
+       } else {
+           eventPowerExecute = new EventPowerExecute();
+       }
+       return eventPowerExecute;
+   }
+}

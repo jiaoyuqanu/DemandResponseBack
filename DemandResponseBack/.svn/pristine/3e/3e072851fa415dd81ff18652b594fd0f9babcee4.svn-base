@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.workbench.mapper.ContractsMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.workbench.entity.Contracts">
+<!--        <result column="project_id" property="projectId"/>-->
+        <result column="ORG_NO" property="orgNo"/>
+        <result column="contract_id" property="contractId"/>
+        <result column="RESPONSE_TYPE" property="responseType"/>
+        <result column="TIME_TYPE" property="timeType"/>
+        <result column="advance_notice_time" property="advanceNoticeTime"/>
+        <result column="CONTRACT_CAP" property="contractCap"/>
+    </resultMap>
+    <select id="getContracts" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        dc.ORG_NO,
+        dci.contract_id,
+        dcd.RESPONSE_TYPE,
+        dcd.TIME_TYPE,
+        dcd.advance_notice_time,
+        dcd.CONTRACT_CAP
+        FROM
+        dr_cons dc,
+        dr_cons_contract_info dci,
+        dr_cons_contract_detail dcd
+        <where>
+            dc.ID = dci.CONS_ID
+            AND dci.contract_id = dcd.contract_id
+            and dci.check_status = #{checkStatus}
+            <if test="param.projectId != null and param.projectId != ''">
+                and dci.project_id = #{param.projectId}
+            </if>
+            <if test="responseType != null and responseType != ''">
+                and dcd.RESPONSE_TYPE = #{responseType}
+            </if>
+            <if test="timeType != null and timeType != ''">
+                and dcd.TIME_TYPE = #{timeType}
+            </if>
+            <if test="advanceNoticeTime != null and advanceNoticeTime != ''">
+                and dcd.advance_notice_time = #{advanceNoticeTime}
+            </if>
+        </where>
+    </select>
+</mapper>

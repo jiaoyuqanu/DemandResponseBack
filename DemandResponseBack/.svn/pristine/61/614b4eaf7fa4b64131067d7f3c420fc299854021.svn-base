@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.evaluation.mapper.EvaluTaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.evaluation.entity.EvaluTask">
+        <result column="ID" property="id" />
+        <result column="EVENT_ID" property="eventId" />
+        <result column="CONS_ID" property="consId" />
+        <result column="REGULATE_DATE" property="regulateDate" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="EVALU_TODAY_STATUS" property="evaluTodayStatus" />
+        <result column="EVALU_TODAY_ID" property="evaluTodayId" />
+        <result column="EVALU_TODAY_DESC" property="evaluTodayDesc" />
+        <result column="EVALU_NEXTDAY_STATUS" property="evaluNextdayStatus" />
+        <result column="EVALU_NEXTDAY_ID" property="evaluNextdayId" />
+        <result column="EVALU_NEXTDAY_DESC" property="evaluNextdayDesc" />
+        <result column="SUBSIDY_STATUS" property="subsidyStatus" />
+        <result column="SUBSIDY_ID" property="subsidyId" />
+        <result column="SUBSIDY_DESC" property="subsidyDesc" />
+        <result column="CREATE_TIME" property="createTime" />
+        <result column="CREATE_USER" property="createUser" />
+        <result column="UPDATE_TIME" property="updateTime" />
+        <result column="UPDATE_USER" property="updateUser" />
+        <result column="INCENTIVE_STANDARD" property="incentiveStandard" />
+        <result column="VALIDITY_JUDGMENT" property="validityJudgment" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, EVENT_ID, CONS_ID, REGULATE_DATE, START_TIME, END_TIME, EVALU_TODAY_STATUS, EVALU_TODAY_ID, EVALU_TODAY_DESC, EVALU_NEXTDAY_STATUS, EVALU_NEXTDAY_ID, EVALU_NEXTDAY_DESC, SUBSIDY_STATUS, SUBSIDY_ID, SUBSIDY_DESC, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER, INCENTIVE_STANDARD, VALIDITY_JUDGMENT
+    </sql>
+
+    <select id="getEvaluTaskByEvents" parameterType="com.xqxy.dr.modular.event.entity.Event" resultType="com.xqxy.dr.modular.evaluation.entity.EvaluTask">
+        SELECT id,event_id as eventId,cons_id as consId from dr_evalu_task where 1=1
+        <if test="eventList != null and eventList.size > 0 ">
+            and event_id in
+            <foreach collection="eventList" index="index" item="event" open="(" separator="," close=")">
+                #{event.eventId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getEvaluTaskByCon" parameterType="com.xqxy.dr.modular.evaluation.param.EvaluTaskParam" resultType="com.xqxy.dr.modular.evaluation.entity.EvaluTask">
+        select * from dr_evalu_task where EVENT_ID= (
+            SELECT a.EVENT_ID from dr_evalu_task a left join dr_event b
+            on a.event_id = b.event_id
+            where b.TIME_TYPE = '1' and b.event_status in ('03','04') and a.IMPLEMENT='Y'
+            <if test="regulateDateStr != null and regulateDateStr != ''">
+                and a.REGULATE_DATE = #{regulateDateStr}
+            </if>
+            <if test="evaluTodayStatus != null and evaluTodayStatus != ''">
+                and a.EVALU_TODAY_STATUS in ('1','3' )
+            </if>
+            <if test="evaluNextDayStatus != null and evaluNextDayStatus != ''">
+                and a.EVALU_NEXTDAY_STATUS in ('1','3' )
+            </if>
+            <if test="subsidyStatus != null and subsidyStatus != ''">
+                and a.SUBSIDY_STATUS in ('1','3' )
+            </if>
+            <if test="evaluTodayStatus != null and evaluTodayStatus != ''">
+                order by b.today_count asc , a.CREATE_TIME asc
+            </if>
+            <if test="evaluNextDayStatus != null and evaluNextDayStatus != ''">
+                order by b.nextday_count asc , a.CREATE_TIME asc
+            </if>
+            limit 1
+        )
+            AND IMPLEMENT='Y'
+            <if test="evaluTodayStatus != null and evaluTodayStatus != ''">
+                and EVALU_TODAY_STATUS in ('1','3' )
+            </if>
+            <if test="evaluNextDayStatus != null and evaluNextDayStatus != ''">
+                and EVALU_NEXTDAY_STATUS in ('1','3' )
+            </if>
+            <if test="subsidyStatus != null and subsidyStatus != ''">
+                and SUBSIDY_STATUS in ('1','3' )
+            </if>
+        limit 5000
+
+    </select>
+
+    <update id="batchUpdateImplement" parameterType="com.xqxy.dr.modular.evaluation.entity.EvaluTask">
+        <foreach collection="evaluTaskList" item="item" index="index" open="" close="" separator=";">
+                update dr_evalu_task set IMPLEMENT= #{item.implement} where
+                event_id =#{item.eventId} and cons_id = #{item.consId}
+        </foreach>
+    </update>
+
+</mapper>

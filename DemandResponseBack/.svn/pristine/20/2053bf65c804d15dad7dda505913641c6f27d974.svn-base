@@ -1,0 +1,1478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.event.mapper.PlanConsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.event.entity.PlanCons">
+        <id column="partic_id" property="particId"/>
+        <result column="CONS_ID" property="consId"/>
+        <result column="PLAN_ID" property="planId"/>
+        <result column="baseline_cap_id" property="baselineCapId"/>
+        <result column="DEMAND_CAP" property="demandCap"/>
+        <result column="sequence_no" property="sequenceNo"/>
+        <result column="deleted" property="deleted"/>
+        <result column="del_rule" property="delRule"/>
+        <result column="join_user_type" property="joinUserType"/>
+        <result column="CONTRACT_CAP" property="contractCap"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+        <!--        <association property="consInfo" javaType="com.xqxy.sys.modular.cust.result.ConsResult">-->
+        <result column="cons_name" property="consName"/>
+        <result column="elec_addr" property="elecAddr"/>
+        <result column="big_trade_name" property="bigTradeName"/>
+        <result column="big_trade_code" property="bigTradeCode"/>
+        <result column="day_max_power" property="dayMaxPower"/>
+        <result column="contract_cap" property="contractCap"/>
+        <result column="run_cap" property="runCap"/>
+        <result column="org_name" property="orgName"/>
+        <result column="org_no" property="orgNo"/>
+        <result column="province_code" property="provinceCode"/>
+        <result column="city_code" property="cityCode"/>
+        <result column="county_code" property="countyCode"/>
+        <result column="first_contact_name" property="firstContactName"/>
+        <result column="first_contact_info" property="firstContactInfo"/>
+        <!--        </association>-->
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        partic_id
+        , CONS_ID, PLAN_ID, baseline_cap_id, DEMAND_CAP, sequence_no, deleted, del_rule, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="listWithEmptyBaseline" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT c.*
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons_baseline b ON c.baseline_cap_id = b.baseline_id
+        WHERE c.PLAN_ID = #{planId}
+          and b.avg_load_baseline is null
+    </select>
+    <select id="listWithCapLessThan" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT c.*
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons_baseline b ON c.baseline_cap_id = b.baseline_id
+        WHERE c.PLAN_ID = #{planId}
+          and b.avg_load_baseline <![CDATA[<= ]]> #{avgBaselineCap}
+    </select>
+    <select id="listLessThanDemandCap" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT *
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons_baseline b ON c.baseline_cap_id = b.baseline_id
+        WHERE c.PLAN_ID = #{planId}
+          and b.avg_load_baseline <![CDATA[<= ]]> c.DEMAND_CAP
+    </select>
+    <select id="listByProvinceCode" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT *
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where c.PLAN_ID = #{planId}
+          and con.PROVINCE_CODE = #{regulateRange}
+
+    </select>
+    <select id="listByCityCode" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT *
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where c.PLAN_ID = #{planId}
+          and con.city_code = #{regulateRange}
+    </select>
+
+    <select id="listByCountyCode" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT *
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where c.PLAN_ID = #{planId}
+          and con.COUNTY_CODE = #{regulateRange}
+    </select>
+
+    <select id="listByOrgNo" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT *
+        FROM dr_plan_cons c
+                 LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where c.PLAN_ID = #{planId}
+          and con.ORG_NO = #{regulateRange}
+    </select>
+    <select id="getSumCapByEventId" resultType="java.math.BigDecimal">
+        SELECT sum(demand_cap)
+        FROM dr_plan_cons
+        WHERE INVOLVED_IN = #{code}
+          AND PLAN_ID = #{planId}
+    </select>
+    <select id="pageConsMonitor" resultMap="BaseResultMap">
+        SELECT pla.*,
+               c.cons_name,
+               c.elec_addr,
+               c.big_trade_name,
+               c.big_trade_code,
+               c.day_max_power,
+               c.contract_cap,
+               c.run_cap,
+               c.org_name,
+               c.org_no,
+               c.province_code,
+               c.city_code,
+               c.county_code,
+               c.first_contact_name
+        FROM dr_plan_cons pla
+                 LEFT JOIN dr_cons c ON pla.cons_id = c.id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="getConsMonitor" resultType="com.xqxy.dr.modular.event.VO.PlanConsMonitorExportVO">
+        SELECT pla.cons_id as consId,
+               c.cons_name as consName,
+               c.org_no as orgNo,
+               c.first_contact_name as firstContactName,
+               c.first_contact_info as firstContactInfo,
+               pla.DEMAND_CAP as demandCap
+        FROM dr_plan_cons pla
+                 LEFT JOIN dr_cons c ON pla.cons_id = c.id
+            ${ew.customSqlSegment}
+    </select>
+
+    <select id="pageCustMonitor" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT pla.partic_id    as particId,
+               pla.CUST_ID      as custId,
+               pla.deleted      as deleted,
+               pla.CONTRACT_CAP as contractCap,
+               pla.del_rule     as delRule,
+               c.CREDIT_CODE    as creditCode,
+               c.legal_name     as legalName
+        FROM dr_plan_cust pla
+                 LEFT JOIN dr_cust c ON pla.cust_id = c.id
+            ${ew.customSqlSegment}
+    </select>
+    <select id="listByGovCode" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        *
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where
+        c.PLAN_ID = #{planId}
+        <if test="provinceList != null and provinceList.size > 0">
+            AND con.PROVINCE_CODE in
+            <foreach collection="provinceList" index="index" item="provinceCode" open="(" separator="," close=")">
+                #{provinceCode}
+            </foreach>
+        </if>
+        <if test="cityList != null and cityList.size > 0">
+            AND con.city_code in
+            <foreach collection="cityList" index="index" item="cityCode" open="(" separator="," close=")">
+                #{cityCode}
+            </foreach>
+        </if>
+        <if test="countyList != null and countyList.size > 0">
+            AND con.county_code in
+            <foreach collection="countyList" index="index" item="countyCode" open="(" separator="," close=")">
+                #{countyCode}
+            </foreach>
+        </if>
+    </select>
+    <select id="listByOrgNoList" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        *
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        where c.PLAN_ID = #{planId}
+        <if test="orgNoList != null and orgNoList.size > 0">
+            AND con.ORG_NO in
+            <foreach collection="orgNoList" index="index" item="orgNo" open="(" separator="," close=")">
+                #{orgNo}
+            </foreach>
+        </if>
+    </select>
+    <select id="listByConsIds" resultMap="BaseResultMap">
+        SELECT pla.*,
+               c.cons_name,
+               c.elec_addr,
+               c.big_trade_name,
+               c.big_trade_code,
+               c.day_max_power,
+               c.contract_cap,
+               c.run_cap,
+               c.org_name,
+               c.org_no,
+               c.province_code,
+               c.city_code,
+               c.county_code,
+               c.first_contact_name
+        FROM dr_plan_cons pla
+                 LEFT JOIN dr_cons c ON pla.cons_id = c.id
+            ${ew.customSqlSegment}
+    </select>
+    <select id="pageByDeleteRule" resultMap="BaseResultMap">
+        SELECT
+        c.*,
+        con.cons_name,
+        con.elec_addr,
+        con.big_trade_name,
+        con.big_trade_code,
+        con.day_max_power,
+        con.contract_cap,
+        con.run_cap,
+        con.org_name,
+        con.org_no,
+        con.province_code,
+        con.city_code,
+        con.county_code,
+        con.first_contact_name
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        LEFT JOIN dr_cons_baseline b ON c.baseline_cap_id = b.baseline_id
+        WHERE
+        c.PLAN_ID = #{deleteRuleParam.planId} and c.deleted = #{deleteRuleParam.deleted} and ( 1 = 2
+        <if test="deleteRuleParam.baselineEmpty != null and deleteRuleParam.baselineEmpty == '01'">
+            or b.avg_load_baseline is null
+        </if>
+        <if test="deleteRuleParam.lessThanTen != null and deleteRuleParam.lessThanTen == '02'">
+            or b.avg_load_baseline <![CDATA[<= ]]> 10
+        </if>
+        <if test="deleteRuleParam.lessThanReplycap != null and deleteRuleParam.lessThanReplycap == '03'">
+            or b.avg_load_baseline <![CDATA[<= ]]> c.DEMAND_CAP
+        </if>
+        <if test="deleteRuleParam.provinceList != null and deleteRuleParam.provinceList.size > 0">
+            or con.PROVINCE_CODE in
+            <foreach collection="deleteRuleParam.provinceList" index="index" item="provinceCode" open="(" separator=","
+                     close=")">
+                #{provinceCode}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.cityList != null and deleteRuleParam.cityList.size > 0">
+            or con.city_code in
+            <foreach collection="deleteRuleParam.cityList" index="index" item="cityCode" open="(" separator=","
+                     close=")">
+                #{cityCode}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.countyList != null and deleteRuleParam.countyList.size > 0">
+            or con.county_code in
+            <foreach collection="deleteRuleParam.countyList" index="index" item="countyCode" open="(" separator=","
+                     close=")">
+                #{countyCode}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.regulateRangeList != null and deleteRuleParam.regulateRangeList.size > 0">
+            or con.ORG_NO in
+            <foreach collection="deleteRuleParam.regulateRangeList" index="index" item="orgNo" open="(" separator=","
+                     close=")">
+                #{orgNo}
+            </foreach>
+        </if>
+        )
+    </select>
+
+
+    <select id="pageConfirmed" resultMap="BaseResultMap">
+        SELECT
+        c.*,
+        con.cons_name,
+        con.elec_addr,
+        con.big_trade_name,
+        con.big_trade_code,
+        con.day_max_power,
+        con.contract_cap,
+        con.run_cap,
+        con.org_name,
+        con.org_no,
+        con.province_code,
+        con.city_code,
+        con.county_code,
+        con.first_contact_name
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        LEFT JOIN dr_cons_baseline b ON c.baseline_cap_id = b.baseline_id
+        WHERE
+        c.PLAN_ID = #{deleteRuleParam.planId} and c.deleted = #{deleteRuleParam.deleted}
+        <if test="deleteRuleParam.delRuleList != null and deleteRuleParam.delRuleList.size > 0">
+            and c.del_rule in
+            <foreach collection="deleteRuleParam.delRuleList" index="index" item="delRule" open="(" separator=","
+                     close=")">
+                #{delRule}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="consDeleteList" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        c.partic_id as particId,
+        c.CONS_ID as consId,
+        c.deleted as deleted,
+        c.CONTRACT_CAP as contractCap,
+        c.del_rule as delRule,
+        con.cons_name as consName,
+        con.org_name as orgName,
+        con.org_no as orgNo
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        LEFT JOIN (select baseline_id,avg_load_baseline
+        from dr_cons_baseline where baseline_lib_id in (select BASELIN_ID
+        from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})) baseline
+        on baseline.baseline_id = c.baseline_cap_id
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        <if test="deleteRuleParam.consName != null and deleteRuleParam.consName != '' ">
+            and con.cons_name like CONCAT('%',#{deleteRuleParam.consName},'%')
+        </if>
+        <if test="deleteRuleParam.consId != null and deleteRuleParam.consId != '' ">
+            and c.CONS_ID like CONCAT('%',#{deleteRuleParam.consId},'%')
+        </if>
+        <if test="deleteRuleParam.orgName != null and deleteRuleParam.orgName != '' ">
+            and con.org_name like CONCAT('%',#{deleteRuleParam.orgName},'%')
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "01" '>
+            and (c.baseline_cap_id=-5 or c.baseline_cap_id is null)
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "02" '>
+            and baseline.avg_load_baseline &lt; 10
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "03" '>
+            and baseline.avg_load_baseline &lt; c.DEMAND_CAP
+        </if>
+
+    </select>
+
+    <select id="consDeleteIdList" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        c.partic_id as particId,
+        c.CONS_ID as consId
+        FROM
+        dr_plan_cons c
+        LEFT JOIN dr_cons con ON c.CONS_ID = con.id
+        LEFT JOIN (select baseline_id,avg_load_baseline
+        from dr_cons_baseline where baseline_lib_id in (select BASELIN_ID
+        from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})) baseline
+        on baseline.baseline_id = c.baseline_cap_id
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        <if test="deleteRuleParam.consName != null and deleteRuleParam.consName != '' ">
+            and con.cons_name like CONCAT('%',#{deleteRuleParam.consName},'%')
+        </if>
+        <if test="deleteRuleParam.consId != null and deleteRuleParam.consId != '' ">
+            and c.CONS_ID like CONCAT('%',#{deleteRuleParam.consId},'%')
+        </if>
+        <if test="deleteRuleParam.orgName != null and deleteRuleParam.orgName != '' ">
+            and con.org_name like CONCAT('%',#{deleteRuleParam.orgName},'%')
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "01" '>
+            and (c.baseline_cap_id=-5 or c.baseline_cap_id is null)
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "02" '>
+            and baseline.avg_load_baseline &lt; 10
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "03" '>
+            and baseline.avg_load_baseline &lt; c.DEMAND_CAP
+        </if>
+
+    </select>
+
+    <select id="custDeleteList" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT
+        c.partic_id as particId,
+        c.CUST_ID as custId,
+        c.deleted as deleted,
+        c.CONTRACT_CAP as contractCap,
+        c.del_rule as delRule,
+        con.CREDIT_CODE as creditCode,
+        con.legal_name as legalName
+        FROM
+        dr_plan_cust c
+        LEFT JOIN dr_cust con ON c.CUST_ID = con.id
+        LEFT JOIN (select baseline_id,avg_load_baseline
+        from dr_cust_baseline where baseline_lib_id in (select BASELIN_ID
+        from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})) baseline
+        on baseline.baseline_id = c.baseline_cap_id
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        and c.integrator='1'
+        <if test="deleteRuleParam.custName != null and deleteRuleParam.custName != '' ">
+            and con.legal_name like CONCAT('%',#{deleteRuleParam.custName},'%')
+        </if>
+        <if test="deleteRuleParam.custId != null and deleteRuleParam.custId != '' ">
+            and c.CUST_ID like CONCAT('%',#{deleteRuleParam.custId},'%')
+        </if>
+        <if test="deleteRuleParam.creditCode != null and deleteRuleParam.creditCode != '' ">
+            and con.CREDIT_CODE like CONCAT('%',#{deleteRuleParam.creditCode},'%')
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "01" '>
+            and (c.baseline_cap_id=-5 or c.baseline_cap_id is null)
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "02" '>
+            and baseline.avg_load_baseline &lt; 10
+        </if>
+        <if test='deleteRuleParam.delRule != null and deleteRuleParam.delRule == "03" '>
+            and baseline.avg_load_baseline &lt; c.DEMAND_CAP
+        </if>
+
+    </select>
+
+    <select id="getConsExecuteList" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        c.partic_id as particId,
+        c.CONS_ID as consId,
+        c.IMPLEMENT as deleted,
+        c.del_rule as delRule,
+        con.cons_name as consName,
+        con.org_name as orgName,
+        con.org_no as orgNo,
+        ci.reply_time as replyTime,
+        c.DEMAND_CAP as demandCap,
+        d.avgBaseline
+        FROM
+        dr_plan_cons c
+        LEFT JOIN (SELECT id,CONS_NAME,ORG_NAME,ORG_NO from dr_cons) con ON c.CONS_ID = con.id
+        LEFT JOIN (SELECT CONS_ID , reply_time from dr_cons_invitation where event_id=#{deleteRuleParam.eventId}) ci ON
+        ci.CONS_ID = c.CONS_ID
+        LEFT JOIN (SELECT a.avg_load_baseline as avgBaseline,a.cons_id from dr_cons_baseline a left join dr_plan b on
+        a.baseline_lib_id
+        =b.BASELIN_ID where b.REGULATE_ID = #{deleteRuleParam.eventId})d on d.cons_id=c.CONS_ID
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        and c.INVOLVED_IN='Y'
+        <if test="deleteRuleParam.consName != null and deleteRuleParam.consName != '' ">
+            and con.cons_name like CONCAT('%',#{deleteRuleParam.consName},'%')
+        </if>
+        <if test="deleteRuleParam.consId != null and deleteRuleParam.consId != '' ">
+            and c.CONS_ID like CONCAT('%',#{deleteRuleParam.consId},'%')
+        </if>
+        <if test="deleteRuleParam.orgName != null and deleteRuleParam.orgName != '' ">
+            and con.org_name like CONCAT('%',#{deleteRuleParam.orgName},'%')
+        </if>
+        <if test="deleteRuleParam.orgs != null and deleteRuleParam.orgs.size > 0">
+            and con.org_no in
+            <foreach collection="deleteRuleParam.orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.deleted != null and deleteRuleParam.deleted != '' ">
+            and c.IMPLEMENT = #{deleteRuleParam.deleted}
+        </if>
+        <if test="deleteRuleParam.joinUserType != null and deleteRuleParam.joinUserType != '' ">
+            and c.join_user_type = #{deleteRuleParam.joinUserType}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'avgBaseline' ">
+            order by d.avgBaseline ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'demandCap' ">
+            order by c.DEMAND_CAP ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'replyTime' ">
+            order by ci.reply_time ${deleteRuleParam.order}
+        </if>
+    </select>
+
+    <select id="exportConsExecuteList" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT
+        c.partic_id as particId,
+        c.CONS_ID as consId,
+        CASE c.IMPLEMENT
+        WHEN 'Y' THEN
+        '是'
+        ELSE
+        '否'
+        END as deleted,
+        c.del_rule as delRule,
+        con.cons_name as consName,
+        con.org_name as orgName,
+        con.org_no as orgNo,
+        ci.reply_time as replyTime,
+        c.DEMAND_CAP as demandCap,
+        d.avgBaseline
+        FROM
+        dr_plan_cons c
+        LEFT JOIN (SELECT id,CONS_NAME,ORG_NAME,ORG_NO from dr_cons) con ON c.CONS_ID = con.id
+        LEFT JOIN (SELECT CONS_ID , reply_time from dr_cons_invitation where event_id=#{deleteRuleParam.eventId}) ci ON
+        ci.CONS_ID = c.CONS_ID
+        LEFT JOIN (SELECT a.avg_load_baseline as avgBaseline,a.cons_id from dr_cons_baseline a left join dr_plan b on
+        a.baseline_lib_id
+        =b.BASELIN_ID where b.REGULATE_ID = #{deleteRuleParam.eventId})d on d.cons_id=c.CONS_ID
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        and c.INVOLVED_IN='Y'
+        <if test="deleteRuleParam.consName != null and deleteRuleParam.consName != '' ">
+            and con.cons_name like CONCAT('%',#{deleteRuleParam.consName},'%')
+        </if>
+        <if test="deleteRuleParam.consId != null and deleteRuleParam.consId != '' ">
+            and c.CONS_ID like CONCAT('%',#{deleteRuleParam.consId},'%')
+        </if>
+        <if test="deleteRuleParam.orgName != null and deleteRuleParam.orgName != '' ">
+            and con.org_name like CONCAT('%',#{deleteRuleParam.orgName},'%')
+        </if>
+        <if test="deleteRuleParam.orgs != null and deleteRuleParam.orgs.size > 0">
+            and con.org_no in
+            <foreach collection="deleteRuleParam.orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.deleted != null and deleteRuleParam.deleted != '' ">
+            and c.IMPLEMENT = #{deleteRuleParam.deleted}
+        </if>
+        <if test="deleteRuleParam.joinUserType != null and deleteRuleParam.joinUserType != '' ">
+            and c.join_user_type = #{deleteRuleParam.joinUserType}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'avgBaseline' ">
+            order by d.avgBaseline ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'demandCap' ">
+            order by c.DEMAND_CAP ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'replyTime' ">
+            order by ci.reply_time ${deleteRuleParam.order}
+        </if>
+    </select>
+
+    <select id="getCustExecuteList" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT
+        c.partic_id as particId,
+        c.CUST_ID as custId,
+        c.IMPLEMENT as deleted,
+        con.CREDIT_CODE as creditCode,
+        c.del_rule as delRule,
+        con.legal_name as legalName,
+        ci.reply_time as replyTime,
+        c.DEMAND_CAP as demandCap,
+        d.avgBaseline
+        FROM
+        dr_plan_cust c
+        LEFT JOIN (SELECT id,legal_name,CREDIT_CODE from dr_cust) con ON c.CUST_ID = con.id
+        LEFT JOIN (SELECT CUST_ID , reply_time from dr_cust_invitation where event_id=#{deleteRuleParam.eventId}) ci ON
+        ci.CUST_ID = c.CUST_ID
+        LEFT JOIN (SELECT a.avg_load_baseline as avgBaseline,a.cust_id from dr_cust_baseline a left join dr_plan b on
+        a.baseline_lib_id
+        =b.BASELIN_ID where b.REGULATE_ID = #{deleteRuleParam.eventId})d on d.cust_id = c.CUST_ID
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        and c.INVOLVED_IN='Y' and c.integrator=1
+        <if test="deleteRuleParam.custName != null and deleteRuleParam.custName != '' ">
+            and con.legal_name like CONCAT('%',#{deleteRuleParam.custName},'%')
+        </if>
+        <if test="deleteRuleParam.custId != null and deleteRuleParam.custId != '' ">
+            and c.CUST_ID like CONCAT('%',#{deleteRuleParam.custId},'%')
+        </if>
+        <if test="deleteRuleParam.deleted != null and deleteRuleParam.deleted != '' ">
+            and c.IMPLEMENT = #{deleteRuleParam.deleted}
+        </if>
+        <if test="deleteRuleParam.creditCode != null and deleteRuleParam.creditCode != '' ">
+            and con.CREDIT_CODE like CONCAT('%',#{deleteRuleParam.creditCode},'%')
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'avgBaseline' ">
+            order by d.avgBaseline ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'demandCap' ">
+            order by c.DEMAND_CAP ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'replyTime' ">
+            order by ci.reply_time ${deleteRuleParam.order}
+        </if>
+    </select>
+
+    <select id="exportCustExecuteList" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT
+        c.partic_id as particId,
+        c.CUST_ID as custId,
+        CASE c.IMPLEMENT
+        WHEN 'Y' THEN
+        '是'
+        ELSE
+        '否'
+        END as deleted,
+        con.CREDIT_CODE as creditCode,
+        c.del_rule as delRule,
+        con.legal_name as legalName,
+        ci.reply_time as replyTime,
+        c.DEMAND_CAP as demandCap,
+        d.avgBaseline
+        FROM
+        dr_plan_cust c
+        LEFT JOIN (SELECT id,legal_name,CREDIT_CODE from dr_cust) con ON c.CUST_ID = con.id
+        LEFT JOIN (SELECT CUST_ID , reply_time from dr_cust_invitation where event_id=#{deleteRuleParam.eventId}) ci ON
+        ci.CUST_ID = c.CUST_ID
+        LEFT JOIN (SELECT a.avg_load_baseline as avgBaseline,a.cust_id from dr_cust_baseline a left join dr_plan b on
+        a.baseline_lib_id
+        =b.BASELIN_ID where b.REGULATE_ID = #{deleteRuleParam.eventId})d on d.cust_id = c.CUST_ID
+        WHERE
+        c.PLAN_ID = (select plan_id from dr_plan where REGULATE_ID = #{deleteRuleParam.eventId})
+        and c.INVOLVED_IN='Y' and c.integrator=1
+        <if test="deleteRuleParam.custName != null and deleteRuleParam.custName != '' ">
+            and con.legal_name like CONCAT('%',#{deleteRuleParam.custName},'%')
+        </if>
+        <if test="deleteRuleParam.custId != null and deleteRuleParam.custId != '' ">
+            and c.CUST_ID like CONCAT('%',#{deleteRuleParam.custId},'%')
+        </if>
+        <if test="deleteRuleParam.deleted != null and deleteRuleParam.deleted != '' ">
+            and c.IMPLEMENT = #{deleteRuleParam.deleted}
+        </if>
+        <if test="deleteRuleParam.creditCode != null and deleteRuleParam.creditCode != '' ">
+            and con.CREDIT_CODE like CONCAT('%',#{deleteRuleParam.creditCode},'%')
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'avgBaseline' ">
+            order by d.avgBaseline ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'demandCap' ">
+            order by c.DEMAND_CAP ${deleteRuleParam.order}
+        </if>
+        <if test="deleteRuleParam.sortColumn == 'replyTime' ">
+            order by ci.reply_time ${deleteRuleParam.order}
+        </if>
+    </select>
+
+
+    <select id="queryExecuteCust" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam"
+            resultType="com.xqxy.dr.modular.event.result.EventConsOrCustResult">
+        SELECT a.legal_name AS name,
+               b.DEMAND_CAP AS demandCap,
+               c.reply_time AS replyTime
+        FROM dr_cust a
+                 LEFT JOIN dr_plan_cust b ON a.id = b.CUST_ID
+                 LEFT JOIN dr_cust_invitation c ON c.CUST_ID = a.id
+        WHERE b.IMPLEMENT = 'Y'
+          and c.EVENT_ID = #{planConsParam.eventId}
+          and c.integrator = '1'
+          and b.PLAN_ID in (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{planConsParam.eventId})
+    </select>
+
+    <select id="queryExecuteCons" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam"
+            resultType="com.xqxy.dr.modular.event.result.EventConsOrCustResult">
+        SELECT a.cons_name  AS name,
+               b.DEMAND_CAP AS demandCap,
+               c.reply_time AS replyTime
+        FROM dr_cons a
+                 LEFT JOIN dr_plan_cons b ON a.id = b.cons_ID
+                 LEFT JOIN dr_cons_invitation c ON c.cons_id = a.id
+        WHERE b.IMPLEMENT = 'Y'
+          and c.EVENT_ID = #{planConsParam.eventId}
+          and b.PLAN_ID in (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{planConsParam.eventId})
+    </select>
+
+    <select id="queryExecutePlanTotal" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam"
+            resultType="com.xqxy.dr.modular.event.result.ExecutePlanTotal">
+        SELECT a.count AS count,
+	a.total - b.total - c.total AS dirTotal,
+	b.total + c.total AS intTotal,
+	a.total AS total
+        FROM
+            (
+            SELECT
+            1 AS id,
+            IFNULL( sum ( b.DEMAND_CAP ), 0 ) AS total,
+            count ( a.cons_name ) AS count
+            FROM
+            dr_cons a
+            LEFT JOIN dr_plan_cons b ON a.id = b.cons_ID
+            LEFT JOIN dr_cons_invitation c ON c.cons_id = a.id
+            WHERE
+            b.IMPLEMENT = 'Y'
+            AND c.EVENT_ID = #{eventId}
+            AND b.PLAN_ID IN ( SELECT PLAN_ID FROM dr_plan WHERE REGULATE_ID = #{eventId} )
+            ) a
+            LEFT JOIN (
+            SELECT
+            1 AS id,
+            IFNULL( sum ( b.DEMAND_CAP ), 0 ) AS total,
+            count ( a.cons_name ) AS count
+            FROM
+            dr_cons a
+            LEFT JOIN dr_plan_cons b ON a.id = b.cons_ID
+            LEFT JOIN dr_cust_invitation d ON d.CUST_ID = a.CUST_ID
+            LEFT JOIN dr_cons_invitation c ON c.cons_id = a.id
+            WHERE
+            b.IMPLEMENT = 'Y'
+            AND c.EVENT_ID = #{eventId}
+            AND d.EVENT_ID = #{eventId}
+            AND d.integrator = '1'
+            AND b.PLAN_ID IN ( SELECT PLAN_ID FROM dr_plan WHERE REGULATE_ID = #{eventId} )
+            ) b
+        ON a.id = b.id
+            LEFT JOIN (
+            SELECT
+            1 AS id,
+            IFNULL( sum ( b.DEMAND_CAP ), 0 ) AS total,
+            count ( a.cons_no ) AS count
+            FROM
+            dr_user_cons_rela a
+            LEFT JOIN dr_plan_cons b ON a.cons_no = b.cons_ID
+            LEFT JOIN dr_cust_invitation d ON d.CUST_ID = a.CUST_ID
+            LEFT JOIN dr_cons_invitation c ON c.cons_id = a.cons_no
+            WHERE
+            b.IMPLEMENT = 'Y'
+            AND c.EVENT_ID = #{eventId}
+            AND d.EVENT_ID = #{eventId}
+            AND b.PLAN_ID IN ( SELECT PLAN_ID FROM dr_plan WHERE REGULATE_ID = #{eventId} )
+            AND d.integrator = '1'
+            ) c ON c.id = a.id
+    </select>
+
+    <select id="getExecuteAllCons" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam"
+            resultType="com.xqxy.dr.modular.event.result.EventConsOrCustResult">
+        SELECT b.partic_id                       as id,
+               a.id                              as consId,
+               a.cons_name                       AS name,
+               IFNULL(b.DEMAND_CAP, 0)           AS demandCap,
+               c.reply_time                      AS replyTime,
+               IFNULL(d.REGULATE_CAP * 10000, 0) AS regulateCap
+        FROM dr_cons a
+                 LEFT JOIN dr_plan_cons b ON a.id = b.cons_ID
+                 LEFT JOIN dr_cons_invitation c ON c.cons_id = a.id
+                 LEFT JOIN dr_event d ON d.EVENT_ID = c.EVENT_ID
+        WHERE b.INVOLVED_IN = 'Y'
+          AND c.EVENT_ID = #{eventId}
+          AND c.reply_time IS NOT NULL
+          AND b.PLAN_ID = (SELECT PLAN_ID
+                           FROM dr_plan
+                           WHERE REGULATE_ID = #{eventId})
+        ORDER BY c.reply_time ASC,
+                 b.DEMAND_CAP DESC
+    </select>
+
+    <select id="getExecuteAllCust" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam"
+            resultType="com.xqxy.dr.modular.event.result.EventConsOrCustResult">
+        SELECT b.partic_id as id,
+               a.CUST_ID   as custId
+        FROM dr_cons a
+                 LEFT JOIN dr_plan_cust b ON a.CUST_ID = b.CUST_ID
+                 LEFT JOIN dr_plan_cons c on c.CONS_ID = a.id
+        where b.PLAN_ID in (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{eventId})
+          and c.IMPLEMENT = 'Y'
+        union
+        SELECT b.partic_id as id,
+               a.CUST_ID   as custId
+        FROM dr_user_cons_rela a
+                 LEFT JOIN dr_plan_cust b ON a.CUST_ID = b.CUST_ID
+                 LEFT JOIN dr_plan_cons c on c.CONS_ID = a.cons_no
+        where b.PLAN_ID in (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{eventId})
+          and c.IMPLEMENT = 'Y'
+    </select>
+
+    <update id="updatePlanCustByPlan" parameterType="com.xqxy.dr.modular.event.param.ExecutePlanConsParam">
+        update dr_plan_cust
+        set IMPLEMENT='N'
+        where PLAN_ID in (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{eventId})
+    </update>
+
+    <select id="getConsMessageList" resultType="com.xqxy.dr.modular.event.entity.ConsMessage">
+        SELECT
+        a.id,
+        a.phone_numbers as phone,
+        a.user_no as consId,
+        con.cons_name as consName,
+        con.org_name as orgName,
+        a.content as content,
+        a.status as state,
+        a.update_time as updateLatsTime
+        FROM
+        dr_sys_sms_send a
+        LEFT JOIN ( SELECT id,cons_name,org_name,org_no FROM dr_cons ) con on a.user_no = con.id
+        where a.business_rela = #{deleteRuleParam.eventId} and a.business_code = #{deleteRuleParam.businessCode}
+        <if test="deleteRuleParam.consName != null and deleteRuleParam.consName != '' ">
+            and con.cons_name like CONCAT('%',#{deleteRuleParam.consName},'%')
+        </if>
+        <if test="deleteRuleParam.consId != null and deleteRuleParam.consId != '' ">
+            and a.user_no like CONCAT('%',#{deleteRuleParam.consId},'%')
+        </if>
+        <if test="deleteRuleParam.orgName != null and deleteRuleParam.orgName != '' ">
+            and con.org_name like CONCAT('%',#{deleteRuleParam.orgName},'%')
+        </if>
+        <if test="deleteRuleParam.phone != null and deleteRuleParam.phone != '' ">
+            and a.phone_numbers like CONCAT('%',#{deleteRuleParam.phone},'%')
+        </if>
+        <if test="deleteRuleParam.state != null and deleteRuleParam.state != '' ">
+            and a.status = #{deleteRuleParam.state}
+        </if>
+        <if test="deleteRuleParam.orgs != null and deleteRuleParam.orgs.size > 0">
+            and con.org_no in
+            <foreach collection="deleteRuleParam.orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.joinUserTypes != null and deleteRuleParam.joinUserTypes.size > 0">
+            and a.join_user_type in
+            <foreach collection="deleteRuleParam.joinUserTypes" index="index" item="joinUserType" open="(" separator=","
+                     close=")">
+                #{joinUserType}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getCustMessageList" resultType="com.xqxy.dr.modular.event.entity.CustMessage">
+        SELECT
+        a.id,
+        a.phone_numbers as phone,
+        a.user_no as custId,
+        a.user_name as custName,
+        a.user_no as creditCode,
+        a.content as content,
+        a.status as state,
+        a.create_time as updateLatsTime
+        FROM
+        dr_sys_sms_send a
+        LEFT JOIN ( SELECT id,cons_name,org_name,org_no FROM dr_cons ) con on a.user_no = con.id
+        where a.business_rela = #{deleteRuleParam.eventId} and a.business_code = #{deleteRuleParam.businessCode}
+        <if test="deleteRuleParam.custName != null and deleteRuleParam.custName != '' ">
+            and a.user_name like CONCAT('%',#{deleteRuleParam.custName},'%')
+        </if>
+        <if test="deleteRuleParam.creditCode != null and deleteRuleParam.creditCode != '' ">
+            and a.user_no like CONCAT('%',#{deleteRuleParam.creditCode},'%')
+        </if>
+        <if test="deleteRuleParam.phone != null and deleteRuleParam.phone != '' ">
+            and a.phone_numbers like CONCAT('%',#{deleteRuleParam.phone},'%')
+        </if>
+        <if test="deleteRuleParam.state != null and deleteRuleParam.state != '' ">
+            and a.status = #{deleteRuleParam.state}
+        </if>
+        <if test="deleteRuleParam.orgs != null and deleteRuleParam.orgs.size > 0">
+            and con.org_no in
+            <foreach collection="deleteRuleParam.orgs" index="index" item="org" open="(" separator="," close=")">
+                #{org}
+            </foreach>
+        </if>
+        <if test="deleteRuleParam.joinUserTypes != null and deleteRuleParam.joinUserTypes.size > 0">
+            and a.join_user_type in
+            <foreach collection="deleteRuleParam.joinUserTypes" index="index" item="joinUserType" open="(" separator=","
+                     close=")">
+                #{joinUserType}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getExecuteStatistic" resultType="com.xqxy.dr.modular.event.entity.ConsExecuteStatistic"
+            parameterType="com.xqxy.dr.modular.event.param.PlanParam">
+        SELECT a.count,
+               b.consCount,
+               c.custCount,
+               d.targetCap,
+               e.consCap,
+               f.custCap
+        FROM (SELECT count(*) AS count FROM dr_plan_cons WHERE PLAN_ID = #{planId} and deleted='N' and INVOLVED_IN='Y') a,
+             (SELECT count(*) AS consCount FROM dr_plan_cons WHERE join_user_type = '1' AND PLAN_ID = #{planId} and deleted = 'N' and INVOLVED_IN = 'Y') b,
+             (SELECT count(*) AS custCount FROM dr_plan_cust WHERE PLAN_ID = #{planId} and deleted = 'N' and INVOLVED_IN = 'Y' and integrator = '1') c,
+             (SELECT IFNULL(REGULATE_CAP, 0) / 10000 AS targetCap FROM dr_plan WHERE PLAN_ID = #{planId}) d,
+             (SELECT IFNULL(sum(DEMAND_CAP), 0) / 10000 AS consCap
+              FROM dr_plan_cons
+              WHERE join_user_type = '1'
+                AND PLAN_ID = #{planId}
+                and deleted = 'N'
+                and INVOLVED_IN = 'Y') e,
+             (SELECT IFNULL(sum(DEMAND_CAP), 0) / 10000 AS custCap
+              FROM dr_plan_cust
+              WHERE PLAN_ID = #{planId}
+                and deleted = 'N'
+                and INVOLVED_IN = 'Y'
+                and integrator = '1') f
+
+    </select>
+
+    <select id="getPlanNoDe" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT partic_id as particId,CONS_ID as consId ,plan_id as planId from dr_plan_cons where deleted='N'
+        and PLAN_ID in(SELECT PLAN_ID from dr_plan
+        where 1=1
+        <if test="eventIds != null and eventIds.size>0">
+            and REGULATE_ID in
+            <foreach collection="eventIds" item="eventId" index="index" open="(" close=")" separator=",">
+                #{eventId}
+            </foreach>
+        </if>
+        )
+    </select>
+
+    <select id="getEventConsList" resultType="com.xqxy.dr.modular.event.result.EventUserConsPlanListResult">
+        SELECT
+        c.ID as consCode, c.CONS_NAME as consName, ce.reply_cap as replyCap, ce.avg_load_baseline as avgLoadBaseline,
+        ce.max_load_baseline as maxLoadBaseline
+        FROM
+        dr_plan_cons ps
+        LEFT JOIN dr_plan p ON p.PLAN_ID = ps.PLAN_ID
+        left join dr_cons_evaluation ce on ce.event_id = p.REGULATE_ID and ce.cons_id = ps.CONS_ID
+        left join dr_cons c on c.ID = ps.CONS_ID
+        <where>
+            p.REGULATE_ID = #{eventId}
+            <choose>
+                <when test="consIds != null and consIds.size > 0">
+                    and ps.CONS_ID in
+                    <foreach collection="consIds" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+                <otherwise>
+                    and 1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="getMyResponsePage" resultType="com.xqxy.dr.modular.event.entity.Event">
+        SELECT
+        de.*,
+        dcv.is_participate invitationStatus,
+        dci.partic_id invitationId,
+        dci.cons_id consId,
+        dc.cons_name consName,
+        dcv.deadline_time deadlineTime,
+        dsa.evaluation_id
+        FROM
+        dr_plan_cons dci
+        LEFT JOIN dr_plan p on p.plan_id = dci.plan_id
+        LEFT JOIN dr_event de ON p.REGULATE_ID = de.event_id
+        LEFT JOIN dr_cons dc ON dci.cons_id = dc.id
+        LEFT JOIN dr_cons_invitation dcv on dcv.CONS_ID = dci.CONS_ID
+        and dcv.EVENT_ID = p.REGULATE_ID
+        left join dr_cons_evaluation dsa on dsa.event_id=de.EVENT_ID and dsa.cons_id = dci.cons_id
+        WHERE de.event_id is not null and de.event_status in ('03','06','04') and dci.deleted='N'
+        <if test="consInvitationParam.responseType != null and consInvitationParam.responseType != ''">
+            AND de.response_type = #{responseType}
+        </if>
+        <if test="consInvitationParam.invitationStatus != null and consInvitationParam.invitationStatus != ''  and consInvitationParam.invitationStatus eq 'Y'.toString()">
+            AND dci.INVOLVED_IN = #{consInvitationParam.invitationStatus}
+        </if>
+        <if test="consInvitationParam.invitationStatus != null and consInvitationParam.invitationStatus != '' and consInvitationParam.invitationStatus eq 'N'.toString()">
+            AND dci.INVOLVED_IN is null
+        </if>
+        <if test="consInvitationParam.consIdList!= null and consInvitationParam.consIdList.size()>0 ">
+            AND dci.cons_id IN
+            <foreach item='item' index='index' collection='consInvitationParam.consIdList' open='(' separator=','
+                     close=')'>
+                #{item}
+            </foreach>
+        </if>
+        <if test="consInvitationParam.consId != null and consInvitationParam.consId != ''">
+            AND dci.cons_id like CONCAT('%', #{consInvitationParam.consId}, '%')
+        </if>
+        <if test="consInvitationParam.eventNo != null and consInvitationParam.eventNo != ''">
+            AND de.event_no like CONCAT('%', #{consInvitationParam.eventNo}, '%')
+        </if>
+        <if test="consInvitationParam.consName != null and consInvitationParam.consName != ''">
+            AND dc.cons_name like CONCAT('%', #{consInvitationParam.consName}, '%')
+        </if>
+        <if test="consInvitationParam.regulateDate != null and consInvitationParam.regulateDate != ''">
+            AND de.regulate_date = #{consInvitationParam.regulateDate}
+        </if>
+        ORDER BY dci.create_time DESC, de.REGULATE_DATE DESC
+    </select>
+
+    <select id="getMyRepresentationPage" resultType="com.xqxy.dr.modular.event.entity.Event">
+        SELECT
+        dsa.event_id,
+        de.REGULATE_CAP,
+        de.RANGE_TYPE,
+        de.REGULATE_RANGE,
+        dc.cons_name consName,
+        dsa.id as drSubsidyAppealId,
+        dsa.status,
+        dsa.create_time,
+        dsa.status_city,
+        dsa.status_province,
+        dsa.status_energy,
+        dsa.submit_city_time,
+        dsa.submit_province_time,
+        dsa.submit_energy_time,
+        de.EVENT_NAME,
+        dsa.cons_id as consId,
+        dsa.evaluation_id,
+        de.EVENT_NO,
+        dsa.create_time submitUserTime
+        FROM
+        dr_subsidy_appeal dsa
+        LEFT JOIN dr_event de ON dsa.event_id=de.EVENT_ID
+        LEFT JOIN dr_cons dc ON dsa.cons_id = dc.id
+        WHERE de.event_id is not null and de.event_status in ('03','06','04')
+        <!--不同页面根据审批状态设置查询条件-->
+        <!--用户侧-->
+        <!--<if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='user'.toString()">
+            AND dsa.status &gt; 1
+        </if>-->
+        <!--省侧-->
+        <if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='province'.toString()">
+            AND dsa.status_province is not null and dsa.status_city not in ('3','4') and dsa.status_province !='9'
+        </if>
+        <!--能源局侧-->
+        <if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='energy'.toString()">
+            AND dsa.status_energy is not null and dsa.status_energy !='9'
+        </if>
+
+
+        <if test="consInvitationParam.responseType != null and consInvitationParam.responseType != ''">
+            AND de.response_type = #{responseType}
+        </if>
+
+        <if test="consInvitationParam.consIdList!= null and consInvitationParam.consIdList.size()>0 ">
+            AND dsa.cons_id IN
+            <foreach item='item' index='index' collection='consInvitationParam.consIdList' open='(' separator=','
+                     close=')'>
+                #{item}
+            </foreach>
+        </if>
+        <if test="consInvitationParam.consId != null and consInvitationParam.consId != ''">
+            AND dsa.cons_id like CONCAT('%', #{consInvitationParam.consId}, '%')
+        </if>
+        <if test="consInvitationParam.eventNo != null and consInvitationParam.eventNo != ''">
+            AND de.event_no like CONCAT('%', #{consInvitationParam.eventNo}, '%')
+        </if>
+        <if test="consInvitationParam.consName != null and consInvitationParam.consName != ''">
+            AND dc.cons_name like CONCAT('%', #{consInvitationParam.consName}, '%')
+        </if>
+        <if test="consInvitationParam.regulateDate != null and consInvitationParam.regulateDate != ''">
+            AND de.regulate_date = #{consInvitationParam.regulateDate}
+        </if>
+        <if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='user'.toString()">
+            ORDER BY dsa.create_time DESC
+        </if>
+        <if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='province'.toString()">
+            ORDER BY dsa.submit_city_time DESC
+        </if>
+        <if test="consInvitationParam.distinguish != null and consInvitationParam.distinguish != '' and consInvitationParam.distinguish=='energy'.toString()">
+            ORDER BY dsa.submit_province_time DESC
+        </if>
+    </select>
+
+
+    <select id="getMyRepresentationById" resultType="com.xqxy.dr.modular.evaluation.entity.ConsEvaluationAppeal">
+        SELECT
+        t1.appeal_reason as appealReason,
+        t1.file_ids as filIeds,
+        t1.check_ids as checkIds,
+        t1.cons_id as consId,
+        t1.event_id as eventId,
+        t1.check_name checkName,
+        t1.files_name filesName,
+        t1.examine_suggestion_city,
+        t1.examine_suggestion_province,
+        t1.examine_suggestion_energy,
+        t1.create_time,
+        t1.remark,
+        de.EVENT_NO,
+        de.EVENT_NAME,
+        dc.CONS_NAME,
+        dc.first_contact_info,
+        t2.confirm_cap confirmCapOldTable,
+        t2.is_effective isEffectiveOldTable,
+        t2.invitation_cap invitationCapOldTable,
+        t1.status,
+        t1.status_city,
+        t1.status_province,
+        t1.status_energy,
+        t2.reply_cap replyCap
+        FROM
+        dr_subsidy_appeal t1
+        LEFT JOIN dr_event de ON t1.event_id=de.EVENT_ID
+        LEFT JOIN dr_cons dc ON t1.cons_id = dc.id
+        left join dr_cons_evaluation t2 on t2.evaluation_id=t1.evaluation_id
+        WHERE
+        t1.id=#{consInvitationParam.drSubsidyAppealId}
+    </select>
+
+    <select id="getCustPlan" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        SELECT PLAN_ID           as planId,
+               CUST_ID           as custId,
+               sum(CONTRACT_CAP) AS contractCap,
+               join_user_type    as joinUserType,
+               baseline_cap_id   as baselineCapId
+        FROM dr_plan_cons
+        where plan_id = #{planId}
+        GROUP BY PLAN_ID,
+                 CUST_ID
+    </select>
+
+    <select id="getPlanConsCount" resultType="Integer" parameterType="com.xqxy.dr.modular.event.param.DeleteConsParam">
+        SELECT count(*)
+        from dr_plan_cons
+        where plan_id = (SELECT PLAN_ID from dr_plan where REGULATE_ID = #{eventId})
+          and IMPLEMENT is null
+    </select>
+
+    <select id="getCustCount" parameterType="java.util.Map" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT
+        b.cust_id as custId,
+        IFNULL(a.count,0) as count
+        FROM
+        (
+        SELECT
+        cust_id as custId,
+        count(*) as count
+        FROM
+        dr_plan_cons
+        WHERE
+        plan_id = ( SELECT PLAN_ID FROM dr_plan WHERE REGULATE_ID = #{map.eventId} )
+        <if test="map.implement!= null and map.implement !='' ">
+            AND IMPLEMENT = #{map.implement}
+        </if>
+        AND cust_id IN (
+        SELECT
+        cust_id
+        FROM
+        dr_cons
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND id IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL UNION
+        SELECT
+        cust_id
+        FROM
+        dr_user_cons_rela
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND cons_no IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL
+        )
+        AND deleted = 'N'
+        AND INVOLVED_IN = 'Y'
+        )a right join( SELECT
+        cust_id
+        FROM
+        dr_cons
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND id IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL UNION
+        SELECT
+        cust_id
+        FROM
+        dr_user_cons_rela
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND cons_no IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL)b on a.custId = b.cust_id
+    </select>
+    <select id="getDeletedCount" parameterType="Map" resultType="com.xqxy.dr.modular.event.entity.PlanCust">
+        SELECT
+        b.cust_id as custId,
+        IFNULL(a.count,0) as count
+        FROM
+        (
+        SELECT
+        cust_id as custId,
+        count(*) as count
+        FROM
+        dr_plan_cons
+        WHERE
+        plan_id = ( SELECT PLAN_ID FROM dr_plan WHERE REGULATE_ID = #{map.eventId} )
+        <if test="map.deleted!= null and map.deleted !='' ">
+            AND deleted = #{map.deleted}
+        </if>
+        AND cust_id IN (
+        SELECT
+        cust_id
+        FROM
+        dr_cons
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND id IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL UNION
+        SELECT
+        cust_id
+        FROM
+        dr_user_cons_rela
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND cons_no IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL
+        )
+        )a right join( SELECT
+        cust_id
+        FROM
+        dr_cons
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND id IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL UNION
+        SELECT
+        cust_id
+        FROM
+        dr_user_cons_rela
+        WHERE 1=1
+        <if test="map.consIdList!= null and map.consIdList.size()>0 ">
+            AND cons_no IN
+            <foreach collection='map.consIdList' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+        AND cust_id IS NOT NULL)b on a.custId = b.cust_id
+    </select>
+
+    <select id="queryConsByEventIdAndCustId" resultType="com.xqxy.dr.modular.event.VO.PlanConsVO">
+        SELECT cons.CONS_ID consId,
+               plan.REGULATE_DATE date
+        FROM
+            dr_plan_cons cons
+            LEFT JOIN dr_plan plan
+        ON cons.PLAN_ID = plan.PLAN_ID
+        WHERE
+            cons.IMPLEMENT = 'Y'
+          AND cons.INVOLVED_IN = 'Y'
+          AND plan.REGULATE_ID = #{eventId}
+          AND cons.CUST_ID = #{custId}
+    </select>
+
+    <select id="queryConsByPlanId" resultType="String" parameterType="Long">
+        SELECT
+            cons.CONS_ID consId
+        FROM
+            dr_plan_cons cons
+        WHERE
+        cons.IMPLEMENT = 'Y' AND cons.INVOLVED_IN = 'Y' AND send_status is null
+        AND cons.plan_id = #{planId}
+    </select>
+
+
+    <!--    本年度需求响应累计执行户次（户次）-->
+    <select id="annualExecutionAccount" resultType="java.lang.Integer">
+        SELECT
+        count(*)
+        FROM
+        dr_plan_cons dpc
+        LEFT JOIN dr_plan dp ON dpc.PLAN_ID = dp.PLAN_ID
+        LEFT JOIN dr_event de ON dp.REGULATE_ID = de.EVENT_ID
+        LEFT JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        <where>
+            de.REGULATE_DATE LIKE concat( YEAR ( now()), '%' )
+            AND de.event_status = '04'
+            AND dpc.IMPLEMENT = 'Y'
+            <if test="orgNoList != null and orgNoList.size > 0">
+                AND dc.ORG_NO in
+                <foreach collection='orgNoList' item='item' open='(' separator=',' close=')'>
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="queryConsInfoByPlanId" resultType="com.xqxy.dr.modular.event.entity.PlanConsVo" parameterType="Long">
+        SELECT
+            cons.CONS_ID consId,
+            IFNULL(cons.DEMAND_CAP,0) as demandCap,
+            b.org_no as orgNo
+        FROM
+            dr_plan_cons cons
+            LEFT JOIN dr_cons b on cons.cons_id = b.id
+        WHERE
+        cons.IMPLEMENT = 'Y' AND cons.INVOLVED_IN = 'Y'
+        AND cons.plan_id = #{planId}
+    </select>
+
+    <select id="getPlanConsInfoByPlanId" resultType="com.xqxy.dr.modular.event.entity.PlanConsVo">
+        SELECT
+        a.cons_id as consId,
+        c.cons_name as consName,
+        b.baseline_id as baselineId,
+        a.DEMAND_CAP as demandCap,
+        a.CONTRACT_CAP as demandSingCap,
+        c.ORG_NO as orgId
+        FROM
+        dr_plan_cons a
+        LEFT JOIN dr_cons_baseline_all b ON a.CONS_ID = b.cons_id and b.baseline_lib_id = #{baselineId}
+        LEFT JOIN dr_cons c ON c.id = a.CONS_ID
+        where a.PLAN_ID=#{planId}
+        <if test="consIds!= null and consIds.size()>0 ">
+            AND a.cons_id IN
+            <foreach collection='consIds' item='item' index='index' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getBaselineSendCount" parameterType="Long" resultType="Integer">
+            select count(partic_id) from dr_plan_cons where IMPLEMENT = 'Y' and
+            INVOLVED_IN = 'Y' and send_status ='1' and plan_id =
+            (select plan_id from dr_plan where regulate_id = #{eventId})
+    </select>
+
+    <update id="updateSendStatus" parameterType="com.xqxy.dr.modular.event.entity.PlanConsVo">
+        <foreach collection="planList" item="item" index="index" open="" close="" separator=";">
+            update dr_plan_cons set send_status= '1'
+            where
+            plan_id = #{item.planId} and cons_id = #{item.consId}
+        </foreach>
+    </update>
+
+    <select id="getCityTarget" resultType="com.xqxy.dr.modular.baseline.entity.CityTargetSend" parameterType="Long">
+        SELECT a.stregy_id AS planNo,
+               a.stregy_id AS planName,
+               b.org_id      AS orgId,
+               b.goal        AS regulateCap,
+               b.org_name    AS orgName
+        FROM dr_demand a left join dr_org_demand b on a.REGULATE_ID = b.REGULATE_ID
+        WHERE b.REGULATE_ID = #{regulateId}
+    </select>
+    <!--    需求响应计划客户明细表——————————日前邀约削峰-->
+    <select id="daysAgoScheduleOfCustomers" resultType="com.xqxy.executor.entity.ScheduleOfCustomers">
+        SELECT de.EVENT_ID       eventId,
+               dpc.CONS_ID       consNo,
+               dpc.CONTRACT_CAP  contractedLoad,
+               dpc.DEMAND_CAP    responseLoad,
+               de.EVENT_NAME     eventName,
+               dc.BIG_TRADE_CODE classification
+        FROM dr_plan_cons dpc
+                 LEFT JOIN dr_plan dp ON dpc.PLAN_ID = dp.PLAN_ID
+                 LEFT JOIN dr_event de ON dp.REGULATE_ID = de.EVENT_ID
+                 LEFT JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        WHERE de.event_status = '03'
+          AND de.CREATE_TIME LIKE concat(#{date}, '%')
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '1'
+          AND dpc.IMPLEMENT = 'Y'
+          AND de.event_id = #{eventId}
+    </select>
+    <!--    需求响应计划客户明细表——————————日内邀约削峰-->
+    <select id="intradayScheduleOfCustomers" resultType="com.xqxy.executor.entity.ScheduleOfCustomers">
+        SELECT de.EVENT_ID       eventId,
+               dpc.CONS_ID       consNo,
+               dpc.CONTRACT_CAP  contractedLoad,
+               dpc.DEMAND_CAP    responseLoad,
+               de.EVENT_NAME     eventName,
+               dc.BIG_TRADE_CODE classification
+        FROM dr_plan_cons dpc
+                 LEFT JOIN dr_plan dp ON dpc.PLAN_ID = dp.PLAN_ID
+                 LEFT JOIN dr_event de ON dp.REGULATE_ID = de.EVENT_ID
+                 LEFT JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        WHERE de.event_status = '03'
+          AND de.REGULATE_DATE = date (NOW())
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '2'
+          AND dpc.IMPLEMENT = 'Y'
+          AND de.event_id=#{eventId}
+    </select>
+    <!--    需求响应计划客户明细表——————————实时邀约削峰-->
+    <select id="realTimeScheduleOfCustomers" resultType="com.xqxy.executor.entity.ScheduleOfCustomers">
+        SELECT de.EVENT_ID       eventId,
+               dpc.CONS_ID       consNo,
+               dpc.CONTRACT_CAP  contractedLoad,
+               dpc.DEMAND_CAP    responseLoad,
+               de.EVENT_NAME     eventName,
+               dc.BIG_TRADE_CODE classification
+        FROM dr_plan_cons dpc
+                 LEFT JOIN dr_plan dp ON dpc.PLAN_ID = dp.PLAN_ID
+                 LEFT JOIN dr_event de ON dp.REGULATE_ID = de.EVENT_ID
+                 LEFT JOIN dr_cons dc ON dpc.CONS_ID = dc.ID
+        WHERE de.event_status = '03'
+          AND de.REGULATE_DATE = date (NOW())
+          AND de.RESPONSE_TYPE = '1'
+          AND de.TIME_TYPE = '1'
+          AND de.advance_notice_time = '3'
+          AND dpc.IMPLEMENT = 'Y'
+          AND de.event_id=#{eventId}
+    </select>
+
+    <select id="getSumDemandCapByPlanId" resultType="java.math.BigDecimal">
+        SELECT sum(a.demand_cap)
+        FROM dr_plan_cons a
+        LEFT JOIN dr_cons b on a.cons_id = b.id
+        WHERE a.INVOLVED_IN = 'Y' AND a.IMPLEMENT = 'Y'
+        AND a.PLAN_ID = #{planId}
+        <if test="orgs != null and orgs.size > 0">
+            AND b.ORG_NO in
+            <foreach collection='orgs' item='item' open='(' separator=',' close=')'>
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="pageConsExecute" resultType="com.xqxy.dr.modular.event.entity.PlanCons">
+        planCons.*,
+        cons.cons_name,
+        cons.org_name,
+        cons.org_no,
+        cons.first_contact_name,
+        execut.baseline_cap avgBaselineCap,
+        execut.max_load_baseline maxBaselineCap,
+        execut.reply_cap replyCap,
+        execut.execute_time executeTime,
+        execut.execute_cap executeCap,
+        execut.execute_rate executeRate,
+        execut.real_time_cap realTimeCap,
+        execut.is_out isOut,
+        execut.is_qualified isQualified
+        planCons.*,
+        cons.cons_name,
+        cons.org_name,
+        cons.org_no,
+        cons.first_contact_name,
+        cons.ELEC_ADDR elecAddr,
+        execut.baseline_cap baselineCap,
+        execut.max_load_baseline maxBaselineCap,
+        execut.reply_cap replyCap,
+        execut.execute_time executeTime,
+        execut.execute_cap executeCap,
+        execut.execute_rate * 100 executeRate,
+        execut.real_time_cap realTimeCap,
+        execut.is_out isOut,
+        execut.is_qualified isQualified
+        FROM
+        dr_cons cons,
+        (SELECT * FROM dr_plan_cons WHERE INVOLVED_IN = "Y" and IMPLEMENT = "Y" AND plan_id = #{planConsParam.planId})
+        planCons,
+        (SELECT * FROM dr_event_execute WHERE event_id = #{planConsParam.eventId} AND execute_time =
+        #{planConsParam.executeTime}) execut
+        WHERE
+        planCons.cons_id = cons.id
+        AND cons.id = execut.cons_id
+        <if test="planConsParam.consId != null and planConsParam.consId != ''">
+            and planCons.cons_id like CONCAT('%',#{planConsParam.consId},'%')
+        </if>
+        <if test="planConsParam.consName != null and planConsParam.consName != ''">
+            and cons.cons_name like CONCAT('%',#{planConsParam.consName},'%')
+        </if>
+        <if test="planConsParam.isOut != null and planConsParam.isOut != ''">
+            and execut.is_out = #{planConsParam.isOut}
+        </if>
+        <if test="planConsParam.isQualified != null and planConsParam.isQualified != ''">
+            and execut.is_qualified = #{planConsParam.isQualified}
+        </if>
+        <if test="planConsParam.provinceCode != null and planConsParam.provinceCode != ''">
+            and planCons.PROVINCE_CODE = #{planConsParam.provinceCode}
+        </if>
+        <if test="planConsParam.cityCode != null and planConsParam.cityCode != ''">
+            and planCons.city_code = #{planConsParam.cityCode}
+        </if>
+        <if test="planConsParam.countryCode != null and planConsParam.countryCode != ''">
+            and planCons.country_code = #{planConsParam.countryCode}
+        </if>
+        <if test="planConsParam.orgNos != null">
+            and cons.ORG_NO in
+            <foreach collection="orgNos" item="item" open="(" separator="," close=")">
+                ${item}
+            </foreach>
+        </if>
+
+        <if test="planConsParam.sortColumn == 'demandCap' ">
+            order by planCons.demand_cap ${planConsParam.order}
+        </if>
+        <if test="planConsParam.sortColumn == 'executeRate' ">
+            order by execut.execute_rate ${planConsParam.order}
+        </if>
+    </select>
+
+</mapper>

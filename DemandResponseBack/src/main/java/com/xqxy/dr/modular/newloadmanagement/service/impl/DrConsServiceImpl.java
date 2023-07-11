@@ -1,0 +1,126 @@
+package com.xqxy.dr.modular.newloadmanagement.service.impl;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
+import com.xqxy.core.client.SystemClient;
+import com.xqxy.core.client.SystemClientService;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.device.entity.SysOrgs;
+import com.xqxy.dr.modular.event.entity.Event;
+import com.xqxy.dr.modular.newloadmanagement.param.ComprehensiveIndicatorsParam;
+import com.xqxy.dr.modular.newloadmanagement.service.DrConsService;
+import com.xqxy.sys.modular.utils.JSONObjectToEntityUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
+@Service
+@Slf4j
+public class DrConsServiceImpl implements DrConsService {
+
+
+    @Autowired
+    private SystemClientService systemClientService;
+
+    @Autowired
+    private SystemClient systemClient;
+
+
+    @Override
+    public Map getOrgId(ComprehensiveIndicatorsParam comprehensiveIndicatorsParam) {
+        Map map = new HashMap<>();
+        List<String> data = null;
+        List<SysOrgs> orgsList=null;
+        List<SysOrgs> provinceOrgsList=null;
+        if(comprehensiveIndicatorsParam.getOrgId() == null){
+            List<SysOrgs> list = new ArrayList<>();
+            List<SysOrgs> listProvince = new ArrayList<>();
+            JSONObject result = systemClient.queryAllOrg();
+            if("000000".equals(result.getString("code"))){
+                JSONArray datas = result.getJSONArray("data");
+                if(null!=datas && datas.size()>0){
+                    for (Object obj : datas) {
+                        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(obj);
+                        SysOrgs sysOrgs = JSONObjectToEntityUtils.JSONObjectToSysOrg(jsonObject);
+                        list.add(sysOrgs);
+                        listProvince.add(sysOrgs);
+                    }
+                }
+                orgsList = list.stream().filter(s -> "2".equals(s.getOrgTitle())).collect(Collectors.toList());
+                provinceOrgsList = listProvince.stream().filter(s -> "1".equals(s.getOrgTitle())).collect(Collectors.toList());
+            }
+
+
+
+            List<String> ids = new ArrayList<>();
+            if(ObjectUtils.isNotEmpty(orgsList) && orgsList.size()>0){
+                orgsList.forEach(s->ids.add(s.getId()));
+            }
+            ids.add(provinceOrgsList.get(0).getId());
+
+            for (String id : ids) {
+                ResponseData<List<String>> allNextOrgId = systemClientService.getAllNextOrgId(id);
+                data = allNextOrgId.getData();
+                map.put(id,data);
+            }
+        }else {
+            ResponseData<List<String>> allNextOrgId = systemClientService.getAllNextOrgId(comprehensiveIndicatorsParam.getOrgId());
+            data = allNextOrgId.getData();
+            map.put(comprehensiveIndicatorsParam.getOrgId(),data);
+        }
+        return map;
+    }
+
+    @Override
+    public Map getOrgId2(Event event) {
+        Map map = new HashMap<>();
+        List<String> data = null;
+        List<SysOrgs> orgsList=null;
+        List<SysOrgs> provinceOrgsList=null;
+        if(event.getOrgId() == null){
+            List<SysOrgs> list = new ArrayList<>();
+            List<SysOrgs> listProvince = new ArrayList<>();
+            JSONObject result = systemClient.queryAllOrg();
+            if("000000".equals(result.getString("code"))){
+                JSONArray datas = result.getJSONArray("data");
+                if(null!=datas && datas.size()>0){
+                    for (Object obj : datas) {
+                        JSONObject jsonObject = (JSONObject) JSONObject.toJSON(obj);
+                        SysOrgs sysOrgs = JSONObjectToEntityUtils.JSONObjectToSysOrg(jsonObject);
+                        list.add(sysOrgs);
+                        listProvince.add(sysOrgs);
+                    }
+                }
+                orgsList = list.stream().filter(s -> "2".equals(s.getOrgTitle())).collect(Collectors.toList());
+                provinceOrgsList = listProvince.stream().filter(s -> "1".equals(s.getOrgTitle())).collect(Collectors.toList());
+            }
+
+
+
+            List<String> ids = new ArrayList<>();
+            if(ObjectUtils.isNotEmpty(orgsList) && orgsList.size()>0){
+                orgsList.forEach(s->ids.add(s.getId()));
+            }
+            ids.add(provinceOrgsList.get(0).getId());
+
+            for (String id : ids) {
+                ResponseData<List<String>> allNextOrgId = systemClientService.getAllNextOrgId(id);
+                data = allNextOrgId.getData();
+                map.put(id,data);
+            }
+        }else {
+            ResponseData<List<String>> allNextOrgId = systemClientService.getAllNextOrgId(event.getOrgId());
+            data = allNextOrgId.getData();
+            map.put(event.getOrgId(),data);
+        }
+        return map;
+    }
+}

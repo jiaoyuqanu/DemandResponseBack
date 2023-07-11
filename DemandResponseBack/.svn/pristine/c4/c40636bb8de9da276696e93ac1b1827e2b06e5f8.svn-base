@@ -1,0 +1,50 @@
+package com.xqxy.sys.modular.sms.enums;
+
+import com.xqxy.core.exception.ServiceException;
+import lombok.Getter;
+
+/**
+ * 短信模板类型
+ */
+@Getter
+public enum SmsTemplateTypeEnum {
+
+    REGISTER_RESULT_SUCCESS("01", "认证审核通过通知"),
+    REGISTER_RESULT_FAILED("02", "认证审核不通过通知"),
+    DECLARE_RESULT_SUCCESS("03", "申报审核通过通知"),
+    DECLARE_RESULT_FAILED("04", "申报审核不通过"),
+    DECLARE_NOTICE("05", "申报公示"),
+    INVITATION_NOTICE_ONCE("06", "一次邀约通知"),
+    INVITATION_NOTICE_TWICE("07", "二次邀约通知"),
+    RESULT_NOTICE("08", "邀约结果确认"),
+    INVITE_NOTICE_AGGREGATE("09", "日前邀约结果集成商通知"),
+    NOT_PARTICIPATE_EVENT("10", "不参与邀约事件"),
+    EVENT_MESSAGE("11", "事件启动短信"),
+    EVENT_MESSAGE_CANCEL("12", "事件取消提醒短信"),
+    SUBSIDY_NOTICE("13", "补贴公示"),
+    EXECUTE_SCHEME("14", "日内执行通知"),
+    INVITATION_DEADLINE("15", "邀约截止短信"),
+    INVITATION_PRE_NOTICE("16", "邀约提前通知短信"),
+    INVITATION_DAY_CULL("17", "日前应邀剔除短信"),
+    EVENT_COMMON("18", "通用短信");
+
+
+    private final String code;
+
+    private final String message;
+
+    SmsTemplateTypeEnum(String code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    // 让枚举实现变量常量化
+    public static SmsTemplateTypeEnum get(String code) {
+        for (SmsTemplateTypeEnum smsTemplateTypeEnum : SmsTemplateTypeEnum.values()) {
+            if (code.equals(smsTemplateTypeEnum.getCode())) {
+                return smsTemplateTypeEnum;
+            }
+        }
+        throw new ServiceException(SmsTemplateException.TEMPLATE_NOT_EXIST);
+    }
+}

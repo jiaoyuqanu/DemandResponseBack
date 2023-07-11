@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.sys.modular.cust.mapper.CustMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.sys.modular.cust.entity.Cust">
+        <id column="ID" property="id" />
+        <result column="tel" property="tel" />
+        <result column="CREDIT_CODE" property="creditCode" />
+        <result column="integrator" property="integrator" />
+        <result column="legal_name" property="legalName" />
+        <result column="legal_no" property="legalNo" />
+        <result column="legal_card_type" property="legalCardType" />
+        <result column="apply_no" property="applyNo" />
+        <result column="apply_card_type" property="applyCardType" />
+        <result column="apply_name" property="applyName" />
+        <result column="CUST_NO" property="custNo" />
+        <result column="CUST_NAME" property="custName" />
+        <result column="PROVINCE_CODE" property="provinceCode" />
+        <result column="CITY_CODE" property="cityCode" />
+        <result column="COUNTY_CODE" property="countyCode" />
+        <result column="STREET_CODE" property="streetCode" />
+        <result column="CUST_ADDR" property="custAddr" />
+        <result column="check_status" property="checkStatus" />
+        <result column="state" property="state" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID, tel, CREDIT_CODE, integrator, legal_name, legal_no, legal_card_type, apply_no, apply_card_type, apply_name, CUST_NO, CUST_NAME, PROVINCE_CODE, CITY_CODE, COUNTY_CODE, STREET_CODE, CUST_ADDR, check_status, state, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+    <select id="getAggreListByConsId" resultType="java.lang.Long">
+        SELECT
+            cu.id
+        FROM
+            dr_cust cu
+            LEFT JOIN dr_user_cons_rela uc ON cu.id = uc.cons_no
+            LEFT JOIN dr_cons c ON uc.cons_no = c.ID
+            where 1 = 1
+        <if test="consIdList != null and consIdList.size > 0">
+            AND c.id in
+            <foreach collection="consIdList" index="index" item="consId" open="(" separator="," close=")">
+                #{consId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getAggregatorByCust" resultType="com.xqxy.sys.modular.cust.entity.Cust">
+        SELECT
+            *
+        FROM
+            dr_cust
+        WHERE
+            ID IN
+        (
+        SELECT
+            rela.cust_id
+        FROM
+            dr_cons cons
+            LEFT JOIN dr_user_cons_rela rela ON cons.ID = rela.cons_no
+        WHERE
+            cons.CUST_ID = #{custId}
+        )
+    </select>
+
+    <select id="getWorkUserDetail" resultType="hashmap">
+        SELECT count(0)                                             AS yearTotal,
+               count(CASE WHEN integrator = 1 THEN 1 ELSE NULL END) AS integratorSize
+        FROM dr_cust
+        WHERE CITY_CODE = #{org};
+        and  DATE_FORMAT(`CREATE_TIME`,'%Y') =
+        #{year}
+    </select>
+    <!--    负荷聚合商数量（户) -->
+    <select id="custCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM dr_cust
+        WHERE integrator = '1'
+          AND state = '2'
+    </select>
+
+    <select id="getCustByConsId" resultType="com.xqxy.sys.modular.cust.entity.Cust" parameterType="String">
+        select cust_id as id from dr_cons where id = #{consId}
+        union all
+        select cust_id as id from dr_user_cons_rela
+        where cons_no = #{consId}
+    </select>
+
+</mapper>

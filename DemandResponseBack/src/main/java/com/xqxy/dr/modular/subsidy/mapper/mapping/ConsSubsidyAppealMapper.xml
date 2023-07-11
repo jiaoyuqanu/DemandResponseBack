@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.subsidy.mapper.ConsSubsidyAppealMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.subsidy.entity.ConsSubsidyAppeal">
+        <id column="subsidy_id" property="subsidyId"/>
+        <result column="CONS_ID" property="consId"/>
+        <result column="EVENT_ID" property="eventId"/>
+        <result column="actual_cap" property="actualCap"/>
+        <result column="actual_energy" property="actualEnergy"/>
+        <result column="CONTRACT_PRICE" property="contractPrice"/>
+        <result column="subsidy_amount" property="subsidyAmount"/>
+        <result column="settled_amount" property="settledAmount"/>
+        <result column="time_coefficient" property="timeCoefficient"/>
+        <result column="rate_coefficient" property="rateCoefficient"/>
+        <result column="remark" property="remark"/>
+        <result column="cal_rule" property="calRule"/>
+        <result column="CREATE_TIME" property="createTime"/>
+        <result column="CREATE_USER" property="createUser"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="UPDATE_USER" property="updateUser"/>
+
+        <result column="extract_ratio" property="extractRatio"/>
+
+        <association property="event" javaType="com.xqxy.dr.modular.event.entity.Event">
+            <result column="event_name" property="eventName"/>
+            <result column="start_time" property="startTime"/>
+            <result column="end_time" property="endTime"/>
+            <result column="EVENT_NO" property="eventNo"/>
+        </association>
+
+        <association property="consEvaluation" javaType="com.xqxy.dr.modular.evaluation.entity.ConsEvaluation">
+            <result column="is_effective" property="isEffective"/>
+            <result column="reply_cap" property="replyCap"/>
+            <result column="invitation_cap" property="invitationCap"/>
+            <result column="actual_cap" property="actualCap"/>
+            <result column="confirm_cap" property="confirmCap"/>
+        </association>
+
+        <association property="cons" javaType="com.xqxy.sys.modular.cust.entity.Cons">
+            <result column="cons_name" property="consName"/>
+            <result column="org_no" property="orgNo"/>
+            <result column="org_name" property="orgName"/>
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        subsidy_id
+        , CONS_ID, EVENT_ID, actual_cap, actual_energy, CONTRACT_PRICE, subsidy_amount, settled_amount, remark, cal_rule, CREATE_TIME, CREATE_USER, UPDATE_TIME, UPDATE_USER
+    </sql>
+
+
+</mapper>

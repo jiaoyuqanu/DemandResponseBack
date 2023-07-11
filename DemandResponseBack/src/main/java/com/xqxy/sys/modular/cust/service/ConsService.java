@@ -1,0 +1,272 @@
+package com.xqxy.sys.modular.cust.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.xqxy.core.pojo.response.ResponseData;
+import com.xqxy.dr.modular.data.entity.ConsCurve;
+import com.xqxy.dr.modular.data.param.ConsAndDate;
+import com.xqxy.dr.modular.data.param.WorkUserParam;
+import com.xqxy.dr.modular.data.result.WorkUserStatsResult;
+import com.xqxy.dr.modular.project.entity.Project;
+import com.xqxy.sys.modular.cust.entity.Cons;
+import com.xqxy.sys.modular.cust.entity.export.ExportCons;
+import com.xqxy.sys.modular.cust.param.ConsParam;
+import com.xqxy.sys.modular.cust.param.CustParam;
+import com.xqxy.sys.modular.cust.result.ConsMonitor;
+import com.xqxy.sys.modular.cust.result.StatisticsByTypeResult;
+import com.xqxy.sys.modular.dict.entity.DictData;
+import org.aspectj.apache.bcel.classfile.Module;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 系统用户service接口
+ *
+ * @author shi
+ * @date 2021/10/8 16:49
+ */
+public interface ConsService extends IService<Cons> {
+    /**
+     * 分页查询
+     * @param consParam
+     * @return
+     * @author shi
+     * @date 2021-10-11
+     */
+    Page<Cons> page(ConsParam consParam);
+
+
+    List<Cons> list(ConsParam consParam);
+
+    Cons detail(String consId);
+
+    void edit(Cons cons);
+
+    /**
+     * 户号管理分页
+     *
+     * @param consParam 用户参数
+     * @return com.baomidou.mybatisplus.extension.plugins.pagination.Page<com.xqxy.sys.modular.cust.entity.Cons>
+     * @date 10/21/2021 9:02
+     * @author Caoj
+     */
+    Page<Cons> pageConsList(ConsParam consParam);
+
+    /**
+     * 根据consId查看签约的项目
+     *
+     * @param consParam 用户参数
+     * @return com.xqxy.sys.modular.cust.entity.ConsDeclare
+     * @date 10/13/2021 10:17
+     * @author Caoj
+     */
+    Page<Project> listDeclareDetail(ConsParam consParam);
+
+    /**
+     * 修改用户信息
+     * 2021/1/26修改：由只修改第一联系人方式改为，除户号外其他都能修改
+     * @param cons 用户参数
+     * @create 10/13/2021 14:32
+     * @author Caoj
+     */
+    void updateFirstContact(Cons cons);
+
+   /**
+    * 添加户号
+    * @param cons 用户实体类
+    * @date 10/18/2021 20:15
+    * @author Caoj
+    */
+    void add(Cons cons);
+
+    /**
+     * <pre>用户档案删除
+     * 修改接口：删除客户记录，并删除代理或绑定的户号
+     * 修改时间：2022/1/19</pre>
+     * @date 12/24/2021 20:15
+     * @author shi
+     */
+    ResponseData delete(String id, Integer integrator);
+
+    /**
+     * 删除户号
+     *
+     * @param consParam 必须传id(户号标识)
+     * @date 10/26/2021 9:24
+     * @author Caoj
+     */
+    void deleteCons(ConsParam consParam);
+
+    /**
+     * 根据账号获取用户户号
+     * @return
+     * @author shen
+     * @date 2021-10-21 10:53
+     */
+    List<Map<String, Object>> consByCustList();
+
+    /**
+     * 根据当前登录账号获取用户户号
+     * @return
+     * @author shi
+     * @date 2021-10-22 13:53
+     */
+    List<String> getConsIdByCust();
+
+    List<Map<String,Object>> getConsIdAndNameByCust();
+
+    /**
+     * 根据账号获取用户户号
+     * @return
+     * @author shi
+     * @date 2021-11-24 13:53
+     */
+    List<String> getConsIdListByCust(Long custId);
+
+    /**
+     * @description: 用户采集监测用户历史负荷(分页)
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/13 9:16
+     */
+   Page<Cons> getHistoricalCurve(ConsAndDate consAndDate);
+
+    /**
+     * 用户采集监测用户历史负荷（不分页）
+     * @param consAndDate
+     * @return
+     */
+   List<Cons> getTrueTimeOrHistoryCurveList(ConsAndDate consAndDate);
+
+    /**
+     * @description: 用户实时负荷
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/10/26 15:39
+     */
+    Page<Cons> getTodayConsCurve(ConsAndDate consAndDate);
+
+    /**
+     * @description: 电量采集监测
+     * @param:
+     * @return:
+     * @author: PengChuqing
+     * @date: 2021/6/21 21:54
+     */
+   Page<Cons> energyMonitorList(ConsAndDate consAndDate);
+
+   /**
+    * 查询代理用户详情
+    *
+    * @param consParam 需要consId获取户号
+    * @return com.baomidou.mybatisplus.extension.plugins.pagination.Page<com.xqxy.sys.modular.cust.entity.Cons>
+    * @date 11/12/2021 14:53
+    * @author Caoj
+    */
+    Cons proxyUserDetail(ConsParam consParam);
+
+    ConsCurve getConsCurveByConsAndDate(ConsAndDate consAndDate);
+
+
+    /**
+     * <pre>用户监测
+     * 接口修改：添加数据权限，修改时间： 2022/2/18</pre>
+     *
+     * @param consParam 用户参数
+     * @return com.baomidou.mybatisplus.extension.plugins.pagination.Page<com.xqxy.sys.modular.cust.result.ConsMonitor>
+     * @author shi
+     * @date 2021/11/9 21:54
+     */
+    Page<ConsMonitor> consMonitor(ConsParam consParam);
+
+    /**
+     * @description: 按照用户类型统计用户地区分布情况
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/10 21:54
+     */
+    List<StatisticsByTypeResult>statisticsByType();
+
+    /**
+     * @description: 按照用户类型统计用户地区分布情况明细
+     * @param:
+     * @return:
+     * @author: shi
+     * @date: 2021/11/11 10:54
+     */
+    Page<Cons> statisticsByTypeDetail(ConsParam consParam);
+
+    void  addCons(Cons cons);
+
+
+
+    /**
+     * 根据custId 获取对应的cons集合
+     * @author lqr
+     * @return
+     */
+    List<Cons> getConsListByCust(Cons cons);
+
+    /**
+     * 根据orgNo 获取对应的上级树
+     * @author lqr
+     * @return
+     */
+    List<String> listOrgByChildId(String orgNo);
+
+    /**
+     * 根据custId 获取户号详情分页
+     * @author shi
+     * @return
+     */
+    Page<Cons> getConsPageByCustId(CustParam custParam);
+
+    /**
+     * 根据custId 获取户号详情分页
+     * @author shi
+     * @return
+     */
+    Page<Cons> getConsPageAll(CustParam custParam);
+
+
+    /**
+     * 查询全量用电用户
+     * @param custParam
+     * @return
+     */
+    List<Cons> getAllCons(CustParam custParam);
+
+
+
+    /**
+     * 按CustId查询用电用户 （与getConsListByCust不同？）
+     * @param custParam
+     * @return
+     */
+    List<Cons> getConsListByCustId(CustParam custParam);
+
+    /**
+     * 根据custId 获取户号详情分页
+     * @author shi
+     * @return
+     */
+    List<String> getConsIdlistByCustId(CustParam custParam);
+
+    List<Cons> getConInfo();
+
+    WorkUserStatsResult getWorkUserDetail(WorkUserParam workUserParam);
+
+
+    /**
+     * 各地市用户类型统计 --- 签约数据 -- 明细
+     * @param consParam
+     * @return
+     */
+    Page<Cons> consStatisticsDetail(ConsParam consParam);
+
+}

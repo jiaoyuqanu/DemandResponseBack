@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.upload.mapper.EvluateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.upload.entity.Event">
+        <id column="EVENT_ID" property="eventId" />
+        <result column="REGULATE_ID" property="regulateId" />
+        <result column="PROJECT_ID" property="projectId" />
+        <result column="EVENT_NO" property="eventNo" />
+        <result column="EVENT_NAME" property="eventName" />
+        <result column="RESPONSE_TYPE" property="responseType" />
+        <result column="TIME_TYPE" property="timeType" />
+        <result column="RANGE_TYPE" property="rangeType" />
+        <result column="REGULATE_RANGE" property="regulateRange" />
+        <result column="REGULATE_CAP" property="regulateCap" />
+        <result column="REGULATE_DATE" property="regulateDate" />
+        <result column="START_TIME" property="startTime" />
+        <result column="END_TIME" property="endTime" />
+        <result column="advance_notice_time" property="advanceNoticeTime" />
+        <result column="event_status" property="eventStatus" />
+        <result column="check_status" property="checkStatus" />
+        <result column="PARTICI_CONDITION" property="particiCondition" />
+        <result column="INCENTIVE_STANDARD" property="incentiveStandard" />
+        <result column="VALIDITY_JUDGMENT" property="validityJudgment" />
+        <result column="BASE_LINE_CAL" property="baseLineCal" />
+        <association property="Subsidy" javaType="com.xqxy.dr.modular.upload.entity.ConsSubsidy">
+            <result column="subsidy_id" property="subsidyId"></result>
+            <result column="CONS_ID" property="consId"></result>
+            <result column="EVENT_ID" property="eventId"></result>
+            <result column="actual_cap" property="actualCap"></result>
+            <result column="actual_energy" property="actualEnergy"></result>
+            <result column="CONTRACT_PRICE" property="contractPrice"></result>
+            <result column="subsidy_amount" property="subsidyAmount"></result>
+            <result column="cal_rule" property="calRule"></result>
+            <result column="CREATE_TIME" property="createTime"></result>
+            <result column="CREATE_USER" property="createUser"></result>
+            <result column="UPDATE_TIME" property="updateTime"></result>
+            <result column="UPDATE_USER" property="updateUser"></result>
+            <result column="remark" property="remark"></result>
+            <result column="settled_amount" property="settledAmount"></result>
+        </association>
+        <association property="Invition" javaType="com.xqxy.dr.modular.upload.entity.ConsInvitation">
+            <result column="invitation_id" property="invitationId"></result>
+            <result column="CONS_ID" property="consId"></result>
+            <result column="EVENT_ID" property="eventId"></result>
+            <result column="baseline_cap_id" property="baselineCapId"></result>
+            <result column="invitation_time" property="invitationTime"></result>
+            <result column="invitation_cap" property="invitationCap"></result>
+            <result column="invitation_round" property="invitationRound"></result>
+            <result column="invitation_no" property="invitationNo"></result>
+            <result column="deadline_time" property="deadlineTime"></result>
+            <result column="is_participate" property="isParticipate"></result>
+            <result column="reply_cap" property="replyCap"></result>
+            <result column="reply_price" property="replyPrice"></result>
+            <result column="reply_time" property="replyTime"></result>
+            <result column="reply_source" property="replySource"></result>
+        </association>
+        <association property="Evluation" javaType="com.xqxy.dr.modular.upload.entity.Consevaluation">
+            <result column="evaluation_id" property="evaluationId"></result>
+            <result column="EVENT_ID" property="eventId"></result>
+            <result column="CONS_ID" property="consId"></result>
+            <result column="invitation_cap" property="invitationCap"></result>
+            <result column="reply_cap" property="replyCap"></result>
+            <result column="max_load_baseline" property="maxLoadBaseline"></result>
+            <result column="min_load_baseline" property="minLoadBaseline"></result>
+            <result column="avg_load_baseline" property="avgLoadBaseline"></result>
+            <result column="max_load_actual" property="maxLoadActual"></result>
+            <result column="min_load_actual" property="minLoadActual"></result>
+            <result column="avg_load_actual" property="avgLoadActual"></result>
+            <result column="actual_cap" property="actualCap"></result>
+            <result column="actual_energy" property="actualEnergy"></result>
+            <result column="confirm_cap" property="confirmCap"></result>
+            <result column="is_effective" property="isEffective"></result>
+            <result column="effective_time" property="effectiveTime"></result>
+            <result column="is_qualified" property="isQualified"></result>
+            <result column="is_out" property="isOut"></result>
+            <result column="CREATE_TIME" property="createTime"></result>
+            <result column="CREATE_USER" property="createUser"></result>
+            <result column="UPDATE_TIME" property="updateTime"></result>
+            <result column="UPDATE_USER" property="updateUser"></result>
+        </association>
+    </resultMap>
+
+
+    <select id="getEvluate" resultType="com.xqxy.dr.modular.upload.entity.Event">
+       SELECT
+       dr_cons_subsidy.CONTRACT_PRICE,
+       dr_cons_subsidy.subsidy_amount,
+       dr_cons_subsidy.actual_cap,
+       dr_cons_invitation.invitation_cap,
+       dr_event.EVENT_ID,
+       dr_cons_evaluation.evaluation_id
+       FROM dr_event
+       LEFT JOIN dr_cons_subsidy on dr_event.EVENT_ID=dr_cons_subsidy.EVENT_ID
+       LEFT JOIN dr_cons_invitation on dr_event.EVENT_ID=dr_cons_invitation.EVENT_ID
+       LEFT JOIN dr_cons_evaluation on dr_event.EVENT_ID=dr_cons_evaluation.EVENT_ID
+    </select>
+
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xqxy.dr.modular.statistics.mapper.EventStatisticsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xqxy.dr.modular.statistics.entity.EventStatistics">
+        <id column="id" property="id" />
+        <result column="org_no" property="orgNo" />
+        <result column="goal" property="goal" />
+        <result column="cons_count" property="consCount" />
+        <result column="regulate_date" property="regulateDate" />
+        <result column="actual_cap" property="actualCap" />
+        <result column="actual_energy" property="actualEnergy" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, org_no, goal, cons_count, regulate_date, actual_cap, actual_energy
+    </sql>
+
+</mapper>
